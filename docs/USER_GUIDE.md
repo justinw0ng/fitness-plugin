@@ -212,7 +212,13 @@ Gym notes store sets in a markdown table. Golf notes store reminders under a **R
 
 Open your dashboard or heatmap note. Codeblocks render inside the note reading view.
 
-![Dashboard or heatmap](./images/08-dashboard-or-heatmap.png)
+### `fitness-dashboard`
+
+![fitness-dashboard](./images/fitness-dashboard.png)
+
+### `fitness-heatmap`
+
+![fitness-heatmap](./images/fitness-heatmap.png)
 
 Optional YAML inside a codeblock body:
 
