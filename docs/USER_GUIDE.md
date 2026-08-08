@@ -58,26 +58,28 @@ Local plugins load through the Community plugins system.
 
 ## 4. Install this plugin into the vault
 
-This plugin is installed from source (not yet from the Community Plugin browser).
+This plugin is installed from GitHub Releases (not yet from the Community Plugin browser).
 
-### Option A — Copy build output
+### Option A — Download a release (recommended)
 
-From the plugin repo:
+1. Open the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases).
+2. Download `main.js`, `manifest.json`, and `styles.css`.
+3. Create this folder in your vault (if needed):
+
+```text
+<vault>/.obsidian/plugins/obsidian-fitness/
+```
+
+4. Copy the three files into that folder.
+
+### Option B — Build from source
 
 ```bash
 npm install
 npm run build
 ```
 
-Copy these three files into your vault:
-
-```text
-<vault>/.obsidian/plugins/obsidian-fitness/main.js
-<vault>/.obsidian/plugins/obsidian-fitness/manifest.json
-<vault>/.obsidian/plugins/obsidian-fitness/styles.css
-```
-
-Create the `obsidian-fitness` folder if it does not exist.
+Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/obsidian-fitness/`.
 
 Optional one-shot copy while building:
 
@@ -85,7 +87,7 @@ Optional one-shot copy while building:
 OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/obsidian-fitness npm run build
 ```
 
-### Option B — Symlink (good for development)
+### Option C — Symlink (good for development)
 
 ```bash
 mkdir -p /path/to/vault/.obsidian/plugins
