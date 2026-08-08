@@ -2,7 +2,7 @@
 
 Step-by-step setup for the Obsidian **Fitness** plugin: gym and golf session notes, heatmaps, dashboard, and cue rollup.
 
-Screenshots live in [`docs/images/`](./images/). Most were captured on Linux with Obsidian. `fitness-actions.png` is rendered from the plugin's own `styles.css`. macOS and Windows look the same aside from window chrome.
+Screenshots live in [`docs/images/`](./images/). Most were captured on Linux with Obsidian. `fitness-actions.png` is rendered from the plugin's `styles.css` via [`docs/fixtures/`](./fixtures/) so you can regenerate it without Obsidian. macOS and Windows look the same aside from window chrome.
 
 ---
 
@@ -200,43 +200,49 @@ The fastest way is the quick-create buttons. Add them once to a note you open ev
 
 ### Add the quick-create buttons
 
-1. Open the note where you want the buttons (your daily note or `Fitness/Dashboard.md` from section 7).
-2. Add this codeblock:
+1. Open the note where you want the buttons (your daily note, or `Fitness/Dashboard.md` from section 7).
+2. Add this empty codeblock:
 
+````markdown
 ```fitness-actions
 ```
+````
 
-3. Switch to Reading view.
+3. Switch to Reading view (or Live Preview).
 
-You get two buttons:
+You get two side-by-side buttons:
 
 ![fitness-actions quick-create buttons](./images/fitness-actions.png)
 
-- The block body stays empty. `fitness-actions` takes no options.
-- If you see raw text instead of buttons, see [Troubleshooting](#troubleshooting).
+The block body stays empty. `fitness-actions` takes no options. If you see the raw fence instead of buttons, enable the plugin and use Reading view. See [Troubleshooting](#troubleshooting).
 
 ### Create a gym session
 
 1. Click **🏋️ Gym / 健身**.
-2. Enter the date. The prompt is pre-filled with today (per the Timezone setting in section 6). Press Enter, or type another `YYYY-MM-DD`.
-3. Pick a location: Home, Commercial, Hotel/Travel, or Other. Press Esc to skip. Choosing **Other** asks for a one-line detail.
-4. Pick a weight unit: kg or lb. Press Esc to default to kg.
+2. Confirm or edit the date (`YYYY-MM-DD`). The prompt defaults to today in your Fitness timezone.
+3. Pick a location (**Home**, **Commercial**, **Hotel/Travel**, or **Other**). Press Esc to skip. **Other** asks for a one-line detail.
+4. Pick a weight unit (**kg** or **lb**). Esc defaults to **kg**.
 
-Obsidian creates and opens `Gym/YYYY/YYYY-MM-DD.md` with frontmatter (date, duration, location, unit) and a table for sets. Each row has exercise, muscle, weight, reps, and notes.
+The plugin creates `Gym/YYYY/YYYY-MM-DD.md` and opens it. If that note already exists, it opens the existing file and does not overwrite it.
 
-- If that date's note already exists, the button opens it instead of creating a duplicate. A notice tells you which happened.
+Fill in `duration_min` and the exercise table rows.
 
 ### Create a golf session
 
 1. Click **⛳ Golf / 高爾夫**.
-2. Enter the date the same way as gym. Press Enter for today.
+2. Confirm or edit the date (`YYYY-MM-DD`).
 
-Obsidian creates and opens `Golf/YYYY/YYYY-MM-DD.md` with frontmatter (date, duration, location, focus, club) and a **💡 Reminders / 提醒** heading. Bullets you write under Reminders feed the `fitness-cues` rollup (section 9).
+The plugin creates `Golf/YYYY/YYYY-MM-DD.md` and opens it. If that note already exists, it opens the existing file and does not overwrite it.
 
-### Alternative: command palette
+Fill in `duration_min`, location, focus or club values, and bullets under **Reminders / 提醒**. Those reminders feed the cue rollup.
+
+### From the command palette
+
+The same create-or-open flow is available without the codeblock.
 
 1. Press `Ctrl/Cmd + P`.
-2. Run **Fitness: New gym session** or **Fitness: New golf session**. You get the same prompts as the buttons, with no codeblock needed.
+2. Run **Fitness: New gym session** or **Fitness: New golf session**.
+3. Follow the same date and gym-only prompts as above.
 
 ---
 
