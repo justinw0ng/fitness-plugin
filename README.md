@@ -8,6 +8,6 @@ Obsidian plugin for gym and golf sessions — heatmaps, yearly dashboard, cue ro
 
 ![fitness-dashboard](docs/images/fitness-dashboard.png)
 
-## Heatmap
+## Quick actions, heatmap, and today
 
-![fitness-heatmap](docs/images/fitness-heatmap.png)
+![Quick actions, heatmap, and today's sessions](docs/images/fitness-actions.png)

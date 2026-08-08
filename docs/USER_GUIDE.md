@@ -160,15 +160,15 @@ year: 2026
 ```fitness-dashboard
 year: 2026
 ```
-
-```fitness-actions
-```
 ````
 
 ### Heatmap note example
 
 ````markdown
 # Heatmaps
+
+```fitness-actions
+```
 
 ```fitness-heatmap
 year: 2026
@@ -203,6 +203,8 @@ year: 2026
 ### From the actions codeblock
 
 Put `fitness-actions` on a note and use the buttons.
+
+![fitness-actions](./images/fitness-actions.png)
 
 Gym notes store sets in a markdown table. Golf notes store reminders under a **Reminders** heading; those feed the cue rollup.
 
