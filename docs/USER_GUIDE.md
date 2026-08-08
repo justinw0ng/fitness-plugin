@@ -2,7 +2,7 @@
 
 Step-by-step setup for the Obsidian **Fitness** plugin: gym and golf session notes, heatmaps, dashboard, and cue rollup.
 
-Screenshots live in [`docs/images/`](./images/). They were captured on Linux with Obsidian; macOS and Windows look the same aside from window chrome.
+Screenshots live in [`docs/images/`](./images/). They were captured on Linux with Obsidian in dark mode; macOS and Windows look the same aside from window chrome.
 
 ---
 
