@@ -79,4 +79,16 @@ writeJson("package.json", pkg);
 writeJson("manifest.json", manifest);
 writeJson("versions.json", versions);
 
+// Keep package-lock.json root version in sync when present.
+try {
+  const lock = readJson("package-lock.json");
+  lock.version = next;
+  if (lock.packages && lock.packages[""]) {
+    lock.packages[""].version = next;
+  }
+  writeJson("package-lock.json", lock);
+} catch {
+  // optional
+}
+
 process.stdout.write(`${next}\n`);
