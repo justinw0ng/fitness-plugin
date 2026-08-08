@@ -63,14 +63,14 @@ This plugin is installed from GitHub Releases (not yet from the Community Plugin
 ### Option A — Download a release (recommended)
 
 1. Open the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases).
-2. Download `main.js`, `manifest.json`, and `styles.css`.
-3. Create this folder in your vault (if needed):
+2. Download `obsidian-fitness-<version>.zip`.
+3. Unzip it into your vault’s plugins folder:
 
 ```text
-<vault>/.obsidian/plugins/obsidian-fitness/
+<vault>/.obsidian/plugins/
 ```
 
-4. Copy the three files into that folder.
+That creates `<vault>/.obsidian/plugins/obsidian-fitness/` with `main.js`, `manifest.json`, and `styles.css`.
 
 ### Option B — Build from source
 
