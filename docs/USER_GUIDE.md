@@ -95,6 +95,8 @@ npm run build
 
 ![Plugin folder layout](./images/05-install-plugin-folder.png)
 
+The screenshot shows a demo vault under `/tmp/...`. On your machine the folder is `<your-vault>/.obsidian/plugins/obsidian-fitness/` with the same three files: `main.js`, `manifest.json`, and `styles.css`.
+
 ---
 
 ## 5. Enable Fitness
