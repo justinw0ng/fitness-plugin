@@ -160,15 +160,15 @@ year: 2026
 ```fitness-dashboard
 year: 2026
 ```
-
-```fitness-actions
-```
 ````
 
 ### Heatmap note example
 
 ````markdown
 # Heatmaps
+
+```fitness-actions
+```
 
 ```fitness-heatmap
 year: 2026
