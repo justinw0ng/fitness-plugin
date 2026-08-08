@@ -8,18 +8,22 @@ Obsidian plugin for gym and golf session tracking:
 - Golf cue rollup (this month + keepers)
 - Commands / buttons to create session notes
 
-## Install (this vault)
+## Install
 
 ```bash
 npm install
 npm run build
 ```
 
-Build writes `main.js` in this repo. If `../obsidian-lab` exists, it also copies into:
+Build writes `main.js` in this repo. Optionally set `OBSIDIAN_PLUGIN_OUT` to copy artifacts into a vault:
 
-`obsidian-lab/.obsidian/plugins/obsidian-fitness/`
+```bash
+OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/obsidian-fitness npm run build
+```
 
 Enable **Fitness** under Community plugins and reload Obsidian.
+
+Full walkthrough with screenshots: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ### Symlink install (optional)
 

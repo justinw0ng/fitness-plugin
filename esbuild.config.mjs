@@ -10,11 +10,11 @@ const prod = process.argv[2] === "production";
 // Build into repo root (standard Obsidian plugin layout).
 const outdir = __dirname;
 
-// Optional: also deploy into a linked vault when present.
-const vaultOut = process.env.OBSIDIAN_PLUGIN_OUT
-  || join(__dirname, "..", "obsidian-lab", ".obsidian", "plugins", "obsidian-fitness");
+// Optional: deploy into a vault when OBSIDIAN_PLUGIN_OUT is set.
+const vaultOut = process.env.OBSIDIAN_PLUGIN_OUT;
 
 function deployToVault() {
+  if (!vaultOut) return;
   if (!existsSync(dirname(vaultOut))) return;
   mkdirSync(vaultOut, { recursive: true });
   for (const f of ["main.js", "manifest.json", "styles.css"]) {

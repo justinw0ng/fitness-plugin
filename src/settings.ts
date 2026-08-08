@@ -1,6 +1,21 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type FitnessPlugin from "./main";
-import { DEFAULT_SETTINGS, type FitnessSettings } from "./types";
+import { DEFAULT_SETTINGS, type FitnessSettings, type SeriesConfig } from "./types";
+import { isSafeVaultFolder } from "./util/vault-path";
+
+function sanitizeSeries(
+  series: SeriesConfig[] | undefined,
+  fallback: SeriesConfig[],
+): SeriesConfig[] {
+  if (!Array.isArray(series) || series.length === 0) return fallback;
+  const safe = series.filter(
+    (s) =>
+      s != null &&
+      typeof s.folder === "string" &&
+      isSafeVaultFolder(s.folder),
+  );
+  return safe.length > 0 ? safe : fallback;
+}
 
 export function mergeSettings(
   raw: Partial<FitnessSettings> | null | undefined,
@@ -11,10 +26,7 @@ export function mergeSettings(
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
     cuesPath: raw.cuesPath || base.cuesPath,
-    series:
-      Array.isArray(raw.series) && raw.series.length > 0
-        ? raw.series
-        : base.series,
+    series: sanitizeSeries(raw.series, base.series),
   };
 }
 

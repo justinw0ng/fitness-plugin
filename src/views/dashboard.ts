@@ -169,10 +169,20 @@ export async function renderDashboard(
   });
 
   const ul = root.createEl("ul");
-  ul.createEl("li").innerHTML = `Gym sessions / 健身次數: <strong>${gymPages.length}</strong>`;
-  ul.createEl("li").innerHTML = `Golf sessions / 高爾夫次數: <strong>${golfPages.length}</strong>`;
-  ul.createEl("li").innerHTML = `Total gym duration / 健身總時長: <strong>${totalDuration}</strong> min / 分鐘`;
-  ul.createEl("li").innerHTML = `Total gym volume / 健身總訓練量: <strong>${fmtKg(totalVolumeKg)}</strong> kg`;
+  const gymLi = ul.createEl("li");
+  gymLi.appendText("Gym sessions / 健身次數: ");
+  gymLi.createEl("strong", { text: String(gymPages.length) });
+  const golfLi = ul.createEl("li");
+  golfLi.appendText("Golf sessions / 高爾夫次數: ");
+  golfLi.createEl("strong", { text: String(golfPages.length) });
+  const durLi = ul.createEl("li");
+  durLi.appendText("Total gym duration / 健身總時長: ");
+  durLi.createEl("strong", { text: String(totalDuration) });
+  durLi.appendText(" min / 分鐘");
+  const volLi = ul.createEl("li");
+  volLi.appendText("Total gym volume / 健身總訓練量: ");
+  volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
+  volLi.appendText(" kg");
   ul.createEl("li").setText(
     `Golf felt / 高爾夫感覺 — good / 好: ${feltCounts.good}, ok / 一般: ${feltCounts.ok}, bad / 差: ${feltCounts.bad}`,
   );

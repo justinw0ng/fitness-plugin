@@ -6,6 +6,7 @@ import {
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
 import type { SeriesConfig } from "../types";
+import { yamlScalar } from "../util/yaml";
 
 function promptText(
   app: App,
@@ -120,8 +121,8 @@ type: session
 date: ${date}
 activity: gym
 duration_min:
-location: ${location}
-location_detail: ${locationDetail}
+location: ${yamlScalar(location)}
+location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
