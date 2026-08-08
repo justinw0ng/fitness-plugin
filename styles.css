@@ -1,0 +1,176 @@
+.fitness-plugin {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.fitness-plugin .fitness-heatmap {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+  margin-bottom: 24px;
+}
+
+.fitness-plugin .fitness-heatmap-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.fitness-plugin .fitness-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.fitness-plugin .fitness-cell,
+.fitness-plugin .fitness-legend-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.fitness-plugin .fitness-legend-swatch {
+  border: 1px solid rgba(27, 31, 36, 0.06);
+}
+
+.fitness-plugin .fitness-cell {
+  border: 1px solid rgba(27, 31, 36, 0.06);
+}
+
+.fitness-plugin .fitness-cell.is-today {
+  border: 2px solid var(--text-normal);
+}
+
+.fitness-plugin .fitness-cell.is-faded {
+  opacity: 0.3;
+}
+
+.fitness-plugin .fitness-cell.is-link {
+  cursor: pointer;
+}
+
+.fitness-plugin .fitness-cell.is-link:hover {
+  outline: 1px solid var(--interactive-accent);
+}
+
+.fitness-plugin .fitness-month-row {
+  display: flex;
+  margin-left: 30px;
+  margin-bottom: 5px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.fitness-plugin .fitness-month-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  width: 18px;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fitness-plugin .fitness-month-spacer {
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.fitness-plugin .fitness-grid-wrap {
+  display: flex;
+  gap: 5px;
+}
+
+.fitness-plugin .fitness-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 25px;
+}
+
+.fitness-plugin .fitness-day-label {
+  font-size: 9px;
+  text-align: right;
+  height: 16px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.fitness-plugin .fitness-weeks {
+  display: flex;
+  gap: 2px;
+}
+
+.fitness-plugin .fitness-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fitness-plugin .fitness-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0 12px;
+}
+
+.fitness-plugin .fitness-actions button {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--interactive-normal);
+  color: var(--text-normal);
+}
+
+.fitness-plugin .fitness-actions button:hover {
+  background: var(--interactive-hover);
+}
+
+.fitness-plugin .fitness-sparkline {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 14px;
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
+.fitness-plugin .fitness-spark-bar {
+  display: inline-block;
+  width: 3px;
+  border-radius: 1px;
+  background: var(--text-muted);
+}
+
+.fitness-plugin .fitness-monthly-sparks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.fitness-plugin table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.fitness-plugin th,
+.fitness-plugin td {
+  border: 1px solid var(--background-modifier-border);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.fitness-plugin a.fitness-link {
+  color: var(--link-color);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fitness-plugin .fitness-muted {
+  color: var(--text-muted);
+  font-style: italic;
+}
