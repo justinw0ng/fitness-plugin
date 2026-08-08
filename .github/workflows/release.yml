@@ -26,6 +26,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PLUGIN_ID: obsidian-fitness
+
 concurrency:
   group: release-main
   cancel-in-progress: false
@@ -111,15 +114,31 @@ jobs:
           git push origin HEAD:main
           git push origin "refs/tags/${VERSION}"
 
-      - name: Create GitHub Release with plugin assets
+      - name: Package plugin zip
+        id: package
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          PLUGIN_ID="${{ env.PLUGIN_ID }}"
+          ARCHIVE="${PLUGIN_ID}-${VERSION}.zip"
+          STAGE="$(mktemp -d)"
+          mkdir -p "${STAGE}/${PLUGIN_ID}"
+          cp main.js manifest.json styles.css "${STAGE}/${PLUGIN_ID}/"
+          (
+            cd "${STAGE}"
+            zip -r "${ARCHIVE}" "${PLUGIN_ID}"
+          )
+          mv "${STAGE}/${ARCHIVE}" "./${ARCHIVE}"
+          echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
+          echo "Packaged ${ARCHIVE}"
+          unzip -l "${ARCHIVE}"
+
+      - name: Create GitHub Release with plugin zip
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: |
-            main.js
-            manifest.json
-            styles.css
+          files: ${{ steps.package.outputs.archive }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
