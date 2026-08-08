@@ -240,6 +240,12 @@ function extractYmdFromPath(path) {
   return m ? m[1] : null;
 }
 
+// src/util/yaml.ts
+function yamlScalar(value) {
+  const escaped = String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+  return `"${escaped}"`;
+}
+
 // src/commands/create-session.ts
 function promptText(app, title, defaultValue) {
   return new Promise((resolve) => {
@@ -336,8 +342,8 @@ type: session
 date: ${date}
 activity: gym
 duration_min:
-location: ${location}
-location_detail: ${locationDetail}
+location: ${yamlScalar(location)}
+location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
@@ -719,10 +725,20 @@ async function renderDashboard(el, data, seriesList, year, cuesPath) {
     void data.openPath(cuesPath);
   });
   const ul = root.createEl("ul");
-  ul.createEl("li").innerHTML = `Gym sessions / \u5065\u8EAB\u6B21\u6578: <strong>${gymPages.length}</strong>`;
-  ul.createEl("li").innerHTML = `Golf sessions / \u9AD8\u723E\u592B\u6B21\u6578: <strong>${golfPages.length}</strong>`;
-  ul.createEl("li").innerHTML = `Total gym duration / \u5065\u8EAB\u7E3D\u6642\u9577: <strong>${totalDuration}</strong> min / \u5206\u9418`;
-  ul.createEl("li").innerHTML = `Total gym volume / \u5065\u8EAB\u7E3D\u8A13\u7DF4\u91CF: <strong>${fmtKg(totalVolumeKg)}</strong> kg`;
+  const gymLi = ul.createEl("li");
+  gymLi.appendText("Gym sessions / \u5065\u8EAB\u6B21\u6578: ");
+  gymLi.createEl("strong", { text: String(gymPages.length) });
+  const golfLi = ul.createEl("li");
+  golfLi.appendText("Golf sessions / \u9AD8\u723E\u592B\u6B21\u6578: ");
+  golfLi.createEl("strong", { text: String(golfPages.length) });
+  const durLi = ul.createEl("li");
+  durLi.appendText("Total gym duration / \u5065\u8EAB\u7E3D\u6642\u9577: ");
+  durLi.createEl("strong", { text: String(totalDuration) });
+  durLi.appendText(" min / \u5206\u9418");
+  const volLi = ul.createEl("li");
+  volLi.appendText("Total gym volume / \u5065\u8EAB\u7E3D\u8A13\u7DF4\u91CF: ");
+  volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
+  volLi.appendText(" kg");
   ul.createEl("li").setText(
     `Golf felt / \u9AD8\u723E\u592B\u611F\u89BA \u2014 good / \u597D: ${feltCounts.good}, ok / \u4E00\u822C: ${feltCounts.ok}, bad / \u5DEE: ${feltCounts.bad}`
   );
@@ -1067,6 +1083,41 @@ function registerCodeblocks(plugin) {
 
 // src/data/vault-source.ts
 var import_obsidian2 = require("obsidian");
+
+// src/util/vault-path.ts
+function normalizeSlashes(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+function isSafeVaultFolder(folder) {
+  if (typeof folder !== "string")
+    return false;
+  const trimmed = folder.trim();
+  if (!trimmed)
+    return false;
+  const normalized = normalizeSlashes(trimmed);
+  if (!normalized || normalized === "/")
+    return false;
+  if (normalized.startsWith("/"))
+    return false;
+  if (/^[a-zA-Z]:/.test(normalized))
+    return false;
+  const segments = normalized.replace(/\/$/, "").split("/");
+  if (segments.length === 0)
+    return false;
+  for (const seg of segments) {
+    if (!seg || seg === "." || seg === "..")
+      return false;
+  }
+  return true;
+}
+function sessionScanPrefix(folder, year) {
+  if (!isSafeVaultFolder(folder))
+    return null;
+  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
+  return `${base}/${year}/`;
+}
+
+// src/data/vault-source.ts
 function asList(value) {
   if (value == null || value === "")
     return [];
@@ -1092,10 +1143,13 @@ var VaultDataSource = class {
     this.app = app;
   }
   listSessions(folder, year) {
-    const prefix = (0, import_obsidian2.normalizePath)(`${folder}/${year}/`);
+    const prefix = sessionScanPrefix(folder, year);
+    if (!prefix)
+      return [];
+    const scanPrefix = (0, import_obsidian2.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(prefix))
+      if (!file.path.startsWith(scanPrefix))
         continue;
       if (!file.path.endsWith(".md"))
         continue;
@@ -1158,6 +1212,8 @@ var VaultDataSource = class {
   isUnderSeriesFolder(path, folders) {
     const norm = (0, import_obsidian2.normalizePath)(path);
     return folders.some((f) => {
+      if (!isSafeVaultFolder(f))
+        return false;
       const p = (0, import_obsidian2.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
@@ -1170,6 +1226,14 @@ var VaultDataSource = class {
 
 // src/settings.ts
 var import_obsidian3 = require("obsidian");
+function sanitizeSeries(series, fallback) {
+  if (!Array.isArray(series) || series.length === 0)
+    return fallback;
+  const safe = series.filter(
+    (s) => s != null && typeof s.folder === "string" && isSafeVaultFolder(s.folder)
+  );
+  return safe.length > 0 ? safe : fallback;
+}
 function mergeSettings(raw) {
   const base = { ...DEFAULT_SETTINGS };
   if (!raw)
@@ -1178,7 +1242,7 @@ function mergeSettings(raw) {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
     cuesPath: raw.cuesPath || base.cuesPath,
-    series: Array.isArray(raw.series) && raw.series.length > 0 ? raw.series : base.series
+    series: sanitizeSeries(raw.series, base.series)
   };
 }
 var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {

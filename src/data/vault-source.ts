@@ -1,5 +1,9 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
 import type { SessionMeta } from "../types";
+import {
+  isSafeVaultFolder,
+  sessionScanPrefix,
+} from "../util/vault-path";
 
 function asList(value: unknown): string[] {
   if (value == null || value === "") return [];
@@ -28,10 +32,13 @@ export class VaultDataSource {
   constructor(private app: App) {}
 
   listSessions(folder: string, year: number): SessionMeta[] {
-    const prefix = normalizePath(`${folder}/${year}/`);
+    const prefix = sessionScanPrefix(folder, year);
+    if (!prefix) return [];
+    // Re-normalize with Obsidian so vault path style matches file.path
+    const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
     const out: SessionMeta[] = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(prefix)) continue;
+      if (!file.path.startsWith(scanPrefix)) continue;
       if (!file.path.endsWith(".md")) continue;
       const cache = this.app.metadataCache.getFileCache(file);
       const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
@@ -99,6 +106,7 @@ export class VaultDataSource {
   isUnderSeriesFolder(path: string, folders: string[]): boolean {
     const norm = normalizePath(path);
     return folders.some((f) => {
+      if (!isSafeVaultFolder(f)) return false;
       const p = normalizePath(f);
       return norm === p || norm.startsWith(p + "/");
     });
