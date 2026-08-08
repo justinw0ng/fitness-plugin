@@ -1,3 +1,11 @@
+:root {
+  --fitness-empty-cell: #ebedf0;
+}
+
+.theme-dark {
+  --fitness-empty-cell: #21262d;
+}
+
 .fitness-plugin {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -28,14 +36,12 @@
   border-radius: 2px;
   box-sizing: border-box;
   flex-shrink: 0;
+  border: 1px solid var(--background-modifier-border);
 }
 
-.fitness-plugin .fitness-legend-swatch {
-  border: 1px solid rgba(27, 31, 36, 0.06);
-}
-
-.fitness-plugin .fitness-cell {
-  border: 1px solid rgba(27, 31, 36, 0.06);
+.fitness-plugin .fitness-cell.is-empty,
+.fitness-plugin .fitness-legend-swatch.is-empty {
+  background-color: var(--fitness-empty-cell);
 }
 
 .fitness-plugin .fitness-cell.is-today {

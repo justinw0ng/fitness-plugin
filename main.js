@@ -44,28 +44,22 @@ var MUSCLES = [
 ];
 var GYM_LOCATIONS = ["Home", "Commercial", "Hotel/Travel", "Other"];
 function isLoadedWeight(weight) {
-  if (weight === null || weight === void 0)
-    return false;
+  if (weight === null || weight === void 0) return false;
   const s = String(weight).trim();
-  if (!s)
-    return false;
+  if (!s) return false;
   const lower = s.toLowerCase();
-  if (lower === "bw" || s === "\u2014" || s === "-" || lower === "n/a")
-    return false;
+  if (lower === "bw" || s === "\u2014" || s === "-" || lower === "n/a") return false;
   return !Number.isNaN(Number(s));
 }
 function toKg(weight, unit) {
   const n = Number(weight);
-  if (Number.isNaN(n))
-    return 0;
+  if (Number.isNaN(n)) return 0;
   return unit === "lb" ? n * LB_TO_KG : n;
 }
 function rowVolumeKg(row, unit = "kg") {
-  if (!isLoadedWeight(row.weight))
-    return 0;
+  if (!isLoadedWeight(row.weight)) return 0;
   const reps = Number(row.reps);
-  if (!Number.isFinite(reps) || reps <= 0)
-    return 0;
+  if (!Number.isFinite(reps) || reps <= 0) return 0;
   return toKg(row.weight, unit) * reps;
 }
 function parseSetTable(markdown) {
@@ -75,13 +69,11 @@ function parseSetTable(markdown) {
   let headerSeen = false;
   for (const line of lines) {
     if (!line.trim().startsWith("|")) {
-      if (inTable && headerSeen)
-        break;
+      if (inTable && headerSeen) break;
       continue;
     }
     const cells = line.split("|").slice(1, -1).map((c) => c.trim());
-    if (!cells.length)
-      continue;
+    if (!cells.length) continue;
     const joined = cells.join(" ").toLowerCase();
     if (!headerSeen) {
       if (joined.includes("exercise") && joined.includes("muscle")) {
@@ -90,8 +82,7 @@ function parseSetTable(markdown) {
       }
       continue;
     }
-    if (cells.every((c) => /^:?-{1,}:?$/.test(c)))
-      continue;
+    if (cells.every((c) => /^:?-{1,}:?$/.test(c))) continue;
     rows.push({
       exercise: cells[0] || "",
       muscle: cells[1] || "",
@@ -104,14 +95,10 @@ function parseSetTable(markdown) {
 }
 function durationToLevel(minutes) {
   const n = Number(minutes);
-  if (!Number.isFinite(n) || n <= 0)
-    return 0;
-  if (n < 30)
-    return 1;
-  if (n < 60)
-    return 2;
-  if (n < 90)
-    return 3;
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (n < 30) return 1;
+  if (n < 60) return 2;
+  if (n < 90) return 3;
   return 4;
 }
 function normalizeCue(text) {
@@ -127,8 +114,7 @@ function buildKeepers(cues, year) {
   const yearCues = cues.filter((c) => String(c.date || "").startsWith(prefix)).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
   for (const c of yearCues) {
     const key = normalizeCue(c.text);
-    if (!key)
-      continue;
+    if (!key) continue;
     const prev = map.get(key);
     if (!prev) {
       map.set(key, {
@@ -158,12 +144,10 @@ function parseReminders(markdown) {
       inRem = true;
       continue;
     }
-    if (inRem && /^##\s+/.test(line))
-      break;
+    if (inRem && /^##\s+/.test(line)) break;
     if (inRem) {
       const m = line.match(/^\s*[-*]\s+(.+)$/);
-      if (m)
-        out.push(m[1].trim());
+      if (m) out.push(m[1].trim());
     }
   }
   return out;
@@ -186,8 +170,7 @@ function nowMonth(timeZone) {
 }
 function parseYmd(ymd) {
   const m = String(ymd || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m)
-    return null;
+  if (!m) return null;
   return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
 }
 function weekdaySun0(y, m, d) {
@@ -280,8 +263,7 @@ function promptText(app, title, defaultValue) {
         );
       }
       finish(v) {
-        if (this.resolved)
-          return;
+        if (this.resolved) return;
         this.resolved = true;
         this.close();
         resolve(v);
@@ -308,14 +290,12 @@ function suggestOne(app, placeholder, items, labels) {
         return labels && labels[i] ? labels[i] : item;
       }
       onChooseItem(item) {
-        if (settled)
-          return;
+        if (settled) return;
         settled = true;
         resolve(item);
       }
       onClose() {
-        if (settled)
-          return;
+        if (settled) return;
         settled = true;
         resolve(null);
       }
@@ -383,8 +363,7 @@ club: []
 async function createGymSession(app, data, series, timezone) {
   const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
   const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null)
-    return;
+  if (dateRaw === null) return;
   let date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
@@ -418,8 +397,8 @@ async function createGymSession(app, data, series, timezone) {
     "kg",
     "lb"
   ]) || "kg";
-  if (weightUnit !== "lb")
-    weightUnit = "kg";
+  if (weightUnit !== "lb") weightUnit = "kg";
+  void MUSCLES;
   await data.createNote(
     target,
     gymBody(date, location, locationDetail, weightUnit)
@@ -430,8 +409,7 @@ async function createGymSession(app, data, series, timezone) {
 async function createGolfSession(app, data, series, timezone) {
   const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
   const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null)
-    return;
+  if (dateRaw === null) return;
   let date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
@@ -455,8 +433,7 @@ function parseBlockOptions(source) {
   const out = {};
   for (const line of String(source || "").split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/);
-    if (!m)
-      continue;
+    if (!m) continue;
     out[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
   return out;
@@ -479,11 +456,9 @@ function renderActions(el, plugin) {
 
 // src/views/cues.ts
 function resolveCuesYear(opts, frontmatterYear2, timezone) {
-  if (opts.year && Number(opts.year))
-    return Number(opts.year);
+  if (opts.year && Number(opts.year)) return Number(opts.year);
   const n = Number(frontmatterYear2);
-  if (Number.isFinite(n) && n >= 1970)
-    return n;
+  if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
 async function renderGolfCues(el, data, seriesList, year, timezone) {
@@ -502,13 +477,11 @@ async function renderGolfCues(el, data, seriesList, year, timezone) {
   const monthLabel = year === currentYear ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}` : `December ${year} / ${year}\u5E7412\u6708`;
   const cues = [];
   for (const p of data.listSessions(golf.folder, year)) {
-    if (!p.date)
-      continue;
+    if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");
     for (const text of parseReminders(md)) {
-      if (!text)
-        continue;
+      if (!text) continue;
       cues.push({ text, date: p.date, focus });
     }
   }
@@ -563,7 +536,6 @@ var ORANGE = [
   "#f76707",
   "#d9480f"
 ];
-var EMPTY_CELL = "#ebedf0";
 var DEFAULT_SETTINGS = {
   timezone: "Asia/Hong_Kong",
   dashboardPath: "Fitness/Dashboard.md",
@@ -626,11 +598,9 @@ function sparkline(parent, values, color) {
   }
 }
 function resolveDashboardYear(opts, frontmatterYear2, timezone) {
-  if (opts.year && Number(opts.year))
-    return Number(opts.year);
+  if (opts.year && Number(opts.year)) return Number(opts.year);
   const n = Number(frontmatterYear2);
-  if (Number.isFinite(n) && n >= 1970)
-    return n;
+  if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
 async function renderDashboard(el, data, seriesList, year, cuesPath) {
@@ -652,8 +622,7 @@ async function renderDashboard(el, data, seriesList, year, cuesPath) {
   const recent = [];
   for (const p of gymPages) {
     const mi = monthIndexFromDate(p.date);
-    if (mi >= 0)
-      gymSessionsByMonth[mi] += 1;
+    if (mi >= 0) gymSessionsByMonth[mi] += 1;
     totalDuration += p.duration_min;
     if (p.date) {
       recent.push({
@@ -676,13 +645,11 @@ async function renderDashboard(el, data, seriesList, year, cuesPath) {
         muscleVolume.set(m, (muscleVolume.get(m) || 0) + vol);
       }
     }
-    if (mi >= 0)
-      gymVolumeByMonth[mi] += sessionVol;
+    if (mi >= 0) gymVolumeByMonth[mi] += sessionVol;
   }
   for (const p of golfPages) {
     const mi = monthIndexFromDate(p.date);
-    if (mi >= 0)
-      golfSessionsByMonth[mi] += 1;
+    if (mi >= 0) golfSessionsByMonth[mi] += 1;
     if (p.date) {
       recent.push({
         date: p.date,
@@ -838,19 +805,16 @@ async function renderDashboard(el, data, seriesList, year, cuesPath) {
 // src/views/heatmap.ts
 var DAY_NAMES = ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
 function colorFor(series, level) {
-  if (!level)
-    return EMPTY_CELL;
+  if (!level) return null;
   return series.colors[level - 1] || series.colors[series.colors.length - 1];
 }
 function durationMap(data, series, year) {
   const map = /* @__PURE__ */ new Map();
   for (const s of data.listSessions(series.folder, year)) {
-    if (!s.date)
-      continue;
+    if (!s.date) continue;
     const entry = map.get(s.date) || { minutes: 0, path: null };
     entry.minutes += s.duration_min;
-    if (!entry.path)
-      entry.path = s.path;
+    if (!entry.path) entry.path = s.path;
     map.set(s.date, entry);
   }
   return map;
@@ -860,7 +824,7 @@ function renderOneHeatmap(root, data, series, year, timezone) {
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: series.label });
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
   legend.createSpan({ text: "Less / \u5C11" });
-  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background = EMPTY_CELL;
+  legend.createDiv({ cls: "fitness-legend-swatch is-empty" });
   for (const c of series.colors) {
     const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
     sw.style.background = c;
@@ -881,8 +845,7 @@ function renderOneHeatmap(root, data, series, year, timezone) {
   let weekCount = 0;
   const endYmd = formatYmd(end.y, end.m, end.d);
   while (weekCount < 60) {
-    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd)
-      break;
+    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
     const week = [];
     for (let i = 0; i < 7; i++) {
       const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
@@ -908,8 +871,7 @@ function renderOneHeatmap(root, data, series, year, timezone) {
   const monthRow = wrap.createDiv({ cls: "fitness-month-row" });
   let lastMonth = "";
   for (const week of weeks) {
-    if (!week.length)
-      continue;
+    if (!week.length) continue;
     const first = week[0];
     const monthName = monthShortZh(first.y, first.m, first.d);
     if (monthName !== lastMonth && first.d <= 7 && first.isCurrentYear) {
@@ -931,11 +893,11 @@ function renderOneHeatmap(root, data, series, year, timezone) {
   for (const week of weeks) {
     const col = weeksEl.createDiv({ cls: "fitness-week" });
     for (const day of week) {
-      const color = day.isCurrentYear ? colorFor(series, day.level) : EMPTY_CELL;
+      const color = day.isCurrentYear ? colorFor(series, day.level) : null;
       const cell = col.createDiv({
-        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
+        cls: "fitness-cell" + (color === null ? " is-empty" : "") + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
       });
-      cell.style.backgroundColor = color;
+      if (color !== null) cell.style.backgroundColor = color;
       const tip = day.path ? `${day.fullDate}: ${day.minutes} min / \u5206\u9418 \u2014 click to open / \u9EDE\u64CA\u958B\u555F` : `${day.fullDate}: ${day.minutes} min / \u5206\u9418`;
       cell.setAttr("title", tip);
       if (day.path) {
@@ -956,23 +918,19 @@ function renderHeatmaps(el, data, seriesList, year, timezone) {
   }
 }
 function resolveHeatmapYear(opts, sourcePath, timezone) {
-  if (opts.year && Number(opts.year))
-    return Number(opts.year);
+  if (opts.year && Number(opts.year)) return Number(opts.year);
   const fromPath = parseYmd(
     sourcePath.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || ""
   );
-  if (fromPath)
-    return fromPath.y;
+  if (fromPath) return fromPath.y;
   return Number(ymdInZone(/* @__PURE__ */ new Date(), timezone).slice(0, 4));
 }
 
 // src/views/today.ts
 function resolveTodayDate(opts, sourcePath, timezone) {
-  if (opts.date && parseYmd(opts.date))
-    return opts.date;
+  if (opts.date && parseYmd(opts.date)) return opts.date;
   const fromPath = extractYmdFromPath(sourcePath);
-  if (fromPath)
-    return fromPath;
+  if (fromPath) return fromPath;
   return ymdInZone(/* @__PURE__ */ new Date(), timezone);
 }
 function renderTodaySessions(el, data, seriesList, dateStr) {
@@ -1089,38 +1047,29 @@ function normalizeSlashes(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 function isSafeVaultFolder(folder) {
-  if (typeof folder !== "string")
-    return false;
+  if (typeof folder !== "string") return false;
   const trimmed = folder.trim();
-  if (!trimmed)
-    return false;
+  if (!trimmed) return false;
   const normalized = normalizeSlashes(trimmed);
-  if (!normalized || normalized === "/")
-    return false;
-  if (normalized.startsWith("/"))
-    return false;
-  if (/^[a-zA-Z]:/.test(normalized))
-    return false;
+  if (!normalized || normalized === "/") return false;
+  if (normalized.startsWith("/")) return false;
+  if (/^[a-zA-Z]:/.test(normalized)) return false;
   const segments = normalized.replace(/\/$/, "").split("/");
-  if (segments.length === 0)
-    return false;
+  if (segments.length === 0) return false;
   for (const seg of segments) {
-    if (!seg || seg === "." || seg === "..")
-      return false;
+    if (!seg || seg === "." || seg === "..") return false;
   }
   return true;
 }
 function sessionScanPrefix(folder, year) {
-  if (!isSafeVaultFolder(folder))
-    return null;
+  if (!isSafeVaultFolder(folder)) return null;
   const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
   return `${base}/${year}/`;
 }
 
 // src/data/vault-source.ts
 function asList(value) {
-  if (value == null || value === "")
-    return [];
+  if (value == null || value === "") return [];
   if (Array.isArray(value)) {
     return value.map((v) => String(v).trim()).filter(Boolean);
   }
@@ -1131,11 +1080,9 @@ function resolveDate(frontmatter, basename) {
   if (frontmatter?.date != null && frontmatter.date !== "") {
     const raw = String(frontmatter.date);
     const m = raw.match(/(\d{4}-\d{2}-\d{2})/);
-    if (m)
-      return m[1];
+    if (m) return m[1];
   }
-  if (/^\d{4}-\d{2}-\d{2}$/.test(basename))
-    return basename;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(basename)) return basename;
   return null;
 }
 var VaultDataSource = class {
@@ -1144,15 +1091,12 @@ var VaultDataSource = class {
   }
   listSessions(folder, year) {
     const prefix = sessionScanPrefix(folder, year);
-    if (!prefix)
-      return [];
+    if (!prefix) return [];
     const scanPrefix = (0, import_obsidian2.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(scanPrefix))
-        continue;
-      if (!file.path.endsWith(".md"))
-        continue;
+      if (!file.path.startsWith(scanPrefix)) continue;
+      if (!file.path.endsWith(".md")) continue;
       const cache = this.app.metadataCache.getFileCache(file);
       const fm = cache?.frontmatter ?? {};
       out.push({
@@ -1169,8 +1113,7 @@ var VaultDataSource = class {
   }
   async readBody(path) {
     const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    if (!(af instanceof import_obsidian2.TFile))
-      return "";
+    if (!(af instanceof import_obsidian2.TFile)) return "";
     return this.app.vault.read(af);
   }
   exists(path) {
@@ -1178,8 +1121,7 @@ var VaultDataSource = class {
   }
   async ensureFolder(folderPath) {
     const norm = (0, import_obsidian2.normalizePath)(folderPath);
-    if (this.app.vault.getAbstractFileByPath(norm))
-      return;
+    if (this.app.vault.getAbstractFileByPath(norm)) return;
     const parts = norm.split("/").filter(Boolean);
     let cur = "";
     for (const part of parts) {
@@ -1192,8 +1134,7 @@ var VaultDataSource = class {
   async createNote(path, content) {
     const norm = (0, import_obsidian2.normalizePath)(path);
     const parent = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
-    if (parent)
-      await this.ensureFolder(parent);
+    if (parent) await this.ensureFolder(parent);
     return this.app.vault.create(norm, content);
   }
   async openPath(path) {
@@ -1212,8 +1153,7 @@ var VaultDataSource = class {
   isUnderSeriesFolder(path, folders) {
     const norm = (0, import_obsidian2.normalizePath)(path);
     return folders.some((f) => {
-      if (!isSafeVaultFolder(f))
-        return false;
+      if (!isSafeVaultFolder(f)) return false;
       const p = (0, import_obsidian2.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
@@ -1227,8 +1167,7 @@ var VaultDataSource = class {
 // src/settings.ts
 var import_obsidian3 = require("obsidian");
 function sanitizeSeries(series, fallback) {
-  if (!Array.isArray(series) || series.length === 0)
-    return fallback;
+  if (!Array.isArray(series) || series.length === 0) return fallback;
   const safe = series.filter(
     (s) => s != null && typeof s.folder === "string" && isSafeVaultFolder(s.folder)
   );
@@ -1236,8 +1175,7 @@ function sanitizeSeries(series, fallback) {
 }
 function mergeSettings(raw) {
   const base = { ...DEFAULT_SETTINGS };
-  if (!raw)
-    return base;
+  if (!raw) return base;
   return {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
@@ -1340,8 +1278,7 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
     this.liveBlocks.push(block);
   }
   scheduleRefresh() {
-    if (this.refreshTimer != null)
-      window.clearTimeout(this.refreshTimer);
+    if (this.refreshTimer != null) window.clearTimeout(this.refreshTimer);
     this.refreshTimer = window.setTimeout(() => {
       this.refreshTimer = null;
       void this.refreshAll();

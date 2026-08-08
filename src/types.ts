@@ -44,8 +44,6 @@ export const ORANGE: [string, string, string, string] = [
   "#d9480f",
 ];
 
-export const EMPTY_CELL = "#ebedf0";
-
 export const DEFAULT_SETTINGS: FitnessSettings = {
   timezone: "Asia/Hong_Kong",
   dashboardPath: "Fitness/Dashboard.md",

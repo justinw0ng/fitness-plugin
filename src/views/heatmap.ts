@@ -9,12 +9,12 @@ import {
   weekdaySun0,
   ymdInZone,
 } from "../dates";
-import { EMPTY_CELL, type DayActivity, type SeriesConfig } from "../types";
+import type { DayActivity, SeriesConfig } from "../types";
 
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
 
-function colorFor(series: SeriesConfig, level: number): string {
-  if (!level) return EMPTY_CELL;
+function colorFor(series: SeriesConfig, level: number): string | null {
+  if (!level) return null;
   return series.colors[level - 1] || series.colors[series.colors.length - 1];
 }
 
@@ -46,8 +46,7 @@ function renderOneHeatmap(
 
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
   legend.createSpan({ text: "Less / 少" });
-  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background =
-    EMPTY_CELL;
+  legend.createDiv({ cls: "fitness-legend-swatch is-empty" });
   for (const c of series.colors) {
     const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
     sw.style.background = c;
@@ -135,17 +134,16 @@ function renderOneHeatmap(
   for (const week of weeks) {
     const col = weeksEl.createDiv({ cls: "fitness-week" });
     for (const day of week) {
-      const color = day.isCurrentYear
-        ? colorFor(series, day.level)
-        : EMPTY_CELL;
+      const color = day.isCurrentYear ? colorFor(series, day.level) : null;
       const cell = col.createDiv({
         cls:
           "fitness-cell" +
+          (color === null ? " is-empty" : "") +
           (day.isToday ? " is-today" : "") +
           (day.isCurrentYear ? "" : " is-faded") +
           (day.path ? " is-link" : ""),
       });
-      cell.style.backgroundColor = color;
+      if (color !== null) cell.style.backgroundColor = color;
       const tip = day.path
         ? `${day.fullDate}: ${day.minutes} min / 分鐘 — click to open / 點擊開啟`
         : `${day.fullDate}: ${day.minutes} min / 分鐘`;
