@@ -8,6 +8,30 @@ Obsidian plugin for gym and golf session tracking:
 - Golf cue rollup (this month + keepers)
 - Commands / buttons to create session notes
 
+## Preview
+
+### `fitness-dashboard`
+
+Year overview: session counts, gym volume, monthly table, muscle breakdown, and recent sessions.
+
+![fitness-dashboard](docs/images/fitness-dashboard.png)
+
+```fitness-dashboard
+year: 2026
+```
+
+### `fitness-heatmap`
+
+GitHub-style year grids for Gym and Golf intensity (by duration), plus today’s sessions.
+
+![fitness-heatmap](docs/images/fitness-heatmap.png)
+
+```fitness-heatmap
+year: 2026
+```
+
+More setup screenshots and a full walkthrough: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+
 ## Install
 
 ```bash
@@ -22,8 +46,6 @@ OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/obsidian-fitness npm run bu
 ```
 
 Enable **Fitness** under Community plugins and reload Obsidian.
-
-Full walkthrough with screenshots: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ### Symlink install (optional)
 
