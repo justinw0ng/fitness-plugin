@@ -25,7 +25,7 @@
 .fitness-plugin .fitness-legend-swatch {
   width: 16px;
   height: 16px;
-  border-radius: 2px;
+  border-radius: 50%;
   box-sizing: border-box;
   flex-shrink: 0;
 }
