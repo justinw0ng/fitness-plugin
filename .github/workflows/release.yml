@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/dependabot.yml"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/codeql.yml"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Semver bump level (none = release the version already in the repo)
+        required: true
+        default: patch
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, version, and publish GitHub Release
+    runs-on: ubuntu-latest
+    # Avoid recursive releases when this workflow pushes the version bump commit.
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Decide bump level
+        id: decide
+        run: |
+          set -euo pipefail
+          CURRENT="$(node scripts/bump-version.mjs)"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUMP="${{ inputs.bump }}"
+          elif git rev-parse "refs/tags/${CURRENT}" >/dev/null 2>&1; then
+            BUMP="patch"
+          else
+            # First cut of the version declared in the repo (starts at 1.0.0).
+            BUMP="none"
+          fi
+          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
+          echo "current=${CURRENT}" >> "$GITHUB_OUTPUT"
+          echo "Using bump=${BUMP} (current=${CURRENT})"
+
+      - name: Bump version files
+        id: version
+        run: |
+          set -euo pipefail
+          NEXT="$(node scripts/bump-version.mjs "${{ steps.decide.outputs.bump }}")"
+          echo "version=${NEXT}" >> "$GITHUB_OUTPUT"
+          echo "Releasing ${NEXT}"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure release tag is free
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          if git rev-parse "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists; refusing to overwrite."
+            exit 1
+          fi
+
+      - name: Commit version bump and built assets
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json manifest.json versions.json main.js
+          if git diff --cached --quiet; then
+            echo "No version/build changes to commit (release will still be created)."
+          else
+            git commit -m "chore(release): ${VERSION}"
+          fi
+          git tag "${VERSION}"
+          git push origin HEAD:main
+          git push origin "refs/tags/${VERSION}"
+
+      - name: Create GitHub Release with plugin assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            main.js
+            manifest.json
+            styles.css
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
