@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -15,6 +17,14 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/main.ts
@@ -23,7 +33,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/commands/create-session.ts
 var import_obsidian = require("obsidian");
@@ -444,64 +454,6 @@ async function createGolfSession(app, data, activity, timezone) {
   await createActivitySession(app, data, activity, timezone);
 }
 
-// src/util/parse-block.ts
-function parseBlockOptions(source) {
-  const out = {};
-  for (const line of String(source || "").split(/\r?\n/)) {
-    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/);
-    if (!m) continue;
-    out[m[1]] = m[2].replace(/^["']|["']$/g, "");
-  }
-  return out;
-}
-
-// src/types.ts
-var GREEN = [
-  "#9be9a8",
-  "#40c463",
-  "#30a14e",
-  "#216e39"
-];
-var ORANGE = [
-  "#ffd8a8",
-  "#ffa94d",
-  "#f76707",
-  "#d9480f"
-];
-var EMPTY_CELL = "#ebedf0";
-var DEFAULT_ACTIVITY_TYPES = [
-  {
-    id: "gym",
-    domain: "exercise",
-    label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
-    folder: "atomics/exercise/Gym",
-    colors: GREEN,
-    noteModel: "dailySession",
-    supportsCues: true,
-    supportsTimer: false,
-    supportsSetTable: true
-  },
-  {
-    id: "golf",
-    domain: "exercise",
-    label: "\u26F3 Golf / \u9AD8\u723E\u592B",
-    folder: "atomics/exercise/Golf",
-    colors: ORANGE,
-    noteModel: "dailySession",
-    supportsCues: true,
-    supportsTimer: false,
-    supportsSetTable: false
-  }
-];
-var DEFAULT_SETTINGS = {
-  timezone: "Asia/Hong_Kong",
-  dashboardPath: "atomics/Dashboard.md",
-  golfCuesPath: "atomics/exercise/Golf/Cues.md",
-  gymCuesPath: "atomics/exercise/Gym/Cues.md",
-  deprecatedFitnessBlocksEnabled: true,
-  activityTypes: DEFAULT_ACTIVITY_TYPES
-};
-
 // src/util/vault-path.ts
 function normalizeSlashes(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
@@ -526,6 +478,152 @@ function sessionScanPrefix(folder, year) {
   const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
   return `${base}/${year}/`;
 }
+function readingItemsFolder(folder) {
+  if (!isSafeVaultFolder(folder)) return null;
+  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
+  return `${base}/Items`;
+}
+function hobbyItemsScanPrefix(folder) {
+  const itemsFolder = readingItemsFolder(folder);
+  return itemsFolder ? `${itemsFolder}/` : null;
+}
+
+// src/commands/create-reading-item.ts
+var FALLBACK_BOOK_TITLE = "Untitled Book";
+function normalizeSlashes2(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+function cleanBookTitle(title) {
+  const cleaned = String(title || "").replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || FALLBACK_BOOK_TITLE;
+}
+function buildReadingItemPath(activityFolder, title) {
+  if (!isSafeVaultFolder(activityFolder)) {
+    throw new Error("Reading folder must be a safe vault-relative folder");
+  }
+  const base = normalizeSlashes2(activityFolder.trim()).replace(/\/$/, "");
+  return `${base}/Items/${cleanBookTitle(title)}.md`;
+}
+function readingItemMarkdown(title) {
+  const cleanedTitle = cleanBookTitle(title);
+  return `---
+type: atomic-item
+domain: hobby
+activity: reading
+status: to-read
+authors:
+  - ""
+description: ""
+pages:
+cover: ""
+tags:
+  - books
+spine_color:
+total_min: 0
+timer_started_at:
+related_canvas:
+---
+
+# ${cleanedTitle}
+
+## Remarks
+
+## Time log
+
+\`\`\`atomic-timer
+\`\`\`
+`;
+}
+async function createReadingItem(app, data, readingActivity) {
+  const title = window.prompt("Reading item title", "");
+  if (title === null) return;
+  const path = buildReadingItemPath(readingActivity.folder, title);
+  const { Notice: Notice5 } = await import("obsidian");
+  if (data.exists(path)) {
+    await data.openPath(path);
+    new Notice5(`Opened existing Reading item: ${path}`);
+    return;
+  }
+  await data.createNote(path, readingItemMarkdown(title));
+  await data.openPath(path);
+  new Notice5(`Created Reading item: ${path}`);
+  void app;
+}
+
+// src/util/parse-block.ts
+function parseBlockOptions(source) {
+  const out = {};
+  for (const line of String(source || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/);
+    if (!m) continue;
+    out[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+  return out;
+}
+
+// src/types.ts
+var GREEN = [
+  "#9be9a8",
+  "#40c463",
+  "#30a14e",
+  "#216e39"
+];
+var ORANGE = [
+  "#ffd8a8",
+  "#ffa94d",
+  "#f76707",
+  "#d9480f"
+];
+var BLUE = [
+  "#bfdbfe",
+  "#60a5fa",
+  "#2563eb",
+  "#1e3a8a"
+];
+var EMPTY_CELL = "#ebedf0";
+var DEFAULT_ACTIVITY_TYPES = [
+  {
+    id: "gym",
+    domain: "exercise",
+    label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
+    folder: "atomics/exercise/Gym",
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: true
+  },
+  {
+    id: "golf",
+    domain: "exercise",
+    label: "\u26F3 Golf / \u9AD8\u723E\u592B",
+    folder: "atomics/exercise/Golf",
+    colors: ORANGE,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  },
+  {
+    id: "reading",
+    domain: "hobby",
+    label: "Reading",
+    folder: "atomics/hobbies/Reading",
+    colors: BLUE,
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
+    supportsSetTable: false
+  }
+];
+var DEFAULT_SETTINGS = {
+  timezone: "Asia/Hong_Kong",
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
+  deprecatedFitnessBlocksEnabled: true,
+  activityTypes: DEFAULT_ACTIVITY_TYPES
+};
 
 // src/util/activity-types.ts
 var FALLBACK_EXERCISE_NAME = "Exercise";
@@ -538,7 +636,7 @@ function cleanFolderSegment(label) {
 }
 function activityIdFromLabel(label) {
   const id = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return id || "exercise";
+  return id || "activity";
 }
 function defaultExerciseFolder(label) {
   const folder = `atomics/exercise/${cleanFolderSegment(label)}`;
@@ -618,6 +716,11 @@ function activityTypeFromSeries(value, fallbackColors) {
 function exerciseActivities(activityTypes) {
   return activityTypes.filter(
     (activity) => activity.domain === "exercise" && activity.noteModel === "dailySession"
+  );
+}
+function hobbyActivities(activityTypes) {
+  return activityTypes.filter(
+    (activity) => activity.domain === "hobby" && activity.noteModel === "item" && activity.supportsTimer
   );
 }
 function resolveCueActivityType(activityTypes, activityId) {
@@ -710,6 +813,412 @@ async function renderCues(el, data, activityTypes, year, timezone, activity) {
       );
     }
   }
+}
+
+// src/core/hobby.ts
+var TIME_LOG_HEADING = /^#{1,6}\s+Time log\s*$/i;
+var HEADING = /^(#{1,6})\s+/;
+var TIMER_METADATA = /<!--\s*atomic-timer\s+start="([^"]+)"\s+end="([^"]+)"\s*-->/;
+var TIME_LOG_ENTRY = /^\s*[-*]\s+(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2})\s*(?:-|\u2013|\u2014)\s*(\d{2}:\d{2}))?\s*(?:\||\u00b7)?\s*(\d+)\s*min(?:\s*(?:\||\u2014|-)\s*(.*?))?\s*$/;
+function parseTimeLog(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const entries = [];
+  let timeLogLevel = null;
+  for (const line of lines) {
+    const heading = line.match(HEADING);
+    if (heading && timeLogLevel !== null && heading[1].length <= timeLogLevel) {
+      break;
+    }
+    if (TIME_LOG_HEADING.test(line.trim())) {
+      timeLogLevel = line.match(HEADING)?.[1].length ?? 0;
+      continue;
+    }
+    if (timeLogLevel === null) continue;
+    const entry = parseTimeLogLine(line);
+    if (entry) entries.push(entry);
+  }
+  return entries;
+}
+function appendTimeLog(markdown, entry) {
+  const normalizedEntry = normalizeEntry(entry);
+  if (hasMatchingIsoEntry(parseTimeLog(markdown), normalizedEntry)) {
+    return ensureTrailingNewline(markdown);
+  }
+  const entryLine = formatTimeLogEntry(normalizedEntry);
+  const lines = String(markdown || "").split(/\r?\n/);
+  const headingIndex = lines.findIndex((line) => TIME_LOG_HEADING.test(line.trim()));
+  if (headingIndex === -1) {
+    const base = trimTrailingBlankLines(lines).join("\n");
+    return `${base}${base ? "\n\n" : ""}## Time log
+
+${entryLine}
+`;
+  }
+  const headingLevel = lines[headingIndex].match(HEADING)?.[1].length ?? 0;
+  let sectionEnd = lines.length;
+  for (let index = headingIndex + 1; index < lines.length; index += 1) {
+    const heading = lines[index].match(HEADING);
+    if (heading && heading[1].length <= headingLevel) {
+      sectionEnd = index;
+      break;
+    }
+  }
+  let insertAt = sectionEnd;
+  while (insertAt > headingIndex + 1 && lines[insertAt - 1].trim() === "") {
+    insertAt -= 1;
+  }
+  const before = lines.slice(0, insertAt);
+  const after = lines.slice(sectionEnd);
+  if (before[before.length - 1]?.trim() === lines[headingIndex].trim()) {
+    before.push("");
+  }
+  before.push(entryLine);
+  if (after.length > 0 && after[0].trim() !== "") {
+    before.push("");
+  }
+  return ensureTrailingNewline([...before, ...after].join("\n"));
+}
+function stopTimer(input) {
+  const startedAtMs = Date.parse(input.startedAtIso);
+  const stoppedAtMs = Date.parse(input.stoppedAtIso);
+  if (!Number.isFinite(startedAtMs)) {
+    throw new Error("Invalid timer start time");
+  }
+  if (!Number.isFinite(stoppedAtMs)) {
+    throw new Error("Invalid timer stop time");
+  }
+  if (stoppedAtMs < startedAtMs) {
+    throw new Error("Timer stop time cannot be before start time");
+  }
+  const minutes = Math.round((stoppedAtMs - startedAtMs) / 6e4);
+  const entry = {
+    date: dateFromIso(input.startedAtIso),
+    minutes,
+    note: input.note?.trim() ?? "",
+    startIso: input.startedAtIso,
+    endIso: input.stoppedAtIso
+  };
+  const existingEntries = parseTimeLog(input.markdown);
+  const alreadyLogged = hasMatchingIsoEntry(existingEntries, entry);
+  const markdownWithLog = alreadyLogged ? input.markdown : appendTimeLog(input.markdown, entry);
+  const frontmatter = readTimerFrontmatter(input.markdown);
+  const previousLogTotal = sumMinutes(existingEntries);
+  const totalMin = alreadyLogged ? Math.max(frontmatter.totalMin, previousLogTotal) : Math.max(frontmatter.totalMin, previousLogTotal) + minutes;
+  const markdown = updateTimerFrontmatter(markdownWithLog, {
+    totalMin,
+    timerStartedAtIso: null
+  });
+  return { markdown, minutes, totalMin };
+}
+function minutesByDate(entries) {
+  const totals = /* @__PURE__ */ new Map();
+  for (const entry of entries) {
+    totals.set(entry.date, (totals.get(entry.date) ?? 0) + entry.minutes);
+  }
+  return totals;
+}
+function readTimerFrontmatter(markdown) {
+  const parts = splitFrontmatter(markdown);
+  if (!parts) return { totalMin: 0, timerStartedAt: null };
+  let totalMin = 0;
+  let timerStartedAt = null;
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    const line = parts.lines[index];
+    const totalMatch = line.match(/^total_min\s*:\s*(.*)$/);
+    if (totalMatch) {
+      const total = Number(unquoteYamlScalar(totalMatch[1]));
+      totalMin = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
+      continue;
+    }
+    const startedMatch = line.match(/^timer_started_at\s*:\s*(.*)$/);
+    if (startedMatch) {
+      timerStartedAt = emptyToNull(unquoteYamlScalar(startedMatch[1]));
+    }
+  }
+  return { totalMin, timerStartedAt };
+}
+function updateTimerFrontmatter(markdown, fields) {
+  const text = String(markdown || "");
+  const parts = splitFrontmatter(text);
+  if (!parts) {
+    const frontmatter = [
+      "---",
+      ...fields.totalMin === void 0 ? [] : [`total_min: ${normalizeMinutes(fields.totalMin)}`],
+      ...fields.timerStartedAtIso === void 0 ? [] : [formatTimerStartedAt(fields.timerStartedAtIso)],
+      "---",
+      ""
+    ];
+    return `${frontmatter.join("\n")}${text}`;
+  }
+  let lines = parts.lines.slice();
+  if (fields.totalMin !== void 0) {
+    lines = setFrontmatterField(
+      lines,
+      "total_min",
+      `total_min: ${normalizeMinutes(fields.totalMin)}`
+    );
+  }
+  if (fields.timerStartedAtIso !== void 0) {
+    lines = setFrontmatterField(
+      lines,
+      "timer_started_at",
+      formatTimerStartedAt(fields.timerStartedAtIso)
+    );
+  }
+  return ensureTrailingNewline(lines.join("\n"));
+}
+function parseTimeLogLine(line) {
+  const metadata = line.match(TIMER_METADATA);
+  const visibleLine = line.replace(TIMER_METADATA, "").trimEnd();
+  const match = visibleLine.match(TIME_LOG_ENTRY);
+  if (!match) return null;
+  return {
+    date: match[1],
+    minutes: Number(match[4]),
+    note: (match[5] ?? "").trim(),
+    ...metadata ? {
+      startIso: unescapeHtmlAttribute(metadata[1]),
+      endIso: unescapeHtmlAttribute(metadata[2])
+    } : {}
+  };
+}
+function normalizeEntry(entry) {
+  return {
+    date: entry.date,
+    minutes: normalizeMinutes(entry.minutes),
+    note: sanitizeLogNote(entry.note),
+    ...entry.startIso ? { startIso: entry.startIso } : {},
+    ...entry.endIso ? { endIso: entry.endIso } : {}
+  };
+}
+function formatTimeLogEntry(entry) {
+  const timeRange = entry.startIso && entry.endIso ? ` ${timeFromIso(entry.startIso)}-${timeFromIso(entry.endIso)}` : "";
+  const note = entry.note ? ` | ${entry.note}` : "";
+  const metadata = entry.startIso && entry.endIso ? ` <!-- atomic-timer start="${escapeHtmlAttribute(
+    entry.startIso
+  )}" end="${escapeHtmlAttribute(entry.endIso)}" -->` : "";
+  return `- ${entry.date}${timeRange} | ${entry.minutes} min${note}${metadata}`;
+}
+function hasMatchingIsoEntry(entries, entry) {
+  if (!entry.startIso || !entry.endIso) return false;
+  return entries.some(
+    (existing) => existing.startIso === entry.startIso && existing.endIso === entry.endIso
+  );
+}
+function splitFrontmatter(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") {
+      return { lines, endIndex: index };
+    }
+  }
+  return null;
+}
+function setFrontmatterField(lines, key, line) {
+  const next = lines.slice();
+  const endIndex = splitFrontmatter(next.join("\n"))?.endIndex;
+  if (endIndex === void 0) return next;
+  for (let index = 1; index < endIndex; index += 1) {
+    if (new RegExp(`^${key}\\s*:`).test(next[index])) {
+      next[index] = line;
+      return next;
+    }
+  }
+  next.splice(endIndex, 0, line);
+  return next;
+}
+function formatTimerStartedAt(value) {
+  if (!value) return "timer_started_at:";
+  return `timer_started_at: "${escapeYamlDoubleQuoted(value)}"`;
+}
+function dateFromIso(iso) {
+  const directDate = iso.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (directDate) return directDate[1];
+  return new Date(iso).toISOString().slice(0, 10);
+}
+function timeFromIso(iso) {
+  const directTime = iso.match(/T(\d{2}:\d{2})/);
+  if (directTime) return directTime[1];
+  return new Date(iso).toISOString().slice(11, 16);
+}
+function sumMinutes(entries) {
+  return entries.reduce((total, entry) => total + entry.minutes, 0);
+}
+function normalizeMinutes(minutes) {
+  return Math.max(0, Math.round(minutes));
+}
+function sanitizeLogNote(note) {
+  return String(note || "").replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+}
+function trimTrailingBlankLines(lines) {
+  const next = lines.slice();
+  while (next.length > 0 && next[next.length - 1].trim() === "") {
+    next.pop();
+  }
+  return next;
+}
+function ensureTrailingNewline(markdown) {
+  return markdown.endsWith("\n") ? markdown : `${markdown}
+`;
+}
+function emptyToNull(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "~" || trimmed.toLowerCase() === "null") {
+    return null;
+  }
+  return trimmed;
+}
+function unquoteYamlScalar(value) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  }
+  if (trimmed.length >= 2 && trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1).replace(/''/g, "'");
+  }
+  return trimmed;
+}
+function escapeYamlDoubleQuoted(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+function escapeHtmlAttribute(value) {
+  return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+function unescapeHtmlAttribute(value) {
+  return String(value).replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+}
+
+// src/hobbies/book-shelf-host.ts
+var BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
+function bookShelfHostMarkdown() {
+  return `# Atomic book shelf
+
+\`\`\`atomic-bookshelf
+activity: reading
+\`\`\`
+`;
+}
+async function ensureBookShelfHostFile(data) {
+  if (data.exists(BOOK_SHELF_HOST_REL)) {
+    return { path: BOOK_SHELF_HOST_REL, created: false };
+  }
+  await data.createNote(BOOK_SHELF_HOST_REL, bookShelfHostMarkdown());
+  return { path: BOOK_SHELF_HOST_REL, created: true };
+}
+async function ensureBookShelfHostCommand(data) {
+  const { Notice: Notice5 } = await import("obsidian");
+  const result = await ensureBookShelfHostFile(data);
+  new Notice5(
+    result.created ? `Created Atomic book shelf: ${result.path}` : `Atomic book shelf already exists: ${result.path}`
+  );
+}
+async function openBookShelfHostCommand(data) {
+  const result = await ensureBookShelfHostFile(data);
+  await data.openPath(result.path);
+}
+
+// src/hobbies/reading-bookshelf.ts
+var READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
+var READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readingBookshelfBaseYaml(itemsFolder = READING_ITEMS_FOLDER) {
+  if (!isSafeVaultFolder(itemsFolder)) {
+    throw new Error("Reading items folder must be a safe vault-relative folder");
+  }
+  return `# Atomic reading bookshelf v1
+filters:
+  and:
+    - file.inFolder("${itemsFolder}")
+    - type == "atomic-item"
+    - activity == "reading"
+properties:
+  file.name:
+    displayName: Title
+  authors:
+    displayName: Authors
+  description:
+    displayName: Description
+  pages:
+    displayName: Pages
+  status:
+    displayName: Status
+  tags:
+    displayName: Tags
+  total_min:
+    displayName: Total minutes
+views:
+  - type: cards
+    name: Cards
+    image: cover
+    fields:
+      - file.name
+      - authors
+      - description
+      - pages
+      - status
+      - tags
+      - total_min
+  - type: table
+    name: Table
+    columns:
+      - file.name
+      - authors
+      - description
+      - pages
+      - status
+      - tags
+      - total_min
+`;
+}
+function shouldCreateReadingBookshelf(existing) {
+  return !existing;
+}
+function isBasesCorePluginEnabled(app) {
+  const appRecord = app;
+  if (!isRecord2(appRecord)) return false;
+  const internalPlugins = appRecord.internalPlugins;
+  if (!isRecord2(internalPlugins)) return false;
+  const getEnabledPluginById = internalPlugins.getEnabledPluginById;
+  if (typeof getEnabledPluginById === "function") {
+    return getEnabledPluginById.call(internalPlugins, "bases") != null;
+  }
+  const getPluginById = internalPlugins.getPluginById;
+  if (typeof getPluginById !== "function") return false;
+  const plugin = getPluginById.call(internalPlugins, "bases");
+  return isRecord2(plugin) && plugin.enabled === true;
+}
+async function ensureReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER) {
+  if (!shouldCreateReadingBookshelf(data.exists(READING_BOOKSHELF_REL))) {
+    return { path: READING_BOOKSHELF_REL, created: false };
+  }
+  await data.createNote(
+    READING_BOOKSHELF_REL,
+    readingBookshelfBaseYaml(itemsFolder)
+  );
+  return { path: READING_BOOKSHELF_REL, created: true };
+}
+async function ensureReadingBookshelfCommand(app, data) {
+  const { Notice: Notice5 } = await import("obsidian");
+  if (!isBasesCorePluginEnabled(app)) {
+    new Notice5("Enable the Bases core plugin to use the Reading bookshelf.");
+    return;
+  }
+  const result = await ensureReadingBookshelfFile(data);
+  new Notice5(
+    result.created ? `Created Reading bookshelf: ${result.path}` : `Reading bookshelf already exists: ${result.path}`
+  );
+}
+async function openReadingBookshelfCommand(app, data) {
+  const { Notice: Notice5 } = await import("obsidian");
+  if (!isBasesCorePluginEnabled(app)) {
+    new Notice5("Enable the Bases core plugin to use the Reading bookshelf.");
+    return;
+  }
+  const result = await ensureReadingBookshelfFile(data);
+  await data.openPath(result.path);
 }
 
 // src/views/dashboard.ts
@@ -875,6 +1384,50 @@ async function renderDashboard(el, data, activityTypes, year) {
       `Golf felt / \u9AD8\u723E\u592B\u611F\u89BA \u2014 good / \u597D: ${feltCounts.good}, ok / \u4E00\u822C: ${feltCounts.ok}, bad / \u5DEE: ${feltCounts.bad}`
     );
   }
+  const hobbyStats = [];
+  for (const activity of hobbyActivities(activityTypes)) {
+    const items = data.listHobbyItems(activity);
+    let minutes = 0;
+    for (const item of items) {
+      const markdown = await data.readBody(item.path);
+      for (const entry of parseTimeLog(markdown)) {
+        if (entry.date.startsWith(`${year}-`)) {
+          minutes += entry.minutes;
+        }
+      }
+    }
+    hobbyStats.push({ activity, itemCount: items.length, minutes });
+  }
+  if (hobbyStats.length) {
+    root.createEl("h3", { text: "Hobbies / \u8208\u8DA3" });
+    const hobbyUl = root.createEl("ul");
+    for (const stat of hobbyStats) {
+      const li = hobbyUl.createEl("li");
+      li.appendText(`${stat.activity.label} items / \u9805\u76EE: `);
+      li.createEl("strong", { text: String(stat.itemCount) });
+      li.appendText(`, ${stat.minutes} min / \u5206\u9418`);
+    }
+    if (hobbyStats.some((stat) => stat.activity.id === "reading")) {
+      const links = root.createEl("p");
+      const baseLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: "Reading bookshelf"
+      });
+      baseLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(READING_BOOKSHELF_REL);
+      });
+      links.appendText(" \xB7 ");
+      const shelfLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: "Atomic book shelf"
+      });
+      shelfLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(BOOK_SHELF_HOST_REL);
+      });
+    }
+  }
   root.createEl("h3", { text: "Monthly / \u6BCF\u6708" });
   const sparks = root.createDiv({ cls: "fitness-monthly-sparks" });
   for (const stat of activityStats) {
@@ -975,14 +1528,173 @@ async function renderDashboard(el, data, activityTypes, year) {
   }
 }
 
+// src/views/book-shelf.ts
+var STATUS_ORDER = /* @__PURE__ */ new Map([
+  ["reading", 0],
+  ["to-read", 1],
+  ["to-read-again", 2],
+  ["finished", 3]
+]);
+function asString(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+function asStringList(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry).trim()).filter(Boolean);
+  }
+  const single = asString(value);
+  return single ? [single] : [];
+}
+function isValidHexColor(value) {
+  return /^#[0-9a-fA-F]{6}$/.test(value) || /^#[0-9a-fA-F]{3}$/.test(value);
+}
+function shelfColorFor(item) {
+  const explicit = asString(item.spine_color);
+  if (isValidHexColor(explicit)) return explicit;
+  const source = `${item.title}
+${item.path}`;
+  let hash = 0;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = hash * 31 + source.charCodeAt(index) >>> 0;
+  }
+  const color = hash & 16777215 | 3158064;
+  return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
+}
+function statusRank(status) {
+  return STATUS_ORDER.get(status) ?? 99;
+}
+function buildBookShelfItems(files) {
+  return files.filter(
+    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
+  ).map((file) => {
+    const title = asString(file.frontmatter.title) || file.basename;
+    const status = asString(file.frontmatter.status) || "to-read";
+    const cover = asString(file.frontmatter.cover);
+    const description = asString(file.frontmatter.description);
+    return {
+      path: file.path,
+      title,
+      authors: asStringList(file.frontmatter.authors),
+      status,
+      spineColor: shelfColorFor({
+        title,
+        path: file.path,
+        spine_color: asString(file.frontmatter.spine_color)
+      }),
+      ...cover ? { cover } : {},
+      ...description ? { description } : {}
+    };
+  }).sort(
+    (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
+  );
+}
+function isImageUrl(value) {
+  return /^https?:\/\//i.test(value) || /^app:\/\//i.test(value);
+}
+function chunkItems(items, size) {
+  const rows = [];
+  for (let index = 0; index < items.length; index += size) {
+    rows.push(items.slice(index, index + size));
+  }
+  return rows;
+}
+function createBook(parent, item, data) {
+  const button = parent.createEl("button", {
+    cls: "atomic-book",
+    attr: { type: "button", "aria-label": `Open ${item.title}` }
+  });
+  button.style.setProperty("--atomic-book-color", item.spineColor);
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    void data.openPath(item.path);
+  });
+  const volume = button.createDiv({ cls: "atomic-book-volume" });
+  const pages = volume.createDiv({ cls: "atomic-book-pages" });
+  pages.createDiv({ cls: "atomic-book-page-title", text: item.title });
+  pages.createDiv({
+    cls: "atomic-book-page-author",
+    text: item.authors[0] || item.status
+  });
+  const cover = volume.createDiv({ cls: "atomic-book-cover" });
+  if (item.cover && isImageUrl(item.cover)) {
+    cover.createEl("img", {
+      cls: "atomic-book-cover-image",
+      attr: { src: item.cover, alt: "" }
+    });
+  } else {
+    cover.createDiv({ cls: "atomic-book-cover-title", text: item.title });
+  }
+  cover.createDiv({ cls: "atomic-book-cover-shine" });
+  const spine = volume.createDiv({ cls: "atomic-book-spine" });
+  spine.createDiv({ cls: "atomic-book-spine-title", text: item.title });
+  const detail = button.createDiv({ cls: "atomic-book-detail" });
+  detail.createDiv({ cls: "atomic-book-detail-title", text: item.title });
+  detail.createDiv({
+    cls: "atomic-book-detail-author",
+    text: item.authors.join(", ") || item.status
+  });
+  if (item.description) {
+    detail.createDiv({ cls: "atomic-book-detail-description", text: item.description });
+  }
+}
+function renderBookShelf(el, data, activityTypes, options) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
+  const activityId = options.activity?.trim() || "reading";
+  const activity = hobbyActivities(activityTypes).find(
+    (candidate) => candidate.id === activityId
+  );
+  if (!activity) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: `No timer-backed hobby activity configured for ${activityId}.`
+    });
+    return;
+  }
+  const items = buildBookShelfItems(data.listHobbyItems(activity));
+  root.createEl("h3", { text: "Atomic book shelf" });
+  const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
+  const rows = items.length ? chunkItems(items, 8) : [[]];
+  for (const rowItems of rows) {
+    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
+    const books = row.createDiv({ cls: "atomic-book-row-books" });
+    if (!rowItems.length) {
+      books.createDiv({
+        cls: "atomic-book-empty",
+        text: "No Reading items yet. Run Atomic: New reading item."
+      });
+    } else {
+      for (const item of rowItems) createBook(books, item, data);
+    }
+    row.createDiv({ cls: "atomic-book-shelf-plank" });
+  }
+}
+
 // src/views/heatmap.ts
 var DAY_NAMES = ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
 function colorFor(activity, level) {
   if (!level) return EMPTY_CELL;
   return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
 }
-function durationMap(data, activity, year) {
+async function durationMap(data, activity, year) {
   const map = /* @__PURE__ */ new Map();
+  if (activity.domain === "hobby") {
+    for (const item of data.listHobbyItems(activity)) {
+      const markdown = await data.readBody(item.path);
+      const totals = minutesByDate(
+        parseTimeLog(markdown).filter(
+          (entry) => entry.date.startsWith(`${year}-`)
+        )
+      );
+      for (const [date, minutes] of totals) {
+        const entry = map.get(date) || { minutes: 0, path: item.path };
+        entry.minutes += minutes;
+        if (!entry.path) entry.path = item.path;
+        map.set(date, entry);
+      }
+    }
+    return map;
+  }
   for (const s of data.listSessions(activity.folder, year)) {
     if (!s.date) continue;
     const entry = map.get(s.date) || { minutes: 0, path: null };
@@ -992,7 +1704,7 @@ function durationMap(data, activity, year) {
   }
   return map;
 }
-function renderOneHeatmap(root, data, activity, year, timezone) {
+async function renderOneHeatmap(root, data, activity, year, timezone) {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
@@ -1007,7 +1719,7 @@ function renderOneHeatmap(root, data, activity, year, timezone) {
     text: "by duration / \u6309\u6642\u9577",
     attr: { style: "margin-left:8px" }
   });
-  const activityMap = durationMap(data, activity, year);
+  const activityMap = await durationMap(data, activity, year);
   const todayStr = ymdInZone(/* @__PURE__ */ new Date(), timezone);
   const start = { y: year, m: 1, d: 1 };
   const end = { y: year, m: 12, d: 31 };
@@ -1083,11 +1795,14 @@ function renderOneHeatmap(root, data, activity, year, timezone) {
     }
   }
 }
-function renderHeatmaps(el, data, activityTypes, year, timezone) {
+async function renderHeatmaps(el, data, activityTypes, year, timezone) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const activity of exerciseActivities(activityTypes)) {
-    renderOneHeatmap(root, data, activity, year, timezone);
+  for (const activity of [
+    ...exerciseActivities(activityTypes),
+    ...hobbyActivities(activityTypes)
+  ]) {
+    await renderOneHeatmap(root, data, activity, year, timezone);
   }
 }
 function resolveHeatmapYear(opts, sourcePath, timezone) {
@@ -1097,6 +1812,81 @@ function resolveHeatmapYear(opts, sourcePath, timezone) {
   );
   if (fromPath) return fromPath.y;
   return Number(ymdInZone(/* @__PURE__ */ new Date(), timezone).slice(0, 4));
+}
+
+// src/views/timer.ts
+var import_obsidian2 = require("obsidian");
+async function modifyCurrentNote(plugin, sourcePath, updater) {
+  const file = plugin.data.getFileByPath(sourcePath);
+  if (!file) {
+    new import_obsidian2.Notice("Atomic timer can only update a saved note.");
+    return;
+  }
+  const original = await plugin.app.vault.read(file);
+  await plugin.app.vault.modify(file, updater(original));
+  plugin.scheduleRefresh();
+}
+async function renderAtomicTimer(plugin, el, sourcePath) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin atomic-timer" });
+  if (!sourcePath) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: "Atomic timer can only run from a saved Reading item note."
+    });
+    return;
+  }
+  const markdown = await plugin.data.readBody(sourcePath);
+  const frontmatter = readTimerFrontmatter(markdown);
+  root.createEl("p", {
+    text: `Total: ${frontmatter.totalMin} min`,
+    cls: "atomic-timer-total"
+  });
+  const actions = root.createDiv({ cls: "fitness-actions atomic-timer-actions" });
+  if (frontmatter.timerStartedAt) {
+    root.createEl("p", {
+      cls: "atomic-timer-running",
+      text: `Timer running since ${frontmatter.timerStartedAt}`
+    });
+    actions.createEl("button", { text: "Stop" }).addEventListener("click", () => {
+      void modifyCurrentNote(plugin, sourcePath, (latest) => {
+        const latestFrontmatter = readTimerFrontmatter(latest);
+        if (!latestFrontmatter.timerStartedAt) {
+          new import_obsidian2.Notice("Timer is not running.");
+          return latest;
+        }
+        const note = window.prompt("Time log note", "") ?? "";
+        const result = stopTimer({
+          markdown: latest,
+          startedAtIso: latestFrontmatter.timerStartedAt,
+          stoppedAtIso: (/* @__PURE__ */ new Date()).toISOString(),
+          note
+        });
+        new import_obsidian2.Notice(`Logged ${result.minutes} min.`);
+        return result.markdown;
+      });
+    });
+    actions.createEl("button", { text: "Resume" }).addEventListener("click", () => {
+      new import_obsidian2.Notice("Timer is already running.");
+    });
+    actions.createEl("button", { text: "Discard" }).addEventListener("click", () => {
+      void modifyCurrentNote(
+        plugin,
+        sourcePath,
+        (latest) => updateTimerFrontmatter(latest, { timerStartedAtIso: null })
+      );
+    });
+    return;
+  }
+  actions.createEl("button", { text: "Start" }).addEventListener("click", () => {
+    void modifyCurrentNote(
+      plugin,
+      sourcePath,
+      (latest) => updateTimerFrontmatter(latest, {
+        timerStartedAtIso: (/* @__PURE__ */ new Date()).toISOString()
+      })
+    );
+  });
 }
 
 // src/views/today.ts
@@ -1143,7 +1933,9 @@ var ATOMIC_CODEBLOCK_LANGUAGES = [
   "atomic-actions",
   "atomic-golf-cues",
   "atomic-gym-cues",
-  "atomic-cues"
+  "atomic-cues",
+  "atomic-timer",
+  "atomic-bookshelf"
 ];
 var FITNESS_CODEBLOCK_ALIASES = [
   "fitness-heatmap",
@@ -1204,7 +1996,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        renderHeatmaps(el, data, activityTypes, year, tz);
+        await renderHeatmaps(el, data, activityTypes, year, tz);
         break;
       }
       case "atomic-today": {
@@ -1258,6 +2050,14 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         renderActions(el, plugin);
         break;
       }
+      case "atomic-timer": {
+        await renderAtomicTimer(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-bookshelf": {
+        renderBookShelf(el, data, activityTypes, opts);
+        break;
+      }
       default:
         el.createEl("p", { text: `Unknown Atomic block: ${kind}` });
     }
@@ -1284,7 +2084,7 @@ function registerCodeblocks(plugin) {
 }
 
 // src/data/vault-source.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 function asList(value) {
   if (value == null || value === "") return [];
   if (Array.isArray(value)) {
@@ -1309,7 +2109,7 @@ var VaultDataSource = class {
   listSessions(folder, year) {
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian2.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -1328,16 +2128,38 @@ var VaultDataSource = class {
     }
     return out;
   }
+  listHobbyItems(activity) {
+    if (activity.domain !== "hobby" || activity.noteModel !== "item" || !activity.supportsTimer) {
+      return [];
+    }
+    const prefix = hobbyItemsScanPrefix(activity.folder);
+    if (!prefix) return [];
+    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const out = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(scanPrefix)) continue;
+      if (!file.path.endsWith(".md")) continue;
+      const cache = this.app.metadataCache.getFileCache(file);
+      const fm = cache?.frontmatter ?? {};
+      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
+      out.push({
+        path: file.path,
+        basename: file.basename,
+        frontmatter: fm
+      });
+    }
+    return out;
+  }
   async readBody(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    if (!(af instanceof import_obsidian2.TFile)) return "";
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    if (!(af instanceof import_obsidian3.TFile)) return "";
     return this.app.vault.read(af);
   }
   exists(path) {
-    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
+    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
   }
   async ensureFolder(folderPath) {
-    const norm = (0, import_obsidian2.normalizePath)(folderPath);
+    const norm = (0, import_obsidian3.normalizePath)(folderPath);
     if (this.app.vault.getAbstractFileByPath(norm)) return;
     const parts = norm.split("/").filter(Boolean);
     let cur = "";
@@ -1349,40 +2171,40 @@ var VaultDataSource = class {
     }
   }
   async createNote(path, content) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     const parent = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
     if (parent) await this.ensureFolder(parent);
     return this.app.vault.create(norm, content);
   }
   async openPath(path) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
-    if (file instanceof import_obsidian2.TFile) {
+    if (file instanceof import_obsidian3.TFile) {
       await this.app.workspace.getLeaf(false).openFile(file);
       return;
     }
     await this.app.workspace.openLinkText(norm, "", false);
   }
   getFileByPath(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    return af instanceof import_obsidian2.TFile ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    return af instanceof import_obsidian3.TFile ? af : null;
   }
   isUnderSeriesFolder(path, folders) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     return folders.some((f) => {
       if (!isSafeVaultFolder(f)) return false;
-      const p = (0, import_obsidian2.normalizePath)(f);
+      const p = (0, import_obsidian3.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
   }
   getFolder(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    return af instanceof import_obsidian2.TFolder ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    return af instanceof import_obsidian3.TFolder ? af : null;
   }
 };
 
 // src/settings.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 
 // src/util/migrate-fitness.ts
 var MOVE_DEFINITIONS = [
@@ -1518,6 +2340,13 @@ function normalizeActivities(values, fallback) {
   const normalized = values.map((value) => normalizeActivityType(value, fallback[0].colors)).filter((activity) => activity !== null);
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
+function appendNewBuiltInActivities(activityTypes, builtIns) {
+  const existingIds = new Set(activityTypes.map((activity) => activity.id));
+  const addedBuiltIns = builtIns.filter(
+    (activity) => activity.domain === "hobby" && !existingIds.has(activity.id)
+  );
+  return [...activityTypes, ...cloneActivities(addedBuiltIns)];
+}
 function legacySeriesActivities(values, fallback) {
   if (!Array.isArray(values) || values.length === 0) return null;
   const normalized = values.map((value) => activityTypeFromSeries(value, fallback[0].colors)).filter((activity) => activity !== null);
@@ -1530,7 +2359,10 @@ function mergeSettings(raw) {
   };
   if (!raw) return base;
   const golfCuesPath = raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || base.golfCuesPath;
-  const activityTypes = normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes);
+  const activityTypes = appendNewBuiltInActivities(
+    normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes),
+    DEFAULT_SETTINGS.activityTypes
+  );
   return {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
@@ -1542,7 +2374,7 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
-var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -1552,33 +2384,33 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Atomic" });
-    new import_obsidian3.Setting(containerEl).setName("Timezone").setDesc("IANA timezone for \u201Ctoday\u201D and session dates (e.g. Asia/Hong_Kong).").addText(
+    new import_obsidian4.Setting(containerEl).setName("Timezone").setDesc("IANA timezone for \u201Ctoday\u201D and session dates (e.g. Asia/Hong_Kong).").addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Dashboard path").setDesc("Vault-relative path opened by \u201COpen dashboard\u201D.").addText(
+    new import_obsidian4.Setting(containerEl).setName("Dashboard path").setDesc("Vault-relative path opened by \u201COpen dashboard\u201D.").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         this.plugin.settings.dashboardPath = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         await this.plugin.saveSettings();
       })
     );
     this.renderExerciseTypes(containerEl);
-    new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-*` blocks").setDesc(
+    new import_obsidian4.Setting(containerEl).setName("Allow legacy `fitness-*` blocks").setDesc(
       "Keep supporting old Fitness codeblock names. Turn off after migrating notes (or use Migrate)."
     ).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
         this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian3.Notice(
+        new import_obsidian4.Notice(
           "Legacy fitness-* setting saved. Reload the plugin (or Obsidian) to apply registration."
         );
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Migrate from Fitness \u2192 Atomic").setDesc(
+    new import_obsidian4.Setting(containerEl).setName("Migrate from Fitness \u2192 Atomic").setDesc(
       "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases."
     ).addButton(
       (button) => button.setButtonText("Migrate from Fitness \u2192 Atomic").setCta().onClick(() => {
@@ -1606,7 +2438,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
     for (const activity of exerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderExerciseType(containerEl, activity);
     }
-    new import_obsidian3.Setting(containerEl).setName("Add exercise type").setDesc("Creates a daily-session exercise with cues enabled and no set table.").addText(
+    new import_obsidian4.Setting(containerEl).setName("Add exercise type").setDesc("Creates a daily-session exercise with cues enabled and no set table.").addText(
       (text) => text.setPlaceholder("Running").setValue(this.pendingExerciseName).onChange((value) => {
         this.pendingExerciseName = value;
       })
@@ -1614,7 +2446,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
       (button) => button.setButtonText("Add").onClick(async () => {
         const name = this.pendingExerciseName.trim();
         if (!name) {
-          new import_obsidian3.Notice("Enter an exercise type name first.");
+          new import_obsidian4.Notice("Enter an exercise type name first.");
           return;
         }
         const activity = createExerciseActivityType(name);
@@ -1630,7 +2462,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
     );
   }
   renderExerciseType(containerEl, activity) {
-    new import_obsidian3.Setting(containerEl).setName(activity.label).setDesc(`Activity id: ${activity.id}`).addText(
+    new import_obsidian4.Setting(containerEl).setName(activity.label).setDesc(`Activity id: ${activity.id}`).addText(
       (text) => text.setPlaceholder("Label").setValue(activity.label).onChange(async (value) => {
         const label = value.trim();
         if (!label) return;
@@ -1641,7 +2473,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
       (text) => text.setPlaceholder("atomics/exercise/Name").setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian3.Notice("Folder must be a safe vault-relative path.");
+          new import_obsidian4.Notice("Folder must be a safe vault-relative path.");
           return;
         }
         activity.folder = folder;
@@ -1653,7 +2485,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
         await this.saveAndRefresh();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName(`${activity.label} colors`).setDesc("Heatmap colors from low to high intensity.").addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
+    new import_obsidian4.Setting(containerEl).setName(`${activity.label} colors`).setDesc("Heatmap colors from low to high intensity.").addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
   }
   bindColorText(text, activity, index) {
     text.setPlaceholder(`#${index + 1}`).setValue(activity.colors[index]).onChange(async (value) => {
@@ -1664,7 +2496,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
     });
   }
   async ensureParentFolder(path) {
-    const normalized = (0, import_obsidian3.normalizePath)(path);
+    const normalized = (0, import_obsidian4.normalizePath)(path);
     const slash = normalized.lastIndexOf("/");
     if (slash <= 0) return;
     await this.plugin.data.ensureFolder(normalized.slice(0, slash));
@@ -1683,8 +2515,8 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
     let replacements = 0;
     try {
       for (const move of plan.moves) {
-        const from = (0, import_obsidian3.normalizePath)(move.from);
-        const to = (0, import_obsidian3.normalizePath)(move.to);
+        const from = (0, import_obsidian4.normalizePath)(move.from);
+        const to = (0, import_obsidian4.normalizePath)(move.to);
         const source = this.app.vault.getAbstractFileByPath(from);
         const destination = this.app.vault.getAbstractFileByPath(to);
         if (!source || destination) {
@@ -1708,19 +2540,19 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
-      new import_obsidian3.Notice(
+      new import_obsidian4.Notice(
         `Migrated Fitness \u2192 Atomic: moved ${movedPaths} path${movedPaths === 1 ? "" : "s"}, skipped ${skippedPaths} existing destination${skippedPaths === 1 ? "" : "s"}, rewrote ${replacements} block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-* aliases disabled; reload the plugin (or Obsidian) to drop registered legacy processors.`
       );
     } catch (err) {
       console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian3.Notice(`Failed to migrate from Fitness to Atomic: ${message}`);
+      new import_obsidian4.Notice(`Failed to migrate from Fitness to Atomic: ${message}`);
     }
   }
 };
 
 // src/main.ts
-var FitnessPlugin = class extends import_obsidian4.Plugin {
+var FitnessPlugin = class extends import_obsidian5.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -1751,6 +2583,41 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       name: "New exercise session",
       callback: () => {
         void this.createExerciseSession();
+      }
+    });
+    this.addCommand({
+      id: "atomic-new-reading-item",
+      name: "New reading item",
+      callback: () => {
+        void this.createReadingItem();
+      }
+    });
+    this.addCommand({
+      id: "atomic-ensure-reading-bookshelf",
+      name: "Ensure reading bookshelf",
+      callback: () => {
+        void ensureReadingBookshelfCommand(this.app, this.data);
+      }
+    });
+    this.addCommand({
+      id: "atomic-open-reading-bookshelf",
+      name: "Open reading bookshelf",
+      callback: () => {
+        void openReadingBookshelfCommand(this.app, this.data);
+      }
+    });
+    this.addCommand({
+      id: "atomic-ensure-book-shelf",
+      name: "Ensure book shelf",
+      callback: () => {
+        void ensureBookShelfHostCommand(this.data);
+      }
+    });
+    this.addCommand({
+      id: "atomic-open-book-shelf",
+      name: "Open book shelf",
+      callback: () => {
+        void openBookShelfHostCommand(this.data);
       }
     });
     this.addCommand({
@@ -1806,15 +2673,20 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       (activity) => activity.id === id
     );
   }
+  hobbyActivityById(id) {
+    return hobbyActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id
+    );
+  }
   chooseExerciseActivity() {
     const activities = exerciseActivities(this.settings.activityTypes);
     if (!activities.length) {
-      new import_obsidian4.Notice("No exercise activities configured");
+      new import_obsidian5.Notice("No exercise activities configured");
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
       let settled = false;
-      const modal = new class extends import_obsidian4.FuzzySuggestModal {
+      const modal = new class extends import_obsidian5.FuzzySuggestModal {
         getItems() {
           return activities;
         }
@@ -1849,7 +2721,7 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian4.Notice("No gym activity configured");
+      new import_obsidian5.Notice("No gym activity configured");
       return;
     }
     await createGymSession(
@@ -1862,7 +2734,7 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian4.Notice("No golf activity configured");
+      new import_obsidian5.Notice("No golf activity configured");
       return;
     }
     await createGolfSession(
@@ -1872,10 +2744,18 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       this.settings.timezone
     );
   }
+  async createReadingItem() {
+    const activity = this.hobbyActivityById("reading");
+    if (!activity) {
+      new import_obsidian5.Notice("No Reading hobby configured");
+      return;
+    }
+    await createReadingItem(this.app, this.data, activity);
+  }
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian4.Notice(`Dashboard not found: ${path}`);
+      new import_obsidian5.Notice(`Dashboard not found: ${path}`);
       return;
     }
     await this.data.openPath(path);
