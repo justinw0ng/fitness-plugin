@@ -27,7 +27,7 @@ When an `atomic-heatmap` year grid is wider than its container (phone, narrow pa
 
 ### Approach 1 — Single scrollport, sticky day labels (chosen)
 
-Wrap month row + week columns in one `overflow-x: auto` container. Keep day labels outside (or otherwise fixed). Compute `scrollLeft` so today’s week aligns to the right edge when today is in-year and content overflows.
+Wrap month row + week columns in one `overflow-x: auto` container. Keep day labels **outside** that container so they do not scroll. Compute `scrollLeft` so today’s week aligns to the right edge when today is in-year and content overflows.
 
 ### Approach 2 — `scrollIntoView` / scroll-snap only
 
@@ -71,7 +71,7 @@ Future weeks in the current year may sit off-screen to the right until the user 
 | Area | Change |
 |------|--------|
 | `src/views/heatmap.ts` | Restructure DOM for scrollport + day labels; mark today week; call scroll helper after mount |
-| `styles.css` | Scrollport styles; remove independent `overflow-x` on month row if it would desync |
+| `styles.css` | Scrollport styles; drop standalone `overflow-x` on the month row (months scroll only via the shared scrollport) |
 | Pure helper (e.g. in `src/core` or a small util) | `scrollLeftToAlignRight(scrollWidth, clientWidth, targetRightPx) → number` |
 
 No new settings, codeblock options, or i18n keys.
