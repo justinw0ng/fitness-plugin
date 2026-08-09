@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic / Fitness — Language setting mockup</title>
+  <style>
+    :root {
+      --bg: #f8f5f1;
+      --panel: #fffdf9;
+      --ink: #1f1a17;
+      --muted: #6b625a;
+      --line: #e4dbd0;
+      --accent: #2f6f4e;
+      --accent-soft: #e7f2eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      background:
+        radial-gradient(circle at 10% 0%, #efe6d8 0%, transparent 40%),
+        radial-gradient(circle at 90% 20%, #e7f2eb 0%, transparent 35%),
+        var(--bg);
+      color: var(--ink);
+      padding: 32px;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 8px; font-weight: 700; }
+    p.lead { color: var(--muted); margin: 0 0 24px; max-width: 52ch; }
+    .frame {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      max-width: 860px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      min-height: 420px;
+    }
+    nav {
+      border-right: 1px solid var(--line);
+      padding: 20px 14px;
+      background: #f3eee7;
+    }
+    nav .brand { font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      color: var(--ink);
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    main { padding: 24px 28px; }
+    h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .hint { color: var(--muted); font-size: 0.92rem; margin: 0 0 22px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 16px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      align-items: start;
+    }
+    .row:last-child { border-bottom: 1px solid var(--line); }
+    .label { font-weight: 600; }
+    .desc { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: inherit;
+    }
+    .preview {
+      margin-top: 28px;
+      padding: 16px;
+      background: #f6faf7;
+      border: 1px dashed #b9d2c2;
+    }
+    .preview h3 { margin: 0 0 10px; font-size: 0.95rem; }
+    .chip {
+      display: inline-block;
+      margin: 0 8px 8px 0;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 0.88rem;
+    }
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; max-width: 860px; }
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 16px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1rem; }
+    .card ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>Language selection mockup</h1>
+  <p class="lead">Settings row for the standalone i18n PR. Two modes only: bilingual Traditional Chinese &amp; English, or English.</p>
+
+  <div class="frame" aria-label="Obsidian settings mock">
+    <nav>
+      <div class="brand">Settings</div>
+      <a href="#">Editor</a>
+      <a href="#">Files &amp; links</a>
+      <a class="active" href="#">Fitness</a>
+      <a href="#">Hotkeys</a>
+    </nav>
+    <main>
+      <h2>Fitness</h2>
+      <p class="hint">Plugin settings — language sits above timezone so users find it first.</p>
+
+      <div class="row">
+        <div>
+          <div class="label">Language / 語言</div>
+          <div class="desc">UI labels for settings, dashboards, notices, and new-session templates. Your note content is never rewritten.</div>
+        </div>
+        <select aria-label="Language">
+          <option selected>Traditional Chinese &amp; English</option>
+          <option>English</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="label">Timezone / 時區</div>
+          <div class="desc">Used for “today” and year boundaries.</div>
+        </div>
+        <select disabled>
+          <option>Asia/Hong_Kong</option>
+        </select>
+      </div>
+
+      <div class="preview">
+        <h3>Live label preview (bilingual mode)</h3>
+        <span class="chip">New gym session / 新建健身課</span>
+        <span class="chip">This month / 本月</span>
+        <span class="chip">Keepers / 常駐提醒</span>
+        <span class="chip">Duration (min) / 時長（分鐘）</span>
+      </div>
+    </main>
+  </div>
+
+  <div class="modes">
+    <div class="card">
+      <h3>Mode: Traditional Chinese &amp; English</h3>
+      <ul>
+        <li>Catalog id: <code>zh-Hant-en</code></li>
+        <li>Default for existing installs</li>
+        <li>Keeps current “EN / 中文” compound labels</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Mode: English</h3>
+      <ul>
+        <li>Catalog id: <code>en</code></li>
+        <li>Same keys, English-only values</li>
+        <li>Date formatting uses English month names</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
