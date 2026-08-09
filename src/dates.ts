@@ -1,4 +1,5 @@
 /** Timezone-aware calendar helpers without luxon. */
+import type { Language } from "./i18n/types";
 
 export function ymdInZone(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -54,6 +55,23 @@ export function monthShortZh(y: number, m: number, d: number): string {
   }).format(dt);
 }
 
+export function monthShortEn(y: number, m: number, d: number): string {
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(dt);
+}
+
+export function monthShortForLanguage(
+  y: number,
+  m: number,
+  d: number,
+  language: Language,
+): string {
+  return language === "en" ? monthShortEn(y, m, d) : monthShortZh(y, m, d);
+}
+
 export function fullDateZh(y: number, m: number, d: number): string {
   const dt = new Date(Date.UTC(y, m - 1, d, 12));
   return new Intl.DateTimeFormat("zh-HK", {
@@ -61,6 +79,24 @@ export function fullDateZh(y: number, m: number, d: number): string {
     day: "numeric",
     timeZone: "UTC",
   }).format(dt);
+}
+
+export function fullDateEn(y: number, m: number, d: number): string {
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(dt);
+}
+
+export function fullDateForLanguage(
+  y: number,
+  m: number,
+  d: number,
+  language: Language,
+): string {
+  return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
 }
 
 export function monthLongEn(y: number, m: number): string {
@@ -79,6 +115,15 @@ export function monthLongZh(y: number, m: number): string {
     month: "long",
     timeZone: "UTC",
   }).format(dt);
+}
+
+export function formatMonthLabel(
+  y: number,
+  m: number,
+  language: Language,
+): string {
+  if (language === "en") return monthLongEn(y, m);
+  return `${monthLongEn(y, m)} / ${monthLongZh(y, m)}`;
 }
 
 export function extractYmdFromPath(path: string): string | null {

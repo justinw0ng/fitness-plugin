@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 env:
-  PLUGIN_ID: obsidian-fitness
+  PLUGIN_ID: obsidian-atomic
 
 concurrency:
   group: release-main

@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -15,6 +17,14 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/main.ts
@@ -23,7 +33,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/commands/create-session.ts
 var import_obsidian = require("obsidian");
@@ -194,6 +204,16 @@ function monthShortZh(y, m, d) {
     timeZone: "UTC"
   }).format(dt);
 }
+function monthShortEn(y, m, d) {
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    timeZone: "UTC"
+  }).format(dt);
+}
+function monthShortForLanguage(y, m, d, language) {
+  return language === "en" ? monthShortEn(y, m, d) : monthShortZh(y, m, d);
+}
 function fullDateZh(y, m, d) {
   const dt = new Date(Date.UTC(y, m - 1, d, 12));
   return new Intl.DateTimeFormat("zh-HK", {
@@ -201,6 +221,17 @@ function fullDateZh(y, m, d) {
     day: "numeric",
     timeZone: "UTC"
   }).format(dt);
+}
+function fullDateEn(y, m, d) {
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC"
+  }).format(dt);
+}
+function fullDateForLanguage(y, m, d, language) {
+  return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
 }
 function monthLongEn(y, m) {
   const dt = new Date(Date.UTC(y, m - 1, 1, 12));
@@ -218,9 +249,344 @@ function monthLongZh(y, m) {
     timeZone: "UTC"
   }).format(dt);
 }
+function formatMonthLabel(y, m, language) {
+  if (language === "en") return monthLongEn(y, m);
+  return `${monthLongEn(y, m)} / ${monthLongZh(y, m)}`;
+}
 function extractYmdFromPath(path) {
   const m = String(path || "").match(/(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : null;
+}
+
+// src/i18n/locales/en.ts
+var en = {
+  "settings.title": "Atomic",
+  "settings.language": "Language",
+  "settings.languageDesc": "Choose the plugin UI language. Existing notes and frontmatter are not rewritten.",
+  "settings.languageOption.zh-Hant-en": "Traditional Chinese & English",
+  "settings.languageOption.en": "English",
+  "settings.timezone": "Timezone",
+  "settings.timezoneDesc": "IANA timezone for today and session dates (e.g. Asia/Hong_Kong).",
+  "settings.dashboardPath": "Dashboard path",
+  "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard.",
+  "settings.legacyBlocks": "Allow legacy `fitness-*` blocks",
+  "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate.",
+  "settings.migrateFitness": "Migrate from Fitness to Atomic",
+  "settings.migrateFitnessDesc": "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases.",
+  "settings.exerciseTypes": "Exercise types",
+  "settings.exerciseTypesDesc": "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name>.",
+  "settings.addExerciseType": "Add exercise type",
+  "settings.addExerciseTypeDesc": "Creates a daily-session exercise with cues enabled and no set table.",
+  "settings.add": "Add",
+  "settings.activityId": "Activity id: {id}",
+  "settings.labelPlaceholder": "Label",
+  "settings.exerciseFolderPlaceholder": "atomics/exercise/Name",
+  "settings.enableCuesTooltip": "Enable reminder/cue rollups for this exercise",
+  "settings.colors": "{label} colors",
+  "settings.colorsDesc": "Heatmap colors from low to high intensity.",
+  "settings.exerciseNamePlaceholder": "Running",
+  "settings.colorPlaceholder": "#{number}",
+  "command.newGymSession": "New gym session",
+  "command.newGolfSession": "New golf session",
+  "command.newExerciseSession": "New exercise session",
+  "command.newReadingItem": "New reading item",
+  "command.ensureReadingBookshelf": "Ensure reading bookshelf",
+  "command.openReadingBookshelf": "Open reading bookshelf",
+  "command.ensureBookShelf": "Ensure book shelf",
+  "command.openBookShelf": "Open book shelf",
+  "command.openDashboard": "Open dashboard",
+  "notice.created": "Created: {path}",
+  "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names.",
+  "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration.",
+  "notice.enterExerciseType": "Enter an exercise type name first.",
+  "notice.folderUnsafe": "Folder must be a safe vault-relative path.",
+  "notice.migrationComplete": "Migrated Fitness to Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors.",
+  "notice.migrationFailed": "Failed to migrate from Fitness to Atomic: {message}",
+  "notice.noExerciseActivities": "No exercise activities configured",
+  "notice.noGymActivity": "No gym activity configured",
+  "notice.noGolfActivity": "No golf activity configured",
+  "notice.noReadingHobby": "No Reading hobby configured",
+  "notice.dashboardNotFound": "Dashboard not found: {path}",
+  "notice.openedExistingSession": "Opened existing {activity} session: {path}",
+  "notice.createdSession": "Created {activity} session: {path}",
+  "notice.invalidDate": "Invalid date",
+  "notice.createdReadingItem": "Created Reading item: {path}",
+  "notice.openedExistingReadingItem": "Opened existing Reading item: {path}",
+  "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
+  "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
+  "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",
+  "notice.createdBookShelf": "Created book shelf: {path}",
+  "notice.bookShelfExists": "Book shelf already exists: {path}",
+  "notice.timerNeedsSavedNote": "Timer can only update a saved note.",
+  "notice.timerNotRunning": "Timer is not running.",
+  "notice.timerAlreadyRunning": "Timer is already running.",
+  "notice.timerLogged": "Logged {minutes} min.",
+  "modal.dateTitle": "Date (YYYY-MM-DD)",
+  "modal.cancel": "Cancel",
+  "modal.ok": "OK",
+  "modal.locationPlaceholder": "Location (Esc to skip)",
+  "modal.otherLocationDetail": "Other location detail",
+  "modal.weightUnitPlaceholder": "Weight unit (Esc -> kg)",
+  "modal.exerciseTypePlaceholder": "Exercise type",
+  "modal.readingItemTitle": "Reading item title",
+  "modal.timeLogNote": "Time log note",
+  "location.home": "Home",
+  "location.commercial": "Commercial",
+  "location.hotelTravel": "Hotel/Travel",
+  "location.other": "Other",
+  "template.gymMuscles": "Muscles",
+  "template.gymTable.exercise": "Exercise",
+  "template.gymTable.muscle": "Muscle",
+  "template.gymTable.weight": "Weight",
+  "template.gymTable.reps": "Reps",
+  "template.gymTable.notes": "Notes",
+  "template.reminders": "\u{1F4A1} Reminders",
+  "template.golfLocationHint": "\u{1F4CD} location: Home net, Driving range, Course, Other",
+  "template.golfFocusHint": "\u{1F3AF} focus (multi): Grip, Stance, Takeaway, Backswing, Transition, Downswing, Impact, Follow-through, Tempo, Alignment",
+  "template.golfClubHint": "\u{1F3CC}\uFE0F club (multi): Driver, 3W, 5W, Hybrid, 4i-9i, PW, GW, SW, LW, Putter, Mixed",
+  "template.golfFeltHint": "felt: good, ok, bad",
+  "template.readingRemarks": "Remarks",
+  "template.readingTimeLog": "Time log",
+  "template.readingBookshelfTitle": "Reading bookshelf v1",
+  "template.base.title": "Title",
+  "template.base.authors": "Authors",
+  "template.base.description": "Description",
+  "template.base.pages": "Pages",
+  "template.base.status": "Status",
+  "template.base.tags": "Tags",
+  "template.base.totalMinutes": "Total minutes",
+  "template.base.cards": "Cards",
+  "template.base.table": "Table",
+  "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
+  "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
+  "view.unknownAtomicBlock": "Unknown block: {kind}",
+  "view.atomicError": "Error: {message}",
+  "view.dashboard.overview": "\u{1F4CA} {year} overview",
+  "view.dashboard.cues": "\u{1F4A1} {activity} cues",
+  "view.dashboard.sessions": "{activity} sessions: ",
+  "view.dashboard.durationSuffix": ", {minutes} min",
+  "view.dashboard.totalExerciseDuration": "Total exercise duration: ",
+  "view.dashboard.minuteUnit": " min",
+  "view.dashboard.totalVolume": "Total set-table volume: ",
+  "view.dashboard.golfFelt": "Golf felt - good: {good}, ok: {ok}, bad: {bad}",
+  "view.dashboard.hobbies": "Hobbies",
+  "view.dashboard.items": "{activity} items: ",
+  "view.dashboard.hobbyMinutesSuffix": ", {minutes} min",
+  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.bookShelf": "Book shelf",
+  "view.dashboard.monthly": "Monthly",
+  "view.dashboard.month": "Month",
+  "view.dashboard.sparkSessions": "{activity} sessions ",
+  "view.dashboard.sparkVolume": "{activity} volume ",
+  "view.dashboard.volumeHeader": "{activity} volume (kg)",
+  "view.dashboard.muscles": "Muscles",
+  "view.dashboard.muscle": "Muscle",
+  "view.dashboard.sets": "Sets",
+  "view.dashboard.volumeKg": "Volume (kg)",
+  "view.dashboard.noSetData": "No set data",
+  "view.dashboard.golfFocus": "Golf focus",
+  "view.dashboard.noFocusTags": "No focus tags",
+  "view.dashboard.recentSessions": "Recent sessions",
+  "view.dashboard.noSessions": "No sessions yet",
+  "view.heatmap.less": "Less",
+  "view.heatmap.more": "More",
+  "view.heatmap.byDuration": "by duration",
+  "view.heatmap.minutes": "{minutes} min",
+  "view.heatmap.tooltip": "{date}: {minutes} min",
+  "view.heatmap.tooltipOpen": "{date}: {minutes} min - click to open",
+  "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions",
+  "view.today.noSession": "no session yet",
+  "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured.",
+  "view.cues.thisMonth": "\u{1F4C5} This month - {month}",
+  "view.cues.noReminders": "No reminders this month",
+  "view.cues.keepers": "\u2B50 Keepers (>=2 in {year})",
+  "view.cues.noKeepers": "No keepers yet",
+  "view.cues.lastSeen": " (x{count}, last {lastSeen}{focus})",
+  "view.bookShelf.open": "Open {title}",
+  "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
+  "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
+  "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note.",
+  "view.timer.total": "Total: {minutes} min",
+  "view.timer.runningSince": "Timer running since {time}",
+  "view.timer.stop": "Stop",
+  "view.timer.resume": "Resume",
+  "view.timer.discard": "Discard",
+  "view.timer.start": "Start"
+};
+
+// src/i18n/locales/zh-Hant-en.ts
+var zhHantEn = {
+  "settings.title": "Atomic",
+  "settings.language": "Language / \u8A9E\u8A00",
+  "settings.languageDesc": "Choose plugin UI language / \u9078\u64C7\u5916\u639B\u4ECB\u9762\u8A9E\u8A00\u3002Existing notes are not rewritten / \u4E0D\u6703\u6539\u5BEB\u73FE\u6709\u7B46\u8A18\u3002",
+  "settings.languageOption.zh-Hant-en": "Traditional Chinese & English / \u7E41\u9AD4\u4E2D\u6587\uFF0B\u82F1\u6587",
+  "settings.languageOption.en": "English / \u82F1\u6587",
+  "settings.timezone": "Timezone / \u6642\u5340",
+  "settings.timezoneDesc": "IANA timezone for today and session dates / \u7528\u65BC\u300C\u4ECA\u65E5\u300D\u548C\u8A13\u7DF4\u65E5\u671F\u7684 IANA \u6642\u5340 (e.g. Asia/Hong_Kong)\u3002",
+  "settings.dashboardPath": "Dashboard path / \u5100\u8868\u677F\u8DEF\u5F91",
+  "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard / Open dashboard \u6703\u958B\u555F\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "settings.legacyBlocks": "Allow legacy `fitness-*` blocks / \u5141\u8A31\u820A\u7248 `fitness-*` \u5340\u584A",
+  "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate / \u4FDD\u7559\u820A Fitness codeblock \u540D\u7A31\u652F\u63F4\uFF1B\u9077\u79FB\u7B46\u8A18\u5F8C\u53EF\u95DC\u9589\u3002",
+  "settings.migrateFitness": "Migrate from Fitness to Atomic / \u5F9E Fitness \u9077\u79FB\u81F3 Atomic",
+  "settings.migrateFitnessDesc": "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases / \u642C\u79FB\u820A Fitness dashboard/Gym/Golf \u8DEF\u5F91\u3001\u6539\u5BEB fitness-* fences\u3001\u66F4\u65B0\u8A2D\u5B9A\u4E26\u505C\u7528\u820A\u5225\u540D\u3002",
+  "settings.exerciseTypes": "Exercise types / \u904B\u52D5\u985E\u578B",
+  "settings.exerciseTypesDesc": "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name> / \u8A13\u7DF4\u7B46\u8A18\u5B58\u65BC\u5404\u6D3B\u52D5\u8CC7\u6599\u593E\uFF0C\u65B0\u904B\u52D5\u985E\u578B\u9810\u8A2D\u653E\u5728 atomics/exercise/<Name>\u3002",
+  "settings.addExerciseType": "Add exercise type / \u65B0\u589E\u904B\u52D5\u985E\u578B",
+  "settings.addExerciseTypeDesc": "Creates a daily-session exercise with cues enabled and no set table / \u5EFA\u7ACB\u6BCF\u65E5\u8A13\u7DF4\u985E\u578B\uFF0C\u555F\u7528\u63D0\u9192\uFF0C\u4E0D\u555F\u7528\u7D44\u6578\u8868\u3002",
+  "settings.add": "Add / \u65B0\u589E",
+  "settings.activityId": "Activity id / \u6D3B\u52D5 ID: {id}",
+  "settings.labelPlaceholder": "Label / \u6A19\u7C64",
+  "settings.exerciseFolderPlaceholder": "atomics/exercise/Name",
+  "settings.enableCuesTooltip": "Enable reminder/cue rollups for this exercise / \u555F\u7528\u6B64\u904B\u52D5\u7684\u63D0\u9192\u5F59\u6574",
+  "settings.colors": "{label} colors / \u984F\u8272",
+  "settings.colorsDesc": "Heatmap colors from low to high intensity / Heatmap \u984F\u8272\uFF0C\u7531\u4F4E\u81F3\u9AD8\u5F37\u5EA6\u3002",
+  "settings.exerciseNamePlaceholder": "Running / \u8DD1\u6B65",
+  "settings.colorPlaceholder": "#{number}",
+  "command.newGymSession": "New gym session / \u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
+  "command.newGolfSession": "New golf session / \u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
+  "command.newExerciseSession": "New exercise session / \u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
+  "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
+  "command.ensureReadingBookshelf": "Ensure reading bookshelf / \u5EFA\u7ACB\u95B1\u8B80 Bookshelf",
+  "command.openReadingBookshelf": "Open reading bookshelf / \u958B\u555F\u95B1\u8B80 Bookshelf",
+  "command.ensureBookShelf": "Ensure book shelf / \u5EFA\u7ACB\u66F8\u67B6",
+  "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
+  "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
+  "notice.created": "Created / \u5DF2\u5EFA\u7ACB: {path}",
+  "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names / \u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
+  "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration / \u820A\u7248 fitness-* \u8A2D\u5B9A\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u5957\u7528\u8A3B\u518A\u3002",
+  "notice.enterExerciseType": "Enter an exercise type name first / \u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
+  "notice.folderUnsafe": "Folder must be a safe vault-relative path / \u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "notice.migrationComplete": "Migrated Fitness \u2192 Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors / \u5DF2\u9077\u79FB Fitness \u2192 Atomic\uFF1A\u642C\u79FB {movedPaths} \u500B\u8DEF\u5F91\uFF0C\u7565\u904E {skippedPaths} \u500B\u65E2\u6709\u76EE\u7684\u5730\uFF0C\u5728 {changedFiles} \u500B\u6A94\u6848\u6539\u5BEB {replacements} \u500B\u5340\u584A\u3002\u5DF2\u505C\u7528\u820A fitness-* \u5225\u540D\uFF1B\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u79FB\u9664\u5DF2\u8A3B\u518A\u7684\u820A\u8655\u7406\u5668\u3002",
+  "notice.migrationFailed": "Failed to migrate from Fitness to Atomic / Fitness \u9077\u79FB\u81F3 Atomic \u5931\u6557: {message}",
+  "notice.noExerciseActivities": "No exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
+  "notice.noGymActivity": "No gym activity configured / \u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
+  "notice.noGolfActivity": "No golf activity configured / \u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
+  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u95B1\u8B80\u8208\u8DA3",
+  "notice.dashboardNotFound": "Dashboard not found / \u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
+  "notice.openedExistingSession": "Opened existing {activity} session / \u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
+  "notice.createdSession": "Created {activity} session / \u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
+  "notice.invalidDate": "Invalid date / \u65E5\u671F\u7121\u6548",
+  "notice.createdReadingItem": "Created Reading item / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.openedExistingReadingItem": "Opened existing Reading item / \u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.createdReadingBookshelf": "Created Reading bookshelf / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bookshelf: {path}",
+  "notice.readingBookshelfExists": "Reading bookshelf already exists / \u95B1\u8B80 Bookshelf \u5DF2\u5B58\u5728: {path}",
+  "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bookshelf\u3002",
+  "notice.createdBookShelf": "Created book shelf / \u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
+  "notice.bookShelfExists": "Book shelf already exists / \u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
+  "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
+  "notice.timerNotRunning": "Timer is not running / Timer \u5C1A\u672A\u958B\u59CB\u3002",
+  "notice.timerAlreadyRunning": "Timer is already running / Timer \u5DF2\u5728\u904B\u884C\u3002",
+  "notice.timerLogged": "Logged {minutes} min / \u5DF2\u8A18\u9304 {minutes} \u5206\u9418\u3002",
+  "modal.dateTitle": "Date / \u65E5\u671F (YYYY-MM-DD)",
+  "modal.cancel": "Cancel / \u53D6\u6D88",
+  "modal.ok": "OK",
+  "modal.locationPlaceholder": "Location / \u5730\u9EDE (Esc to skip / \u7565\u904E)",
+  "modal.otherLocationDetail": "Other location detail / \u5176\u4ED6\u5730\u9EDE\u8AAA\u660E",
+  "modal.weightUnitPlaceholder": "Weight unit / \u91CD\u91CF\u55AE\u4F4D (Esc -> kg)",
+  "modal.exerciseTypePlaceholder": "Exercise type / \u904B\u52D5\u985E\u578B",
+  "modal.readingItemTitle": "Reading item title / \u95B1\u8B80\u9805\u76EE\u6A19\u984C",
+  "modal.timeLogNote": "Time log note / \u6642\u9593\u8A18\u9304\u5099\u8A3B",
+  "location.home": "Home / \u5BB6\u4E2D",
+  "location.commercial": "Commercial / \u5546\u696D\u5065\u8EAB\u623F",
+  "location.hotelTravel": "Hotel/Travel / \u9152\u5E97\uFF0F\u65C5\u9014",
+  "location.other": "Other / \u5176\u4ED6",
+  "template.gymMuscles": "Muscles / \u808C\u7FA4",
+  "template.gymTable.exercise": "\u{1F4AA} Exercise / \u52D5\u4F5C",
+  "template.gymTable.muscle": "\u{1F9EC} Muscle / \u808C\u7FA4",
+  "template.gymTable.weight": "\u2696\uFE0F Weight / \u91CD\u91CF",
+  "template.gymTable.reps": "\u{1F522} Reps / \u6B21\u6578",
+  "template.gymTable.notes": "\u{1F5D2}\uFE0F Notes / \u5099\u8A3B",
+  "template.reminders": "\u{1F4A1} Reminders / \u63D0\u9192",
+  "template.golfLocationHint": "\u{1F4CD} location / \u5730\u9EDE: Home net / \u5BB6\u7528\u7DB2, Driving range / \u7DF4\u7FD2\u5834, Course / \u7403\u5834, Other / \u5176\u4ED6",
+  "template.golfFocusHint": "\u{1F3AF} focus / \u91CD\u9EDE (multi): Grip / \u63E1\u687F, Stance / \u7AD9\u59FF, Takeaway / \u8D77\u687F, Backswing / \u4E0A\u687F, Transition / \u8F49\u63DB, Downswing / \u4E0B\u687F, Impact / \u64CA\u7403, Follow-through / \u9001\u687F, Tempo / \u7BC0\u594F, Alignment / \u7784\u6E96\u7DDA",
+  "template.golfClubHint": "\u{1F3CC}\uFE0F club / \u7403\u687F (multi): Driver / \u4E00\u865F\u6728, 3W / \u4E09\u865F\u6728, 5W / \u4E94\u865F\u6728, Hybrid / \u6DF7\u8840\u687F, 4i-9i / \u9435\u687F, PW / \u5288\u8D77\u687F, GW / \u7F3A\u53E3\u687F, SW / \u6C99\u5751\u687F, LW / \u9AD8\u540A\u687F, Putter / \u63A8\u687F, Mixed / \u6DF7\u5408",
+  "template.golfFeltHint": "felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE",
+  "template.readingRemarks": "Remarks / \u5099\u8A3B",
+  "template.readingTimeLog": "Time log / \u6642\u9593\u8A18\u9304",
+  "template.readingBookshelfTitle": "Reading bookshelf v1",
+  "template.base.title": "Title / \u66F8\u540D",
+  "template.base.authors": "Authors / \u4F5C\u8005",
+  "template.base.description": "Description / \u63CF\u8FF0",
+  "template.base.pages": "Pages / \u9801\u6578",
+  "template.base.status": "Status / \u72C0\u614B",
+  "template.base.tags": "Tags / \u6A19\u7C64",
+  "template.base.totalMinutes": "Total minutes / \u7E3D\u5206\u9418",
+  "template.base.cards": "Cards / \u5361\u7247",
+  "template.base.table": "Table / \u8868\u683C",
+  "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
+  "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
+  "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
+  "view.atomicError": "Error / \u932F\u8AA4: {message}",
+  "view.dashboard.overview": "\u{1F4CA} {year} overview / \u7E3D\u89BD",
+  "view.dashboard.cues": "\u{1F4A1} {activity} cues / \u63D0\u9192\u5F59\u6574",
+  "view.dashboard.sessions": "{activity} sessions / \u6B21\u6578: ",
+  "view.dashboard.durationSuffix": ", {minutes} min / \u5206\u9418",
+  "view.dashboard.totalExerciseDuration": "Total exercise duration / \u904B\u52D5\u7E3D\u6642\u9577: ",
+  "view.dashboard.minuteUnit": " min / \u5206\u9418",
+  "view.dashboard.totalVolume": "Total set-table volume / \u7E3D\u8A13\u7DF4\u91CF: ",
+  "view.dashboard.golfFelt": "Golf felt / \u9AD8\u723E\u592B\u611F\u89BA - good / \u597D: {good}, ok / \u4E00\u822C: {ok}, bad / \u5DEE: {bad}",
+  "view.dashboard.hobbies": "Hobbies / \u8208\u8DA3",
+  "view.dashboard.items": "{activity} items / \u9805\u76EE: ",
+  "view.dashboard.hobbyMinutesSuffix": ", {minutes} min / \u5206\u9418",
+  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.bookShelf": "Book shelf / \u66F8\u67B6",
+  "view.dashboard.monthly": "Monthly / \u6BCF\u6708",
+  "view.dashboard.month": "Month / \u6708",
+  "view.dashboard.sparkSessions": "{activity} sessions / \u6B21\u6578 ",
+  "view.dashboard.sparkVolume": "{activity} volume / \u8A13\u7DF4\u91CF ",
+  "view.dashboard.volumeHeader": "{activity} volume / \u8A13\u7DF4\u91CF (kg)",
+  "view.dashboard.muscles": "Muscles / \u808C\u7FA4",
+  "view.dashboard.muscle": "Muscle / \u808C\u7FA4",
+  "view.dashboard.sets": "Sets / \u7D44\u6578",
+  "view.dashboard.volumeKg": "Volume / \u8A13\u7DF4\u91CF (kg)",
+  "view.dashboard.noSetData": "No set data / \u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
+  "view.dashboard.golfFocus": "Golf focus / \u9AD8\u723E\u592B\u91CD\u9EDE",
+  "view.dashboard.noFocusTags": "No focus tags / \u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
+  "view.dashboard.recentSessions": "Recent sessions / \u6700\u8FD1\u8A13\u7DF4",
+  "view.dashboard.noSessions": "No sessions yet / \u5C1A\u672A\u8A18\u9304",
+  "view.heatmap.less": "Less / \u5C11",
+  "view.heatmap.more": "More / \u591A",
+  "view.heatmap.byDuration": "by duration / \u6309\u6642\u9577",
+  "view.heatmap.minutes": "{minutes} min / \u5206\u9418",
+  "view.heatmap.tooltip": "{date}: {minutes} min / \u5206\u9418",
+  "view.heatmap.tooltipOpen": "{date}: {minutes} min / \u5206\u9418 - click to open / \u9EDE\u64CA\u958B\u555F",
+  "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions / \u4ECA\u65E5\u8A13\u7DF4",
+  "view.today.noSession": "no session yet / \u5C1A\u672A\u8A18\u9304",
+  "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u9192\u7684 {activity} \u904B\u52D5\u6D3B\u52D5\u3002",
+  "view.cues.thisMonth": "\u{1F4C5} This month / \u672C\u6708 - {month}",
+  "view.cues.noReminders": "No reminders this month / \u672C\u6708\u5C1A\u7121\u63D0\u9192",
+  "view.cues.keepers": "\u2B50 Keepers / \u5E38\u99D0\u63D0\u9192 (>=2 in {year})",
+  "view.cues.noKeepers": "No keepers yet / \u5C1A\u7121\u5E38\u99D0\u63D0\u9192",
+  "view.cues.lastSeen": " (x{count}, last / \u6700\u8FD1 {lastSeen}{focus})",
+  "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
+  "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
+  "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
+  "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u95B1\u8B80\u9805\u76EE\u7B46\u8A18\u57F7\u884C\u3002",
+  "view.timer.total": "Total / \u7E3D\u8A08: {minutes} min / \u5206\u9418",
+  "view.timer.runningSince": "Timer running since / Timer \u958B\u59CB\u65BC {time}",
+  "view.timer.stop": "Stop / \u505C\u6B62",
+  "view.timer.resume": "Resume / \u7E7C\u7E8C",
+  "view.timer.discard": "Discard / \u653E\u68C4",
+  "view.timer.start": "Start / \u958B\u59CB"
+};
+
+// src/i18n/index.ts
+var DEFAULT_LANGUAGE = "zh-Hant-en";
+var TABLES = {
+  en,
+  "zh-Hant-en": zhHantEn
+};
+function isLanguage(value) {
+  return value === "en" || value === "zh-Hant-en";
+}
+function t(key, language, vars) {
+  const table = TABLES[language] ?? TABLES[DEFAULT_LANGUAGE];
+  let out = table[key] ?? TABLES.en[key] ?? key;
+  if (!vars) return out;
+  for (const [name, value] of Object.entries(vars)) {
+    out = out.split(`{${name}}`).join(String(value));
+  }
+  return out;
 }
 
 // src/util/yaml.ts
@@ -230,7 +596,7 @@ function yamlScalar(value) {
 }
 
 // src/commands/create-session.ts
-function promptText(app, title, defaultValue) {
+function promptText(app, title, defaultValue, language) {
   return new Promise((resolve) => {
     const modal = new class extends import_obsidian.Modal {
       constructor() {
@@ -257,9 +623,9 @@ function promptText(app, title, defaultValue) {
           window.setTimeout(() => text.inputEl.focus(), 20);
         });
         new import_obsidian.Setting(contentEl).addButton(
-          (btn) => btn.setButtonText("Cancel").onClick(() => this.finish(null))
+          (btn) => btn.setButtonText(t("modal.cancel", language)).onClick(() => this.finish(null))
         ).addButton(
-          (btn) => btn.setButtonText("OK").setCta().onClick(() => this.finish(this.value))
+          (btn) => btn.setButtonText(t("modal.ok", language)).setCta().onClick(() => this.finish(this.value))
         );
       }
       finish(v) {
@@ -304,8 +670,8 @@ function suggestOne(app, placeholder, items, labels) {
     modal.open();
   });
 }
-function gymBody(date, location, locationDetail, weightUnit) {
-  const muscleHints = [
+function gymBody(activity, date, location, locationDetail, weightUnit, language) {
+  const muscleHints = language === "en" ? ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Quads", "Hamstrings", "Glutes", "Calves", "Core"] : [
     "Chest / \u80F8",
     "Back / \u80CC",
     "Shoulders / \u80A9",
@@ -320,776 +686,144 @@ function gymBody(date, location, locationDetail, weightUnit) {
   return `---
 type: session
 date: ${date}
-activity: gym
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location: ${yamlScalar(location)}
 location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
-# \u{1F3CB}\uFE0F Gym / \u5065\u8EAB \u2014 ${date}
+# ${activity.label} \u2014 ${date}
 
-<!-- \u{1F4AA} Muscles / \u808C\u7FA4: ${muscleHints.join(", ")} -->
+<!-- \u{1F4AA} ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
-| \u{1F4AA} Exercise / \u52D5\u4F5C | \u{1F9EC} Muscle / \u808C\u7FA4 | \u2696\uFE0F Weight / \u91CD\u91CF | \u{1F522} Reps / \u6B21\u6578 | \u{1F5D2}\uFE0F Notes / \u5099\u8A3B |
+| ${t("template.gymTable.exercise", language)} | ${t("template.gymTable.muscle", language)} | ${t("template.gymTable.weight", language)} | ${t("template.gymTable.reps", language)} | ${t("template.gymTable.notes", language)} |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 |  |  |  |  |  |
 |  |  |  |  |  |
-
-## \u{1F4A1} Reminders / \u63D0\u9192
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
 
 - 
+` : ""}
 `;
 }
-function golfBody(date) {
+function golfBody(activity, date, language) {
   return `---
 type: session
 date: ${date}
-activity: golf
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location:
 focus: []
 club: []
+felt:
 ---
 
-# \u26F3 Golf / \u9AD8\u723E\u592B \u2014 ${date}
+# ${activity.label} \u2014 ${date}
 
-<!-- \u{1F4CD} location / \u5730\u9EDE: Home net / \u5BB6\u7528\u7DB2, Driving range / \u7DF4\u7FD2\u5834, Course / \u7403\u5834, Other / \u5176\u4ED6 -->
-<!-- \u{1F3AF} focus / \u91CD\u9EDE (multi): Grip / \u63E1\u687F, Stance / \u7AD9\u59FF, Takeaway / \u8D77\u687F, Backswing / \u4E0A\u687F, Transition / \u8F49\u63DB, Downswing / \u4E0B\u687F, Impact / \u64CA\u7403, Follow-through / \u9001\u687F, Tempo / \u7BC0\u594F, Alignment / \u7784\u6E96\u7DDA -->
-<!-- \u{1F3CC}\uFE0F club / \u7403\u687F (multi): Driver / \u4E00\u865F\u6728, 3W / \u4E09\u865F\u6728, 5W / \u4E94\u865F\u6728, Hybrid / \u6DF7\u8840\u687F, 4i\u20139i / \u9435\u687F, PW / \u5288\u8D77\u687F, GW / \u7F3A\u53E3\u687F, SW / \u6C99\u5751\u687F, LW / \u9AD8\u540A\u687F, Putter / \u63A8\u687F, Mixed / \u6DF7\u5408 -->
-
-## \u{1F4A1} Reminders / \u63D0\u9192
+<!-- ${t("template.golfLocationHint", language)} -->
+<!-- ${t("template.golfFocusHint", language)} -->
+<!-- ${t("template.golfClubHint", language)} -->
+<!-- ${t("template.golfFeltHint", language)} -->
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
 
 - 
+` : ""}
 `;
 }
-async function createGymSession(app, data, series, timezone) {
+function genericExerciseBody(activity, date, language) {
+  return `---
+type: session
+date: ${date}
+activity: ${yamlScalar(activity.id)}
+duration_min:
+location:
+---
+
+# ${activity.label} \u2014 ${date}
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
+
+- 
+` : ""}
+`;
+}
+async function promptSessionDate(app, timezone, language) {
   const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
-  const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
+  const dateRaw = await promptText(app, t("modal.dateTitle", language), today, language);
+  if (dateRaw === null) return null;
+  const date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
-    return;
+    new import_obsidian.Notice(t("notice.invalidDate", language));
+    return null;
   }
-  const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
-  const target = `${folder}/${date}.md`;
-  if (data.exists(target)) {
-    await data.openPath(target);
-    new import_obsidian.Notice(`Opened existing gym session / \u5DF2\u958B\u555F: ${target}`);
-    return;
-  }
+  return date;
+}
+async function gymSessionBody(app, activity, date, language) {
   const locationLabels = [
-    "Home / \u5BB6\u4E2D",
-    "Commercial / \u5546\u696D\u5065\u8EAB\u623F",
-    "Hotel/Travel / \u9152\u5E97\uFF0F\u65C5\u9014",
-    "Other / \u5176\u4ED6"
+    t("location.home", language),
+    t("location.commercial", language),
+    t("location.hotelTravel", language),
+    t("location.other", language)
   ];
   let location = await suggestOne(
     app,
-    "Location / \u5730\u9EDE (Esc to skip / \u7565\u904E)",
+    t("modal.locationPlaceholder", language),
     GYM_LOCATIONS,
     locationLabels
   ) || "";
   let locationDetail = "";
   if (location === "Other") {
-    locationDetail = await promptText(app, "Other location detail / \u5176\u4ED6\u5730\u9EDE\u8AAA\u660E", "") || "";
+    locationDetail = await promptText(
+      app,
+      t("modal.otherLocationDetail", language),
+      "",
+      language
+    ) || "";
   }
-  let weightUnit = await suggestOne(app, "Weight unit / \u91CD\u91CF\u55AE\u4F4D (Esc \u2192 kg)", [
+  let weightUnit = await suggestOne(app, t("modal.weightUnitPlaceholder", language), [
     "kg",
     "lb"
   ]) || "kg";
   if (weightUnit !== "lb") weightUnit = "kg";
   void MUSCLES;
-  await data.createNote(
-    target,
-    gymBody(date, location, locationDetail, weightUnit)
-  );
-  await data.openPath(target);
-  new import_obsidian.Notice(`Created gym session / \u5DF2\u5EFA\u7ACB: ${target}`);
+  return gymBody(activity, date, location, locationDetail, weightUnit, language);
 }
-async function createGolfSession(app, data, series, timezone) {
-  const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
-  const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
-    return;
-  }
+async function createActivitySession(app, data, activity, timezone, language) {
+  const date = await promptSessionDate(app, timezone, language);
+  if (!date) return;
   const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
+  const folder = `${activity.folder}/${year}`;
   const target = `${folder}/${date}.md`;
   if (data.exists(target)) {
     await data.openPath(target);
-    new import_obsidian.Notice(`Opened existing golf session / \u5DF2\u958B\u555F: ${target}`);
-    return;
-  }
-  await data.createNote(target, golfBody(date));
-  await data.openPath(target);
-  new import_obsidian.Notice(`Created golf session / \u5DF2\u5EFA\u7ACB: ${target}`);
-}
-
-// src/util/parse-block.ts
-function parseBlockOptions(source) {
-  const out = {};
-  for (const line of String(source || "").split(/\r?\n/)) {
-    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/);
-    if (!m) continue;
-    out[m[1]] = m[2].replace(/^["']|["']$/g, "");
-  }
-  return out;
-}
-
-// src/views/actions.ts
-function renderActions(el, plugin) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const wrap = root.createDiv({ cls: "fitness-actions" });
-  const gymBtn = wrap.createEl("button", { text: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB" });
-  gymBtn.addEventListener("click", () => {
-    void plugin.createGymSession();
-  });
-  const golfBtn = wrap.createEl("button", { text: "\u26F3 Golf / \u9AD8\u723E\u592B" });
-  golfBtn.addEventListener("click", () => {
-    void plugin.createGolfSession();
-  });
-}
-
-// src/views/cues.ts
-var CUE_SERIES_FOLDERS = {
-  golf: "Golf",
-  gym: "Gym"
-};
-function resolveCuesYear(opts, frontmatterYear2, timezone) {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const n = Number(frontmatterYear2);
-  if (Number.isFinite(n) && n >= 1970) return n;
-  return nowYear(timezone);
-}
-async function renderCues(el, data, seriesList, year, timezone, kind) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const series = seriesList.find((s) => s.kind === kind) || seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
-  if (!series) {
-    root.createEl("p", {
-      text: `No ${kind} series configured.`,
-      cls: "fitness-muted"
-    });
-    return;
-  }
-  const currentYear = nowYear(timezone);
-  const month = year === currentYear ? nowMonth(timezone) : 12;
-  const monthLabel = year === currentYear ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}` : `December ${year} / ${year}\u5E7412\u6708`;
-  const cues = [];
-  for (const p of data.listSessions(series.folder, year)) {
-    if (!p.date) continue;
-    const md = await data.readBody(p.path);
-    const focus = p.focus.join(", ");
-    for (const text of parseReminders(md)) {
-      if (!text) continue;
-      cues.push({ text, date: p.date, focus });
-    }
-  }
-  const thisMonth = cuesInCalendarMonth(cues, year, month);
-  const keepers = buildKeepers(cues, year);
-  root.createEl("h2", {
-    text: `\u{1F4C5} This month / \u672C\u6708 \u2014 ${monthLabel}`
-  });
-  if (!thisMonth.length) {
-    root.createEl("p", {
-      text: "No reminders this month / \u672C\u6708\u5C1A\u7121\u63D0\u9192",
-      cls: "fitness-muted"
-    });
-  } else {
-    const ul = root.createEl("ul");
-    for (const c of thisMonth) {
-      const focusBit = c.focus ? ` \xB7 ${c.focus}` : "";
-      ul.createEl("li", { text: `${c.date}${focusBit}: ${c.text}` });
-    }
-  }
-  root.createEl("h2", {
-    text: `\u2B50 Keepers / \u5E38\u99D0\u63D0\u9192 (\u22652 in ${year})`
-  });
-  if (!keepers.length) {
-    root.createEl("p", {
-      text: "No keepers yet / \u5C1A\u7121\u5E38\u99D0\u63D0\u9192",
-      cls: "fitness-muted"
-    });
-  } else {
-    const ul = root.createEl("ul");
-    for (const k of keepers) {
-      const focusBit = k.focus ? ` \xB7 ${k.focus}` : "";
-      const li = ul.createEl("li");
-      li.createEl("strong", { text: k.text });
-      li.appendText(
-        ` (\xD7${k.count}, last / \u6700\u8FD1 ${k.lastSeen}${focusBit})`
-      );
-    }
-  }
-}
-
-// src/types.ts
-var GREEN = [
-  "#9be9a8",
-  "#40c463",
-  "#30a14e",
-  "#216e39"
-];
-var ORANGE = [
-  "#ffd8a8",
-  "#ffa94d",
-  "#f76707",
-  "#d9480f"
-];
-var EMPTY_CELL = "#ebedf0";
-var DEFAULT_SETTINGS = {
-  timezone: "Asia/Hong_Kong",
-  dashboardPath: "Fitness/Dashboard.md",
-  golfCuesPath: "Golf/Cues.md",
-  gymCuesPath: "Gym/Cues.md",
-  deprecatedFitnessCuesEnabled: true,
-  series: [
-    {
-      id: "gym",
-      label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
-      folder: "Gym",
-      colors: GREEN,
-      kind: "gym"
-    },
-    {
-      id: "golf",
-      label: "\u26F3 Golf / \u9AD8\u723E\u592B",
-      folder: "Golf",
-      colors: ORANGE,
-      kind: "golf"
-    }
-  ]
-};
-
-// src/views/dashboard.ts
-function monthIndexFromDate(dateStr) {
-  const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
-  return m ? Number(m[1]) - 1 : -1;
-}
-function fmtKg(n) {
-  return (Math.round(n * 10) / 10).toLocaleString();
-}
-function sortMapDesc(map) {
-  return [...map.entries()].sort(
-    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
-  );
-}
-function sparkline(parent, values, color) {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  const max = Math.max(1, ...values);
-  const span = parent.createSpan({ cls: "fitness-sparkline" });
-  for (let i = 0; i < values.length; i++) {
-    const v = values[i];
-    const h = Math.max(2, Math.round(v / max * 14));
-    const bar = span.createSpan({ cls: "fitness-spark-bar" });
-    bar.style.height = `${h}px`;
-    bar.style.background = color;
-    bar.setAttr("title", `${months[i]}: ${v}`);
-  }
-}
-function resolveDashboardYear(opts, frontmatterYear2, timezone) {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const n = Number(frontmatterYear2);
-  if (Number.isFinite(n) && n >= 1970) return n;
-  return nowYear(timezone);
-}
-async function renderDashboard(el, data, seriesList, year, golfCuesPath, gymCuesPath) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const gymSeries = seriesList.find((s) => s.kind === "gym") || seriesList[0];
-  const golfSeries = seriesList.find((s) => s.kind === "golf") || seriesList[1];
-  const gymPages = gymSeries ? data.listSessions(gymSeries.folder, year) : [];
-  const golfPages = golfSeries ? data.listSessions(golfSeries.folder, year) : [];
-  let totalDuration = 0;
-  let totalVolumeKg = 0;
-  const muscleVolume = /* @__PURE__ */ new Map();
-  const muscleFreq = /* @__PURE__ */ new Map();
-  const gymSessionsByMonth = Array(12).fill(0);
-  const gymVolumeByMonth = Array(12).fill(0);
-  const golfSessionsByMonth = Array(12).fill(0);
-  const feltCounts = { good: 0, ok: 0, bad: 0 };
-  const focusCounts = /* @__PURE__ */ new Map();
-  const recent = [];
-  for (const p of gymPages) {
-    const mi = monthIndexFromDate(p.date);
-    if (mi >= 0) gymSessionsByMonth[mi] += 1;
-    totalDuration += p.duration_min;
-    if (p.date) {
-      recent.push({
-        date: p.date,
-        label: gymSeries?.label || "Gym",
-        path: p.path
-      });
-    }
-    const md = await data.readBody(p.path);
-    let sessionVol = 0;
-    for (const row of parseSetTable(md)) {
-      const vol = rowVolumeKg(row, p.weight_unit);
-      totalVolumeKg += vol;
-      sessionVol += vol;
-      if (row.muscle) {
-        muscleFreq.set(row.muscle, (muscleFreq.get(row.muscle) || 0) + 1);
-      }
-      if (vol > 0) {
-        const m = row.muscle || "Unknown";
-        muscleVolume.set(m, (muscleVolume.get(m) || 0) + vol);
-      }
-    }
-    if (mi >= 0) gymVolumeByMonth[mi] += sessionVol;
-  }
-  for (const p of golfPages) {
-    const mi = monthIndexFromDate(p.date);
-    if (mi >= 0) golfSessionsByMonth[mi] += 1;
-    if (p.date) {
-      recent.push({
-        date: p.date,
-        label: golfSeries?.label || "Golf",
-        path: p.path
-      });
-    }
-    const felt = String(p.felt || "").toLowerCase();
-    if (felt === "good" || felt === "ok" || felt === "bad") {
-      feltCounts[felt] += 1;
-    }
-    for (const focus of p.focus) {
-      focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
-    }
-  }
-  recent.sort((a, b) => b.date.localeCompare(a.date));
-  const recent10 = recent.slice(0, 10);
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  root.createEl("h2", { text: `\u{1F4CA} ${year} overview / \u7E3D\u89BD` });
-  const cuesP = root.createEl("p");
-  const cuesA = cuesP.createEl("a", {
-    cls: "fitness-link",
-    text: "\u{1F4A1} Golf cue rollup / \u9AD8\u723E\u592B\u63D0\u9192\u5F59\u6574"
-  });
-  cuesA.addEventListener("click", (e) => {
-    e.preventDefault();
-    void data.openPath(golfCuesPath);
-  });
-  cuesP.appendText(" \xB7 ");
-  const gymCuesA = cuesP.createEl("a", {
-    cls: "fitness-link",
-    text: "\u{1F4A1} Gym cue rollup / \u5065\u8EAB\u63D0\u9192\u5F59\u6574"
-  });
-  gymCuesA.addEventListener("click", (e) => {
-    e.preventDefault();
-    void data.openPath(gymCuesPath);
-  });
-  const ul = root.createEl("ul");
-  const gymLi = ul.createEl("li");
-  gymLi.appendText("Gym sessions / \u5065\u8EAB\u6B21\u6578: ");
-  gymLi.createEl("strong", { text: String(gymPages.length) });
-  const golfLi = ul.createEl("li");
-  golfLi.appendText("Golf sessions / \u9AD8\u723E\u592B\u6B21\u6578: ");
-  golfLi.createEl("strong", { text: String(golfPages.length) });
-  const durLi = ul.createEl("li");
-  durLi.appendText("Total gym duration / \u5065\u8EAB\u7E3D\u6642\u9577: ");
-  durLi.createEl("strong", { text: String(totalDuration) });
-  durLi.appendText(" min / \u5206\u9418");
-  const volLi = ul.createEl("li");
-  volLi.appendText("Total gym volume / \u5065\u8EAB\u7E3D\u8A13\u7DF4\u91CF: ");
-  volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
-  volLi.appendText(" kg");
-  ul.createEl("li").setText(
-    `Golf felt / \u9AD8\u723E\u592B\u611F\u89BA \u2014 good / \u597D: ${feltCounts.good}, ok / \u4E00\u822C: ${feltCounts.ok}, bad / \u5DEE: ${feltCounts.bad}`
-  );
-  root.createEl("h3", { text: "Monthly / \u6BCF\u6708" });
-  const sparks = root.createDiv({ cls: "fitness-monthly-sparks" });
-  const g1 = sparks.createDiv();
-  g1.appendText("Gym sessions / \u5065\u8EAB ");
-  sparkline(g1, gymSessionsByMonth, GREEN[2]);
-  const g2 = sparks.createDiv();
-  g2.appendText("Gym volume / \u8A13\u7DF4\u91CF ");
-  sparkline(g2, gymVolumeByMonth, GREEN[1]);
-  const g3 = sparks.createDiv();
-  g3.appendText("Golf sessions / \u9AD8\u723E\u592B ");
-  sparkline(g3, golfSessionsByMonth, ORANGE[2]);
-  const monthTable = root.createEl("table");
-  const thead = monthTable.createEl("thead");
-  const hr = thead.createEl("tr");
-  for (const h of [
-    "Month / \u6708",
-    "Gym / \u5065\u8EAB",
-    "Volume / \u8A13\u7DF4\u91CF (kg)",
-    "Golf / \u9AD8\u723E\u592B"
-  ]) {
-    hr.createEl("th", { text: h });
-  }
-  const tbody = monthTable.createEl("tbody");
-  for (let i = 0; i < 12; i++) {
-    const tr = tbody.createEl("tr");
-    tr.createEl("td", { text: monthNames[i] });
-    tr.createEl("td", { text: String(gymSessionsByMonth[i]) });
-    tr.createEl("td", { text: fmtKg(gymVolumeByMonth[i]) });
-    tr.createEl("td", { text: String(golfSessionsByMonth[i]) });
-  }
-  root.createEl("h3", { text: "Muscles / \u808C\u7FA4" });
-  const mTable = root.createEl("table");
-  const mHead = mTable.createEl("thead").createEl("tr");
-  for (const h of ["Muscle / \u808C\u7FA4", "Sets / \u7D44\u6578", "Volume / \u8A13\u7DF4\u91CF (kg)"]) {
-    mHead.createEl("th", { text: h });
-  }
-  const mBody = mTable.createEl("tbody");
-  const muscles = /* @__PURE__ */ new Set([...muscleFreq.keys(), ...muscleVolume.keys()]);
-  const muscleRows = [...muscles].map((m) => ({
-    m,
-    freq: muscleFreq.get(m) || 0,
-    vol: muscleVolume.get(m) || 0
-  }));
-  muscleRows.sort(
-    (a, b) => b.vol - a.vol || b.freq - a.freq || a.m.localeCompare(b.m)
-  );
-  if (!muscleRows.length) {
-    const tr = mBody.createEl("tr");
-    tr.createEl("td", {
-      text: "No set data / \u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
-      attr: { colspan: "3" }
-    }).addClass("fitness-muted");
-  } else {
-    for (const r of muscleRows) {
-      const tr = mBody.createEl("tr");
-      tr.createEl("td", { text: r.m });
-      tr.createEl("td", { text: String(r.freq) });
-      tr.createEl("td", { text: fmtKg(r.vol) });
-    }
-  }
-  root.createEl("h3", { text: "Golf focus / \u9AD8\u723E\u592B\u91CD\u9EDE" });
-  const focusUl = root.createEl("ul");
-  const focuses = sortMapDesc(focusCounts);
-  if (!focuses.length) {
-    focusUl.createEl("li", {
-      text: "No focus tags / \u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
-      cls: "fitness-muted"
-    });
-  } else {
-    for (const [name, count] of focuses) {
-      focusUl.createEl("li", { text: `${name}: ${count}` });
-    }
-  }
-  root.createEl("h3", { text: "Recent sessions / \u6700\u8FD1\u8A13\u7DF4" });
-  const recentUl = root.createEl("ul");
-  if (!recent10.length) {
-    recentUl.createEl("li", {
-      text: "No sessions yet / \u5C1A\u672A\u8A18\u9304",
-      cls: "fitness-muted"
-    });
-  } else {
-    for (const r of recent10) {
-      const li = recentUl.createEl("li");
-      li.appendText(`${r.date} \xB7 ${r.label}: `);
-      const a = li.createEl("a", { cls: "fitness-link", text: r.path });
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        void data.openPath(r.path);
-      });
-    }
-  }
-}
-
-// src/views/heatmap.ts
-var DAY_NAMES = ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
-function colorFor(series, level) {
-  if (!level) return EMPTY_CELL;
-  return series.colors[level - 1] || series.colors[series.colors.length - 1];
-}
-function durationMap(data, series, year) {
-  const map = /* @__PURE__ */ new Map();
-  for (const s of data.listSessions(series.folder, year)) {
-    if (!s.date) continue;
-    const entry = map.get(s.date) || { minutes: 0, path: null };
-    entry.minutes += s.duration_min;
-    if (!entry.path) entry.path = s.path;
-    map.set(s.date, entry);
-  }
-  return map;
-}
-function renderOneHeatmap(root, data, series, year, timezone) {
-  const wrap = root.createDiv({ cls: "fitness-heatmap" });
-  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: series.label });
-  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
-  legend.createSpan({ text: "Less / \u5C11" });
-  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background = EMPTY_CELL;
-  for (const c of series.colors) {
-    const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
-    sw.style.background = c;
-  }
-  legend.createSpan({ text: "More / \u591A" });
-  legend.createSpan({
-    text: "by duration / \u6309\u6642\u9577",
-    attr: { style: "margin-left:8px" }
-  });
-  const activityMap = durationMap(data, series, year);
-  const todayStr = ymdInZone(/* @__PURE__ */ new Date(), timezone);
-  const start = { y: year, m: 1, d: 1 };
-  const end = { y: year, m: 12, d: 31 };
-  const jan1Dow = weekdaySun0(start.y, start.m, start.d);
-  const daysToSubtract = jan1Dow;
-  let cursor = addDays(start.y, start.m, start.d, -daysToSubtract);
-  const weeks = [];
-  let weekCount = 0;
-  const endYmd = formatYmd(end.y, end.m, end.d);
-  while (weekCount < 60) {
-    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
-    const week = [];
-    for (let i = 0; i < 7; i++) {
-      const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
-      const entry = activityMap.get(dateStr);
-      const minutes = entry ? entry.minutes : 0;
-      week.push({
-        date: dateStr,
-        minutes,
-        level: durationToLevel(minutes),
-        path: entry?.path ?? null,
-        fullDate: fullDateZh(cursor.y, cursor.m, cursor.d),
-        isCurrentYear: cursor.y === year,
-        isToday: dateStr === todayStr,
-        y: cursor.y,
-        m: cursor.m,
-        d: cursor.d
-      });
-      cursor = addDays(cursor.y, cursor.m, cursor.d, 1);
-    }
-    weeks.push(week);
-    weekCount++;
-  }
-  const monthRow = wrap.createDiv({ cls: "fitness-month-row" });
-  let lastMonth = "";
-  for (const week of weeks) {
-    if (!week.length) continue;
-    const first = week[0];
-    const monthName = monthShortZh(first.y, first.m, first.d);
-    if (monthName !== lastMonth && first.d <= 7 && first.isCurrentYear) {
-      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
-      lastMonth = monthName;
-    } else if (monthName !== lastMonth && first.d <= 7) {
-      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
-      lastMonth = monthName;
-    } else {
-      monthRow.createDiv({ cls: "fitness-month-spacer" });
-    }
-  }
-  const gridWrap = wrap.createDiv({ cls: "fitness-grid-wrap" });
-  const dayLabels = gridWrap.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
-  }
-  const weeksEl = gridWrap.createDiv({ cls: "fitness-weeks" });
-  for (const week of weeks) {
-    const col = weeksEl.createDiv({ cls: "fitness-week" });
-    for (const day of week) {
-      const color = day.isCurrentYear ? colorFor(series, day.level) : EMPTY_CELL;
-      const cell = col.createDiv({
-        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
-      });
-      cell.style.backgroundColor = color;
-      const tip = day.path ? `${day.fullDate}: ${day.minutes} min / \u5206\u9418 \u2014 click to open / \u9EDE\u64CA\u958B\u555F` : `${day.fullDate}: ${day.minutes} min / \u5206\u9418`;
-      cell.setAttr("title", tip);
-      if (day.path) {
-        const path = day.path;
-        cell.addEventListener("click", (e) => {
-          e.preventDefault();
-          void data.openPath(path);
-        });
-      }
-    }
-  }
-}
-function renderHeatmaps(el, data, seriesList, year, timezone) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const s of seriesList) {
-    renderOneHeatmap(root, data, s, year, timezone);
-  }
-}
-function resolveHeatmapYear(opts, sourcePath, timezone) {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const fromPath = parseYmd(
-    sourcePath.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || ""
-  );
-  if (fromPath) return fromPath.y;
-  return Number(ymdInZone(/* @__PURE__ */ new Date(), timezone).slice(0, 4));
-}
-
-// src/views/today.ts
-function resolveTodayDate(opts, sourcePath, timezone) {
-  if (opts.date && parseYmd(opts.date)) return opts.date;
-  const fromPath = extractYmdFromPath(sourcePath);
-  if (fromPath) return fromPath;
-  return ymdInZone(/* @__PURE__ */ new Date(), timezone);
-}
-function renderTodaySessions(el, data, seriesList, dateStr) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const box = root.createDiv();
-  box.createEl("strong", { text: "\u{1F5C2}\uFE0F Today\u2019s sessions / \u4ECA\u65E5\u8A13\u7DF4" });
-  const ul = box.createEl("ul");
-  const year = Number(dateStr.slice(0, 4));
-  for (const s of seriesList) {
-    const path = `${s.folder}/${year}/${dateStr}.md`;
-    const li = ul.createEl("li");
-    li.appendText(`${s.label}: `);
-    if (data.exists(path)) {
-      const a = li.createEl("a", {
-        cls: "fitness-link",
-        text: dateStr
-      });
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        void data.openPath(path);
-      });
-    } else {
-      li.createEl("em", {
-        cls: "fitness-muted",
-        text: "no session yet / \u5C1A\u672A\u8A18\u9304"
-      });
-    }
-  }
-}
-
-// src/codeblocks.ts
-function frontmatterYear(plugin, sourcePath) {
-  const cache = plugin.app.metadataCache.getCache(sourcePath);
-  return cache?.frontmatter?.year;
-}
-async function renderBlock(plugin, kind, source, el, ctx) {
-  const opts = parseBlockOptions(source);
-  const sourcePath = ctx.sourcePath || "";
-  const data = plugin.data;
-  const settings = plugin.settings;
-  const series = settings.series;
-  const tz = settings.timezone;
-  try {
-    switch (kind) {
-      case "fitness-heatmap": {
-        const year = resolveHeatmapYear(opts, sourcePath, tz);
-        renderHeatmaps(el, data, series, year, tz);
-        break;
-      }
-      case "fitness-today": {
-        const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, series, dateStr);
-        break;
-      }
-      case "fitness-dashboard": {
-        const year = resolveDashboardYear(
-          opts,
-          frontmatterYear(plugin, sourcePath),
-          tz
-        );
-        await renderDashboard(
-          el,
-          data,
-          series,
-          year,
-          settings.golfCuesPath,
-          settings.gymCuesPath
-        );
-        break;
-      }
-      case "fitness-golf-cues":
-      case "fitness-gym-cues":
-      case "fitness-cues": {
-        if (kind === "fitness-cues" && !settings.deprecatedFitnessCuesEnabled) {
-          el.empty();
-          const root = el.createDiv({ cls: "fitness-plugin" });
-          root.createEl("p", {
-            text: "Legacy fitness-cues block is disabled. Use fitness-golf-cues.",
-            cls: "fitness-muted"
-          });
-          break;
-        }
-        const year = resolveCuesYear(
-          opts,
-          frontmatterYear(plugin, sourcePath),
-          tz
-        );
-        await renderCues(
-          el,
-          data,
-          series,
-          year,
-          tz,
-          kind === "fitness-gym-cues" ? "gym" : "golf"
-        );
-        break;
-      }
-      case "fitness-actions": {
-        renderActions(el, plugin);
-        break;
-      }
-      default:
-        el.createEl("p", { text: `Unknown fitness block: ${kind}` });
-    }
-  } catch (err) {
-    console.error("Fitness block error", kind, err);
-    el.empty();
-    el.createEl("p", {
-      text: `Fitness error: ${err instanceof Error ? err.message : String(err)}`,
-      cls: "mod-warning"
-    });
-  }
-}
-function registerCodeblocks(plugin) {
-  const kinds = [
-    "fitness-heatmap",
-    "fitness-today",
-    "fitness-dashboard",
-    "fitness-golf-cues",
-    "fitness-gym-cues",
-    "fitness-actions"
-  ];
-  if (plugin.settings.deprecatedFitnessCuesEnabled) {
-    kinds.push("fitness-cues");
-  }
-  for (const kind of kinds) {
-    plugin.registerMarkdownCodeBlockProcessor(
-      kind,
-      async (source, el, ctx) => {
-        plugin.trackLiveBlock({ kind, el, source, sourcePath: ctx.sourcePath });
-        await renderBlock(plugin, kind, source, el, ctx);
-      }
+    new import_obsidian.Notice(
+      t("notice.openedExistingSession", language, {
+        activity: activity.label,
+        path: target
+      })
     );
+    return;
   }
+  const body = activity.supportsSetTable ? await gymSessionBody(app, activity, date, language) : activity.id === "golf" ? golfBody(activity, date, language) : genericExerciseBody(activity, date, language);
+  await data.createNote(target, body);
+  await data.openPath(target);
+  new import_obsidian.Notice(
+    t("notice.createdSession", language, {
+      activity: activity.label,
+      path: target
+    })
+  );
 }
-
-// src/data/vault-source.ts
-var import_obsidian2 = require("obsidian");
+async function createGymSession(app, data, activity, timezone, language) {
+  await createActivitySession(app, data, activity, timezone, language);
+}
+async function createGolfSession(app, data, activity, timezone, language) {
+  await createActivitySession(app, data, activity, timezone, language);
+}
 
 // src/util/vault-path.ts
 function normalizeSlashes(path) {
@@ -1115,6 +849,1743 @@ function sessionScanPrefix(folder, year) {
   const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
   return `${base}/${year}/`;
 }
+function readingItemsFolder(folder) {
+  if (!isSafeVaultFolder(folder)) return null;
+  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
+  return `${base}/Items`;
+}
+function hobbyItemsScanPrefix(folder) {
+  const itemsFolder = readingItemsFolder(folder);
+  return itemsFolder ? `${itemsFolder}/` : null;
+}
+
+// src/commands/create-reading-item.ts
+var FALLBACK_BOOK_TITLE = "Untitled Book";
+function normalizeSlashes2(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+function cleanBookTitle(title) {
+  const cleaned = String(title || "").replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || FALLBACK_BOOK_TITLE;
+}
+function buildReadingItemPath(activityFolder, title) {
+  if (!isSafeVaultFolder(activityFolder)) {
+    throw new Error("Reading folder must be a safe vault-relative folder");
+  }
+  const base = normalizeSlashes2(activityFolder.trim()).replace(/\/$/, "");
+  return `${base}/Items/${cleanBookTitle(title)}.md`;
+}
+function readingItemMarkdown(title, language = "en") {
+  const cleanedTitle = cleanBookTitle(title);
+  return `---
+type: atomic-item
+domain: hobby
+activity: reading
+status: to-read
+authors:
+  - ""
+description: ""
+pages:
+cover: ""
+tags:
+  - books
+spine_color:
+total_min: 0
+timer_started_at:
+related_canvas:
+---
+
+# ${cleanedTitle}
+
+## ${t("template.readingRemarks", language)}
+
+## ${t("template.readingTimeLog", language)}
+
+\`\`\`atomic-timer
+\`\`\`
+`;
+}
+async function createReadingItem(app, data, readingActivity, language) {
+  const title = window.prompt(t("modal.readingItemTitle", language), "");
+  if (title === null) return;
+  const path = buildReadingItemPath(readingActivity.folder, title);
+  const { Notice: Notice5 } = await import("obsidian");
+  if (data.exists(path)) {
+    await data.openPath(path);
+    new Notice5(t("notice.openedExistingReadingItem", language, { path }));
+    return;
+  }
+  await data.createNote(path, readingItemMarkdown(title, language));
+  await data.openPath(path);
+  new Notice5(t("notice.createdReadingItem", language, { path }));
+  void app;
+}
+
+// src/util/parse-block.ts
+function parseBlockOptions(source) {
+  const out = {};
+  for (const line of String(source || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/);
+    if (!m) continue;
+    out[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+  return out;
+}
+
+// src/types.ts
+var GREEN = [
+  "#9be9a8",
+  "#40c463",
+  "#30a14e",
+  "#216e39"
+];
+var ORANGE = [
+  "#ffd8a8",
+  "#ffa94d",
+  "#f76707",
+  "#d9480f"
+];
+var BLUE = [
+  "#bfdbfe",
+  "#60a5fa",
+  "#2563eb",
+  "#1e3a8a"
+];
+var EMPTY_CELL = "#ebedf0";
+var DEFAULT_ACTIVITY_TYPES = [
+  {
+    id: "gym",
+    domain: "exercise",
+    label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
+    folder: "atomics/exercise/Gym",
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: true
+  },
+  {
+    id: "golf",
+    domain: "exercise",
+    label: "\u26F3 Golf / \u9AD8\u723E\u592B",
+    folder: "atomics/exercise/Golf",
+    colors: ORANGE,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  },
+  {
+    id: "reading",
+    domain: "hobby",
+    label: "Reading",
+    folder: "atomics/hobbies/Reading",
+    colors: BLUE,
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
+    supportsSetTable: false
+  }
+];
+var DEFAULT_SETTINGS = {
+  language: "zh-Hant-en",
+  timezone: "Asia/Hong_Kong",
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
+  deprecatedFitnessBlocksEnabled: true,
+  activityTypes: DEFAULT_ACTIVITY_TYPES
+};
+
+// src/util/activity-types.ts
+var FALLBACK_EXERCISE_NAME = "Exercise";
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function cleanFolderSegment(label) {
+  const cleaned = label.replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || FALLBACK_EXERCISE_NAME;
+}
+function activityIdFromLabel(label) {
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return id || "activity";
+}
+function defaultExerciseFolder(label) {
+  const folder = `atomics/exercise/${cleanFolderSegment(label)}`;
+  return isSafeVaultFolder(folder) ? folder : `atomics/exercise/${FALLBACK_EXERCISE_NAME}`;
+}
+function createExerciseActivityType(label) {
+  const cleanedLabel = cleanFolderSegment(label);
+  return {
+    id: activityIdFromLabel(cleanedLabel),
+    domain: "exercise",
+    label: cleanedLabel,
+    folder: defaultExerciseFolder(cleanedLabel),
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  };
+}
+function colorTuple(value, fallback) {
+  if (!Array.isArray(value) || value.length !== 4) return fallback;
+  const [first, second, third, fourth] = value;
+  if (typeof first === "string" && first.trim() !== "" && typeof second === "string" && second.trim() !== "" && typeof third === "string" && third.trim() !== "" && typeof fourth === "string" && fourth.trim() !== "") {
+    return [first, second, third, fourth];
+  }
+  return fallback;
+}
+function domainFrom(value) {
+  return value === "exercise" || value === "hobby" ? value : null;
+}
+function noteModelFrom(value) {
+  return value === "dailySession" || value === "item" ? value : null;
+}
+function normalizeActivityType(value, fallbackColors) {
+  if (!isRecord(value)) return null;
+  const label = typeof value.label === "string" ? value.label.trim() : "";
+  const folder = typeof value.folder === "string" ? value.folder.trim() : "";
+  const domain = domainFrom(value.domain);
+  const noteModel = noteModelFrom(value.noteModel);
+  if (!label || !folder || !domain || !noteModel || !isSafeVaultFolder(folder)) {
+    return null;
+  }
+  const idRaw = typeof value.id === "string" ? value.id.trim() : "";
+  const id = activityIdFromLabel(idRaw || label);
+  return {
+    id,
+    domain,
+    label,
+    folder,
+    colors: colorTuple(value.colors, fallbackColors),
+    noteModel,
+    supportsCues: domain === "exercise" && value.supportsCues === true,
+    supportsTimer: domain === "hobby" && value.supportsTimer === true,
+    supportsSetTable: domain === "exercise" && noteModel === "dailySession" && value.supportsSetTable === true
+  };
+}
+function activityTypeFromSeries(value, fallbackColors) {
+  if (!isRecord(value)) return null;
+  const label = typeof value.label === "string" ? value.label.trim() : "";
+  const folder = typeof value.folder === "string" ? value.folder.trim() : "";
+  if (!label || !folder || !isSafeVaultFolder(folder)) return null;
+  const idRaw = typeof value.id === "string" ? value.id.trim() : "";
+  const kind = value.kind === "gym" || value.kind === "golf" ? value.kind : "generic";
+  const id = activityIdFromLabel(idRaw || kind || label);
+  return {
+    id,
+    domain: "exercise",
+    label,
+    folder,
+    colors: colorTuple(value.colors, fallbackColors),
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: kind === "gym"
+  };
+}
+function exerciseActivities(activityTypes) {
+  return activityTypes.filter(
+    (activity) => activity.domain === "exercise" && activity.noteModel === "dailySession"
+  );
+}
+function hobbyActivities(activityTypes) {
+  return activityTypes.filter(
+    (activity) => activity.domain === "hobby" && activity.noteModel === "item" && activity.supportsTimer
+  );
+}
+function resolveCueActivityType(activityTypes, activityId) {
+  const normalizedId = activityId.trim().toLowerCase();
+  return exerciseActivities(activityTypes).find(
+    (activity) => activity.supportsCues && activity.id.toLowerCase() === normalizedId
+  );
+}
+function cuePathForActivity(activity) {
+  return `${activity.folder.replace(/\/$/, "")}/Cues.md`;
+}
+
+// src/views/actions.ts
+function renderActions(el, plugin) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin" });
+  const wrap = root.createDiv({ cls: "fitness-actions" });
+  for (const activity of exerciseActivities(plugin.settings.activityTypes)) {
+    const button = wrap.createEl("button", { text: activity.label });
+    button.addEventListener("click", () => {
+      void plugin.createExerciseSession(activity);
+    });
+  }
+}
+
+// src/views/cues.ts
+function resolveCuesYear(opts, frontmatterYear2, timezone) {
+  if (opts.year && Number(opts.year)) return Number(opts.year);
+  const n = Number(frontmatterYear2);
+  if (Number.isFinite(n) && n >= 1970) return n;
+  return nowYear(timezone);
+}
+async function renderCues(el, data, activityTypes, year, timezone, activity, language) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin" });
+  const activityType = resolveCueActivityType(activityTypes, activity);
+  if (!activityType) {
+    root.createEl("p", {
+      text: t("view.cues.noCueActivity", language, { activity }),
+      cls: "fitness-muted"
+    });
+    return;
+  }
+  const currentYear = nowYear(timezone);
+  const month = year === currentYear ? nowMonth(timezone) : 12;
+  const monthLabel = formatMonthLabel(year, month, language);
+  const cues = [];
+  for (const p of data.listSessions(activityType.folder, year)) {
+    if (!p.date) continue;
+    const md = await data.readBody(p.path);
+    const focus = p.focus.join(", ");
+    for (const text of parseReminders(md)) {
+      if (!text) continue;
+      cues.push({ text, date: p.date, focus });
+    }
+  }
+  const thisMonth = cuesInCalendarMonth(cues, year, month);
+  const keepers = buildKeepers(cues, year);
+  root.createEl("h2", {
+    text: t("view.cues.thisMonth", language, { month: monthLabel })
+  });
+  if (!thisMonth.length) {
+    root.createEl("p", {
+      text: t("view.cues.noReminders", language),
+      cls: "fitness-muted"
+    });
+  } else {
+    const ul = root.createEl("ul");
+    for (const c of thisMonth) {
+      const focusBit = c.focus ? ` \xB7 ${c.focus}` : "";
+      ul.createEl("li", { text: `${c.date}${focusBit}: ${c.text}` });
+    }
+  }
+  root.createEl("h2", {
+    text: t("view.cues.keepers", language, { year })
+  });
+  if (!keepers.length) {
+    root.createEl("p", {
+      text: t("view.cues.noKeepers", language),
+      cls: "fitness-muted"
+    });
+  } else {
+    const ul = root.createEl("ul");
+    for (const k of keepers) {
+      const focusBit = k.focus ? ` \xB7 ${k.focus}` : "";
+      const li = ul.createEl("li");
+      li.createEl("strong", { text: k.text });
+      li.appendText(
+        t("view.cues.lastSeen", language, {
+          count: k.count,
+          lastSeen: k.lastSeen,
+          focus: focusBit
+        })
+      );
+    }
+  }
+}
+
+// src/core/hobby.ts
+var TIME_LOG_HEADING = /^#{1,6}\s+Time log\s*$/i;
+var HEADING = /^(#{1,6})\s+/;
+var TIMER_METADATA = /<!--\s*atomic-timer\s+start="([^"]+)"\s+end="([^"]+)"\s*-->/;
+var TIME_LOG_ENTRY = /^\s*[-*]\s+(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2})\s*(?:-|\u2013|\u2014)\s*(\d{2}:\d{2}))?\s*(?:\||\u00b7)?\s*(\d+)\s*min(?:\s*(?:\||\u2014|-)\s*(.*?))?\s*$/;
+function parseTimeLog(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const entries = [];
+  let timeLogLevel = null;
+  for (const line of lines) {
+    const heading = line.match(HEADING);
+    if (heading && timeLogLevel !== null && heading[1].length <= timeLogLevel) {
+      break;
+    }
+    if (TIME_LOG_HEADING.test(line.trim())) {
+      timeLogLevel = line.match(HEADING)?.[1].length ?? 0;
+      continue;
+    }
+    if (timeLogLevel === null) continue;
+    const entry = parseTimeLogLine(line);
+    if (entry) entries.push(entry);
+  }
+  return entries;
+}
+function appendTimeLog(markdown, entry) {
+  const normalizedEntry = normalizeEntry(entry);
+  if (hasMatchingIsoEntry(parseTimeLog(markdown), normalizedEntry)) {
+    return ensureTrailingNewline(markdown);
+  }
+  const entryLine = formatTimeLogEntry(normalizedEntry);
+  const lines = String(markdown || "").split(/\r?\n/);
+  const headingIndex = lines.findIndex((line) => TIME_LOG_HEADING.test(line.trim()));
+  if (headingIndex === -1) {
+    const base = trimTrailingBlankLines(lines).join("\n");
+    return `${base}${base ? "\n\n" : ""}## Time log
+
+${entryLine}
+`;
+  }
+  const headingLevel = lines[headingIndex].match(HEADING)?.[1].length ?? 0;
+  let sectionEnd = lines.length;
+  for (let index = headingIndex + 1; index < lines.length; index += 1) {
+    const heading = lines[index].match(HEADING);
+    if (heading && heading[1].length <= headingLevel) {
+      sectionEnd = index;
+      break;
+    }
+  }
+  let insertAt = sectionEnd;
+  while (insertAt > headingIndex + 1 && lines[insertAt - 1].trim() === "") {
+    insertAt -= 1;
+  }
+  const before = lines.slice(0, insertAt);
+  const after = lines.slice(sectionEnd);
+  if (before[before.length - 1]?.trim() === lines[headingIndex].trim()) {
+    before.push("");
+  }
+  before.push(entryLine);
+  if (after.length > 0 && after[0].trim() !== "") {
+    before.push("");
+  }
+  return ensureTrailingNewline([...before, ...after].join("\n"));
+}
+function stopTimer(input) {
+  const startedAtMs = Date.parse(input.startedAtIso);
+  const stoppedAtMs = Date.parse(input.stoppedAtIso);
+  if (!Number.isFinite(startedAtMs)) {
+    throw new Error("Invalid timer start time");
+  }
+  if (!Number.isFinite(stoppedAtMs)) {
+    throw new Error("Invalid timer stop time");
+  }
+  if (stoppedAtMs < startedAtMs) {
+    throw new Error("Timer stop time cannot be before start time");
+  }
+  const minutes = Math.round((stoppedAtMs - startedAtMs) / 6e4);
+  const entry = {
+    date: dateFromIso(input.startedAtIso),
+    minutes,
+    note: input.note?.trim() ?? "",
+    startIso: input.startedAtIso,
+    endIso: input.stoppedAtIso
+  };
+  const existingEntries = parseTimeLog(input.markdown);
+  const alreadyLogged = hasMatchingIsoEntry(existingEntries, entry);
+  const markdownWithLog = alreadyLogged ? input.markdown : appendTimeLog(input.markdown, entry);
+  const frontmatter = readTimerFrontmatter(input.markdown);
+  const previousLogTotal = sumMinutes(existingEntries);
+  const totalMin = alreadyLogged ? Math.max(frontmatter.totalMin, previousLogTotal) : Math.max(frontmatter.totalMin, previousLogTotal) + minutes;
+  const markdown = updateTimerFrontmatter(markdownWithLog, {
+    totalMin,
+    timerStartedAtIso: null
+  });
+  return { markdown, minutes, totalMin };
+}
+function minutesByDate(entries) {
+  const totals = /* @__PURE__ */ new Map();
+  for (const entry of entries) {
+    totals.set(entry.date, (totals.get(entry.date) ?? 0) + entry.minutes);
+  }
+  return totals;
+}
+function minutesByDateForYear(entries, year) {
+  const prefix = `${year}-`;
+  return minutesByDate(entries.filter((entry) => entry.date.startsWith(prefix)));
+}
+function sumMinutesForYear(entries, year) {
+  const prefix = `${year}-`;
+  let total = 0;
+  for (const entry of entries) {
+    if (entry.date.startsWith(prefix)) total += entry.minutes;
+  }
+  return total;
+}
+function readTimerFrontmatter(markdown) {
+  const parts = splitFrontmatter(markdown);
+  if (!parts) return { totalMin: 0, timerStartedAt: null };
+  let totalMin = 0;
+  let timerStartedAt = null;
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    const line = parts.lines[index];
+    const totalMatch = line.match(/^total_min\s*:\s*(.*)$/);
+    if (totalMatch) {
+      const total = Number(unquoteYamlScalar(totalMatch[1]));
+      totalMin = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
+      continue;
+    }
+    const startedMatch = line.match(/^timer_started_at\s*:\s*(.*)$/);
+    if (startedMatch) {
+      timerStartedAt = emptyToNull(unquoteYamlScalar(startedMatch[1]));
+    }
+  }
+  return { totalMin, timerStartedAt };
+}
+function updateTimerFrontmatter(markdown, fields) {
+  const text = String(markdown || "");
+  const parts = splitFrontmatter(text);
+  if (!parts) {
+    const frontmatter = [
+      "---",
+      ...fields.totalMin === void 0 ? [] : [`total_min: ${normalizeMinutes(fields.totalMin)}`],
+      ...fields.timerStartedAtIso === void 0 ? [] : [formatTimerStartedAt(fields.timerStartedAtIso)],
+      "---",
+      ""
+    ];
+    return `${frontmatter.join("\n")}${text}`;
+  }
+  let lines = parts.lines.slice();
+  if (fields.totalMin !== void 0) {
+    lines = setFrontmatterField(
+      lines,
+      "total_min",
+      `total_min: ${normalizeMinutes(fields.totalMin)}`
+    );
+  }
+  if (fields.timerStartedAtIso !== void 0) {
+    lines = setFrontmatterField(
+      lines,
+      "timer_started_at",
+      formatTimerStartedAt(fields.timerStartedAtIso)
+    );
+  }
+  return ensureTrailingNewline(lines.join("\n"));
+}
+function parseTimeLogLine(line) {
+  const metadata = line.match(TIMER_METADATA);
+  const visibleLine = line.replace(TIMER_METADATA, "").trimEnd();
+  const match = visibleLine.match(TIME_LOG_ENTRY);
+  if (!match) return null;
+  return {
+    date: match[1],
+    minutes: Number(match[4]),
+    note: (match[5] ?? "").trim(),
+    ...metadata ? {
+      startIso: unescapeHtmlAttribute(metadata[1]),
+      endIso: unescapeHtmlAttribute(metadata[2])
+    } : {}
+  };
+}
+function normalizeEntry(entry) {
+  return {
+    date: entry.date,
+    minutes: normalizeMinutes(entry.minutes),
+    note: sanitizeLogNote(entry.note),
+    ...entry.startIso ? { startIso: entry.startIso } : {},
+    ...entry.endIso ? { endIso: entry.endIso } : {}
+  };
+}
+function formatTimeLogEntry(entry) {
+  const timeRange = entry.startIso && entry.endIso ? ` ${timeFromIso(entry.startIso)}-${timeFromIso(entry.endIso)}` : "";
+  const note = entry.note ? ` | ${entry.note}` : "";
+  const metadata = entry.startIso && entry.endIso ? ` <!-- atomic-timer start="${escapeHtmlAttribute(
+    entry.startIso
+  )}" end="${escapeHtmlAttribute(entry.endIso)}" -->` : "";
+  return `- ${entry.date}${timeRange} | ${entry.minutes} min${note}${metadata}`;
+}
+function hasMatchingIsoEntry(entries, entry) {
+  if (!entry.startIso || !entry.endIso) return false;
+  return entries.some(
+    (existing) => existing.startIso === entry.startIso && existing.endIso === entry.endIso
+  );
+}
+function splitFrontmatter(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") {
+      return { lines, endIndex: index };
+    }
+  }
+  return null;
+}
+function setFrontmatterField(lines, key, line) {
+  const next = lines.slice();
+  const endIndex = splitFrontmatter(next.join("\n"))?.endIndex;
+  if (endIndex === void 0) return next;
+  for (let index = 1; index < endIndex; index += 1) {
+    if (new RegExp(`^${key}\\s*:`).test(next[index])) {
+      next[index] = line;
+      return next;
+    }
+  }
+  next.splice(endIndex, 0, line);
+  return next;
+}
+function formatTimerStartedAt(value) {
+  if (!value) return "timer_started_at:";
+  return `timer_started_at: "${escapeYamlDoubleQuoted(value)}"`;
+}
+function dateFromIso(iso) {
+  const directDate = iso.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (directDate) return directDate[1];
+  return new Date(iso).toISOString().slice(0, 10);
+}
+function timeFromIso(iso) {
+  const directTime = iso.match(/T(\d{2}:\d{2})/);
+  if (directTime) return directTime[1];
+  return new Date(iso).toISOString().slice(11, 16);
+}
+function sumMinutes(entries) {
+  return entries.reduce((total, entry) => total + entry.minutes, 0);
+}
+function normalizeMinutes(minutes) {
+  return Math.max(0, Math.round(minutes));
+}
+function sanitizeLogNote(note) {
+  return String(note || "").replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+}
+function trimTrailingBlankLines(lines) {
+  const next = lines.slice();
+  while (next.length > 0 && next[next.length - 1].trim() === "") {
+    next.pop();
+  }
+  return next;
+}
+function ensureTrailingNewline(markdown) {
+  return markdown.endsWith("\n") ? markdown : `${markdown}
+`;
+}
+function emptyToNull(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "~" || trimmed.toLowerCase() === "null") {
+    return null;
+  }
+  return trimmed;
+}
+function unquoteYamlScalar(value) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  }
+  if (trimmed.length >= 2 && trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1).replace(/''/g, "'");
+  }
+  return trimmed;
+}
+function escapeYamlDoubleQuoted(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+function escapeHtmlAttribute(value) {
+  return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+function unescapeHtmlAttribute(value) {
+  return String(value).replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+}
+
+// src/hobbies/book-shelf-host.ts
+var BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
+function bookShelfHostMarkdown(_language = "en") {
+  return `\`\`\`atomic-bookshelf
+activity: reading
+\`\`\`
+`;
+}
+async function ensureBookShelfHostFile(data, language = "en") {
+  if (data.exists(BOOK_SHELF_HOST_REL)) {
+    return { path: BOOK_SHELF_HOST_REL, created: false };
+  }
+  await data.createNote(BOOK_SHELF_HOST_REL, bookShelfHostMarkdown(language));
+  return { path: BOOK_SHELF_HOST_REL, created: true };
+}
+async function ensureBookShelfHostCommand(data, language) {
+  const { Notice: Notice5 } = await import("obsidian");
+  const result = await ensureBookShelfHostFile(data, language);
+  new Notice5(
+    result.created ? t("notice.createdBookShelf", language, { path: result.path }) : t("notice.bookShelfExists", language, { path: result.path })
+  );
+}
+async function openBookShelfHostCommand(data, language) {
+  const result = await ensureBookShelfHostFile(data, language);
+  await data.openPath(result.path);
+}
+
+// src/hobbies/reading-bookshelf.ts
+var READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
+var READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readingBookshelfBaseYaml(itemsFolder = READING_ITEMS_FOLDER, language = "en") {
+  if (!isSafeVaultFolder(itemsFolder)) {
+    throw new Error("Reading items folder must be a safe vault-relative folder");
+  }
+  return `# ${t("template.readingBookshelfTitle", language)}
+filters:
+  and:
+    - file.inFolder("${itemsFolder}")
+    - type == "atomic-item"
+    - activity == "reading"
+properties:
+  file.name:
+    displayName: ${t("template.base.title", language)}
+  authors:
+    displayName: ${t("template.base.authors", language)}
+  description:
+    displayName: ${t("template.base.description", language)}
+  pages:
+    displayName: ${t("template.base.pages", language)}
+  status:
+    displayName: ${t("template.base.status", language)}
+  tags:
+    displayName: ${t("template.base.tags", language)}
+  total_min:
+    displayName: ${t("template.base.totalMinutes", language)}
+views:
+  - type: cards
+    name: ${t("template.base.cards", language)}
+    image: cover
+    fields:
+      - file.name
+      - authors
+      - description
+      - pages
+      - status
+      - tags
+      - total_min
+  - type: table
+    name: ${t("template.base.table", language)}
+    columns:
+      - file.name
+      - authors
+      - description
+      - pages
+      - status
+      - tags
+      - total_min
+`;
+}
+function shouldCreateReadingBookshelf(existing) {
+  return !existing;
+}
+function isBasesCorePluginEnabled(app) {
+  const appRecord = app;
+  if (!isRecord2(appRecord)) return false;
+  const internalPlugins = appRecord.internalPlugins;
+  if (!isRecord2(internalPlugins)) return false;
+  const getEnabledPluginById = internalPlugins.getEnabledPluginById;
+  if (typeof getEnabledPluginById === "function") {
+    return getEnabledPluginById.call(internalPlugins, "bases") != null;
+  }
+  const getPluginById = internalPlugins.getPluginById;
+  if (typeof getPluginById !== "function") return false;
+  const plugin = getPluginById.call(internalPlugins, "bases");
+  return isRecord2(plugin) && plugin.enabled === true;
+}
+async function ensureReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER, language = "en") {
+  if (!shouldCreateReadingBookshelf(data.exists(READING_BOOKSHELF_REL))) {
+    return { path: READING_BOOKSHELF_REL, created: false };
+  }
+  await data.createNote(
+    READING_BOOKSHELF_REL,
+    readingBookshelfBaseYaml(itemsFolder, language)
+  );
+  return { path: READING_BOOKSHELF_REL, created: true };
+}
+async function ensureReadingBookshelfCommand(app, data, language) {
+  const { Notice: Notice5 } = await import("obsidian");
+  if (!isBasesCorePluginEnabled(app)) {
+    new Notice5(t("notice.enableBases", language));
+    return;
+  }
+  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
+  new Notice5(
+    result.created ? t("notice.createdReadingBookshelf", language, { path: result.path }) : t("notice.readingBookshelfExists", language, { path: result.path })
+  );
+}
+async function openReadingBookshelfCommand(app, data, language) {
+  const { Notice: Notice5 } = await import("obsidian");
+  if (!isBasesCorePluginEnabled(app)) {
+    new Notice5(t("notice.enableBases", language));
+    return;
+  }
+  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
+  await data.openPath(result.path);
+}
+
+// src/views/dashboard.ts
+function monthIndexFromDate(dateStr) {
+  const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
+  return m ? Number(m[1]) - 1 : -1;
+}
+function fmtKg(n) {
+  return (Math.round(n * 10) / 10).toLocaleString();
+}
+function sortMapDesc(map) {
+  return [...map.entries()].sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
+  );
+}
+function collectGolfStats(page, feltCounts, focusCounts) {
+  const felt = String(page.felt || "").toLowerCase();
+  if (felt === "good" || felt === "ok" || felt === "bad") {
+    feltCounts[felt] += 1;
+  }
+  for (const focus of page.focus) {
+    focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
+  }
+}
+function sparkline(parent, values, color, language) {
+  const max = Math.max(1, ...values);
+  const span = parent.createSpan({ cls: "fitness-sparkline" });
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
+    const h = Math.max(2, Math.round(v / max * 14));
+    const bar = span.createSpan({ cls: "fitness-spark-bar" });
+    bar.style.height = `${h}px`;
+    bar.style.background = color;
+    bar.setAttr("title", `${monthShortForLanguage(2e3, i + 1, 1, language)}: ${v}`);
+  }
+}
+function resolveDashboardYear(opts, frontmatterYear2, timezone) {
+  if (opts.year && Number(opts.year)) return Number(opts.year);
+  const n = Number(frontmatterYear2);
+  if (Number.isFinite(n) && n >= 1970) return n;
+  return nowYear(timezone);
+}
+async function renderDashboard(el, data, activityTypes, year, language) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin" });
+  const activities = exerciseActivities(activityTypes);
+  let totalDuration = 0;
+  let totalVolumeKg = 0;
+  const muscleVolume = /* @__PURE__ */ new Map();
+  const muscleFreq = /* @__PURE__ */ new Map();
+  const activityStats = activities.map((activity) => ({
+    activity,
+    pages: data.listSessions(activity.folder, year),
+    sessionsByMonth: Array(12).fill(0),
+    duration: 0,
+    volumeByMonth: Array(12).fill(0),
+    volumeKg: 0
+  }));
+  const feltCounts = { good: 0, ok: 0, bad: 0 };
+  const focusCounts = /* @__PURE__ */ new Map();
+  const recent = [];
+  for (const stat of activityStats) {
+    for (const page of stat.pages) {
+      const mi = monthIndexFromDate(page.date);
+      if (mi >= 0) stat.sessionsByMonth[mi] += 1;
+      stat.duration += page.duration_min;
+      totalDuration += page.duration_min;
+      if (page.date) {
+        recent.push({
+          date: page.date,
+          label: stat.activity.label,
+          path: page.path
+        });
+      }
+      if (stat.activity.supportsSetTable) {
+        const md = await data.readBody(page.path);
+        let sessionVol = 0;
+        for (const row of parseSetTable(md)) {
+          const vol = rowVolumeKg(row, page.weight_unit);
+          totalVolumeKg += vol;
+          stat.volumeKg += vol;
+          sessionVol += vol;
+          if (row.muscle) {
+            muscleFreq.set(row.muscle, (muscleFreq.get(row.muscle) || 0) + 1);
+          }
+          if (vol > 0) {
+            const m = row.muscle || "Unknown";
+            muscleVolume.set(m, (muscleVolume.get(m) || 0) + vol);
+          }
+        }
+        if (mi >= 0) stat.volumeByMonth[mi] += sessionVol;
+      }
+      if (stat.activity.id === "golf") {
+        collectGolfStats(page, feltCounts, focusCounts);
+      }
+    }
+  }
+  recent.sort((a, b) => b.date.localeCompare(a.date));
+  const recent10 = recent.slice(0, 10);
+  const monthNames = Array.from(
+    { length: 12 },
+    (_, index) => monthShortForLanguage(year, index + 1, 1, language)
+  );
+  root.createEl("h2", {
+    text: t("view.dashboard.overview", language, { year })
+  });
+  const cueActivities = activities.filter((activity) => activity.supportsCues);
+  if (cueActivities.length) {
+    const cuesP = root.createEl("p");
+    cueActivities.forEach((activity, index) => {
+      if (index > 0) cuesP.appendText(" \xB7 ");
+      const cuesA = cuesP.createEl("a", {
+        cls: "fitness-link",
+        text: t("view.dashboard.cues", language, { activity: activity.label })
+      });
+      cuesA.addEventListener("click", (e) => {
+        e.preventDefault();
+        void data.openPath(cuePathForActivity(activity));
+      });
+    });
+  }
+  const ul = root.createEl("ul");
+  for (const stat of activityStats) {
+    const li = ul.createEl("li");
+    li.appendText(t("view.dashboard.sessions", language, { activity: stat.activity.label }));
+    li.createEl("strong", { text: String(stat.pages.length) });
+    li.appendText(t("view.dashboard.durationSuffix", language, { minutes: stat.duration }));
+  }
+  const durLi = ul.createEl("li");
+  durLi.appendText(t("view.dashboard.totalExerciseDuration", language));
+  durLi.createEl("strong", { text: String(totalDuration) });
+  durLi.appendText(t("view.dashboard.minuteUnit", language));
+  if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
+    const volLi = ul.createEl("li");
+    volLi.appendText(t("view.dashboard.totalVolume", language));
+    volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
+    volLi.appendText(" kg");
+  }
+  if (activities.some((activity) => activity.id === "golf")) {
+    ul.createEl("li").setText(
+      t("view.dashboard.golfFelt", language, feltCounts)
+    );
+  }
+  const hobbyStats = [];
+  for (const activity of hobbyActivities(activityTypes)) {
+    const items = data.listHobbyItems(activity);
+    const entryLists = await Promise.all(
+      items.map((item) => data.getHobbyTimeLogEntries(item.path))
+    );
+    let minutes = 0;
+    for (const entries of entryLists) {
+      minutes += sumMinutesForYear(entries, year);
+    }
+    hobbyStats.push({ activity, itemCount: items.length, minutes });
+  }
+  if (hobbyStats.length) {
+    root.createEl("h3", { text: t("view.dashboard.hobbies", language) });
+    const hobbyUl = root.createEl("ul");
+    for (const stat of hobbyStats) {
+      const li = hobbyUl.createEl("li");
+      li.appendText(t("view.dashboard.items", language, { activity: stat.activity.label }));
+      li.createEl("strong", { text: String(stat.itemCount) });
+      li.appendText(t("view.dashboard.hobbyMinutesSuffix", language, { minutes: stat.minutes }));
+    }
+    if (hobbyStats.some((stat) => stat.activity.id === "reading")) {
+      const links = root.createEl("p");
+      const baseLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: t("view.dashboard.readingBookshelf", language)
+      });
+      baseLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(READING_BOOKSHELF_REL);
+      });
+      links.appendText(" \xB7 ");
+      const shelfLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: t("view.dashboard.bookShelf", language)
+      });
+      shelfLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(BOOK_SHELF_HOST_REL);
+      });
+    }
+  }
+  root.createEl("h3", { text: t("view.dashboard.monthly", language) });
+  const sparks = root.createDiv({ cls: "fitness-monthly-sparks" });
+  for (const stat of activityStats) {
+    const sessions = sparks.createDiv();
+    sessions.appendText(t("view.dashboard.sparkSessions", language, { activity: stat.activity.label }));
+    sparkline(sessions, stat.sessionsByMonth, stat.activity.colors[2], language);
+    if (stat.activity.supportsSetTable) {
+      const volume = sparks.createDiv();
+      volume.appendText(t("view.dashboard.sparkVolume", language, { activity: stat.activity.label }));
+      sparkline(volume, stat.volumeByMonth, stat.activity.colors[1], language);
+    }
+  }
+  const monthTable = root.createEl("table");
+  const thead = monthTable.createEl("thead");
+  const hr = thead.createEl("tr");
+  hr.createEl("th", { text: t("view.dashboard.month", language) });
+  for (const stat of activityStats) {
+    hr.createEl("th", { text: stat.activity.label });
+    if (stat.activity.supportsSetTable) {
+      hr.createEl("th", {
+        text: t("view.dashboard.volumeHeader", language, { activity: stat.activity.label })
+      });
+    }
+  }
+  const tbody = monthTable.createEl("tbody");
+  for (let i = 0; i < 12; i++) {
+    const tr = tbody.createEl("tr");
+    tr.createEl("td", { text: monthNames[i] });
+    for (const stat of activityStats) {
+      tr.createEl("td", { text: String(stat.sessionsByMonth[i]) });
+      if (stat.activity.supportsSetTable) {
+        tr.createEl("td", { text: fmtKg(stat.volumeByMonth[i]) });
+      }
+    }
+  }
+  if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
+    root.createEl("h3", { text: t("view.dashboard.muscles", language) });
+    const mTable = root.createEl("table");
+    const mHead = mTable.createEl("thead").createEl("tr");
+    for (const h of [
+      t("view.dashboard.muscle", language),
+      t("view.dashboard.sets", language),
+      t("view.dashboard.volumeKg", language)
+    ]) {
+      mHead.createEl("th", { text: h });
+    }
+    const mBody = mTable.createEl("tbody");
+    const muscles = /* @__PURE__ */ new Set([...muscleFreq.keys(), ...muscleVolume.keys()]);
+    const muscleRows = [...muscles].map((m) => ({
+      m,
+      freq: muscleFreq.get(m) || 0,
+      vol: muscleVolume.get(m) || 0
+    }));
+    muscleRows.sort(
+      (a, b) => b.vol - a.vol || b.freq - a.freq || a.m.localeCompare(b.m)
+    );
+    if (!muscleRows.length) {
+      const tr = mBody.createEl("tr");
+      tr.createEl("td", {
+        text: t("view.dashboard.noSetData", language),
+        attr: { colspan: "3" }
+      }).addClass("fitness-muted");
+    } else {
+      for (const r of muscleRows) {
+        const tr = mBody.createEl("tr");
+        tr.createEl("td", { text: r.m });
+        tr.createEl("td", { text: String(r.freq) });
+        tr.createEl("td", { text: fmtKg(r.vol) });
+      }
+    }
+  }
+  if (activities.some((activity) => activity.id === "golf")) {
+    root.createEl("h3", { text: t("view.dashboard.golfFocus", language) });
+    const focusUl = root.createEl("ul");
+    const focuses = sortMapDesc(focusCounts);
+    if (!focuses.length) {
+      focusUl.createEl("li", {
+        text: t("view.dashboard.noFocusTags", language),
+        cls: "fitness-muted"
+      });
+    } else {
+      for (const [name, count] of focuses) {
+        focusUl.createEl("li", { text: `${name}: ${count}` });
+      }
+    }
+  }
+  root.createEl("h3", { text: t("view.dashboard.recentSessions", language) });
+  const recentUl = root.createEl("ul");
+  if (!recent10.length) {
+    recentUl.createEl("li", {
+      text: t("view.dashboard.noSessions", language),
+      cls: "fitness-muted"
+    });
+  } else {
+    for (const r of recent10) {
+      const li = recentUl.createEl("li");
+      li.appendText(`${r.date} \xB7 ${r.label}: `);
+      const a = li.createEl("a", { cls: "fitness-link", text: r.path });
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        void data.openPath(r.path);
+      });
+    }
+  }
+}
+
+// src/views/book-shelf.ts
+var STATUS_ORDER = /* @__PURE__ */ new Map([
+  ["reading", 0],
+  ["to-read", 1],
+  ["to-read-again", 2],
+  ["finished", 3]
+]);
+var BOOK_WIDTH_PX = 86;
+var BOOK_GAP_PX = 8;
+var ROW_PADDING_PX = 16;
+var resizeObservers = /* @__PURE__ */ new WeakMap();
+function asString(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+function asStringList(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry).trim()).filter(Boolean);
+  }
+  const single = asString(value);
+  return single ? [single] : [];
+}
+function isValidHexColor(value) {
+  return /^#[0-9a-fA-F]{6}$/.test(value) || /^#[0-9a-fA-F]{3}$/.test(value);
+}
+function shelfColorFor(item) {
+  const explicit = asString(item.spine_color);
+  if (isValidHexColor(explicit)) return explicit;
+  const source = `${item.title}
+${item.path}`;
+  let hash = 0;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = hash * 31 + source.charCodeAt(index) >>> 0;
+  }
+  const color = hash & 16777215 | 3158064;
+  return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
+}
+function statusRank(status) {
+  return STATUS_ORDER.get(status) ?? 99;
+}
+function buildBookShelfItems(files) {
+  return files.filter(
+    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
+  ).map((file) => {
+    const title = asString(file.frontmatter.title) || file.basename;
+    const status = asString(file.frontmatter.status) || "to-read";
+    const cover = asString(file.frontmatter.cover);
+    const description = asString(file.frontmatter.description);
+    return {
+      path: file.path,
+      title,
+      authors: asStringList(file.frontmatter.authors),
+      status,
+      spineColor: shelfColorFor({
+        title,
+        path: file.path,
+        spine_color: asString(file.frontmatter.spine_color)
+      }),
+      ...cover ? { cover } : {},
+      ...description ? { description } : {}
+    };
+  }).sort(
+    (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
+  );
+}
+function parseCoverRef(raw) {
+  const value = raw.trim();
+  if (!value) return { kind: "none" };
+  if (/^https?:\/\//i.test(value) || /^app:\/\//i.test(value) || /^data:image\//i.test(value)) {
+    return { kind: "url", src: value };
+  }
+  let path = value;
+  const wiki = value.match(/^\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]$/);
+  if (wiki) path = wiki[1].trim();
+  path = path.replace(/^\.\//, "").trim();
+  if (!path) return { kind: "none" };
+  return { kind: "vault", path };
+}
+function resolveCoverSrc(cover, data, sourcePath) {
+  const ref = parseCoverRef(cover ?? "");
+  if (ref.kind === "none") return null;
+  if (ref.kind === "url") return ref.src;
+  return data.resolveResourcePath(ref.path, sourcePath);
+}
+function booksPerRow(containerWidth, bookWidth = BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
+  const available = Math.max(0, containerWidth - padding);
+  const per = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(1, per);
+}
+function chunkItems(items, size) {
+  const rowSize = Math.max(1, Math.floor(size));
+  if (!items.length) return [[]];
+  const rows = [];
+  for (let index = 0; index < items.length; index += rowSize) {
+    rows.push(items.slice(index, index + rowSize));
+  }
+  return rows;
+}
+function titleLengthClass(title) {
+  const length = title.trim().length;
+  if (length > 36) return "is-title-xs";
+  if (length > 22) return "is-title-sm";
+  return "";
+}
+function createBook(parent, item, data, language) {
+  const button = parent.createEl("button", {
+    cls: "atomic-book",
+    attr: {
+      type: "button",
+      "aria-label": t("view.bookShelf.open", language, { title: item.title })
+    }
+  });
+  button.style.setProperty("--atomic-book-color", item.spineColor);
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    void data.openPath(item.path);
+  });
+  const titleClass = titleLengthClass(item.title);
+  const volume = button.createDiv({ cls: "atomic-book-volume" });
+  const pages = volume.createDiv({ cls: "atomic-book-pages" });
+  pages.createDiv({
+    cls: ["atomic-book-page-title", titleClass].filter(Boolean).join(" "),
+    text: item.title
+  });
+  pages.createDiv({
+    cls: "atomic-book-page-author",
+    text: item.authors[0] || item.status
+  });
+  const cover = volume.createDiv({ cls: "atomic-book-cover" });
+  const face = cover.createDiv({ cls: "atomic-book-cover-face" });
+  const coverSrc = resolveCoverSrc(item.cover, data, item.path);
+  if (coverSrc) {
+    face.createEl("img", {
+      cls: "atomic-book-cover-image",
+      attr: { src: coverSrc, alt: "" }
+    });
+  } else {
+    face.createDiv({
+      cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
+      text: item.title
+    });
+  }
+  cover.createDiv({ cls: "atomic-book-cover-inside" });
+  cover.createDiv({ cls: "atomic-book-cover-sleeve" });
+  face.createDiv({ cls: "atomic-book-cover-shine" });
+  const spine = volume.createDiv({ cls: "atomic-book-spine" });
+  spine.createDiv({
+    cls: ["atomic-book-spine-title", titleClass].filter(Boolean).join(" "),
+    text: item.title
+  });
+  const detail = button.createDiv({ cls: "atomic-book-detail" });
+  detail.createDiv({ cls: "atomic-book-detail-title", text: item.title });
+  detail.createDiv({
+    cls: "atomic-book-detail-author",
+    text: item.authors.join(", ") || item.status
+  });
+  if (item.description) {
+    detail.createDiv({
+      cls: "atomic-book-detail-description",
+      text: item.description
+    });
+  }
+}
+function paintRows(frame, items, perRow, data, language) {
+  frame.empty();
+  const rows = items.length ? chunkItems(items, perRow) : [[]];
+  for (const rowItems of rows) {
+    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
+    const books = row.createDiv({ cls: "atomic-book-row-books" });
+    if (!rowItems.length) {
+      books.createDiv({
+        cls: "atomic-book-empty",
+        text: t("view.bookShelf.empty", language)
+      });
+    } else {
+      for (const item of rowItems) createBook(books, item, data, language);
+    }
+    row.createDiv({ cls: "atomic-book-shelf-plank" });
+  }
+}
+function renderBookShelf(el, data, activityTypes, options, language) {
+  resizeObservers.get(el)?.disconnect();
+  resizeObservers.delete(el);
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
+  const activityId = options.activity?.trim() || "reading";
+  const activity = hobbyActivities(activityTypes).find(
+    (candidate) => candidate.id === activityId
+  );
+  if (!activity) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: t("view.bookShelf.noActivity", language, { activity: activityId })
+    });
+    return;
+  }
+  const items = buildBookShelfItems(data.listHobbyItems(activity));
+  const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
+  let lastPerRow = -1;
+  const layout = () => {
+    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
+    if (perRow === lastPerRow && frame.childElementCount > 0) return;
+    lastPerRow = perRow;
+    paintRows(frame, items, perRow, data, language);
+  };
+  layout();
+  if (typeof ResizeObserver !== "undefined") {
+    const observer = new ResizeObserver(() => layout());
+    observer.observe(frame);
+    resizeObservers.set(el, observer);
+  }
+}
+
+// src/views/heatmap.ts
+var DAY_NAMES = {
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "zh-Hant-en": ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]
+};
+function colorFor(activity, level) {
+  if (!level) return EMPTY_CELL;
+  return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
+}
+async function durationMap(data, activity, year) {
+  const map = /* @__PURE__ */ new Map();
+  if (activity.domain === "hobby") {
+    const items = data.listHobbyItems(activity);
+    const perItem = await Promise.all(
+      items.map(async (item) => ({
+        path: item.path,
+        totals: minutesByDateForYear(
+          await data.getHobbyTimeLogEntries(item.path),
+          year
+        )
+      }))
+    );
+    for (const { path, totals } of perItem) {
+      for (const [date, minutes] of totals) {
+        const entry = map.get(date) || { minutes: 0, path };
+        entry.minutes += minutes;
+        if (!entry.path) entry.path = path;
+        map.set(date, entry);
+      }
+    }
+    return map;
+  }
+  for (const s of data.listSessions(activity.folder, year)) {
+    if (!s.date) continue;
+    const entry = map.get(s.date) || { minutes: 0, path: null };
+    entry.minutes += s.duration_min;
+    if (!entry.path) entry.path = s.path;
+    map.set(s.date, entry);
+  }
+  return map;
+}
+async function renderOneHeatmap(root, data, activity, year, timezone, language) {
+  const wrap = root.createDiv({ cls: "fitness-heatmap" });
+  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
+  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
+  legend.createSpan({ text: t("view.heatmap.less", language) });
+  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background = EMPTY_CELL;
+  for (const c of activity.colors) {
+    const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
+    sw.style.background = c;
+  }
+  legend.createSpan({ text: t("view.heatmap.more", language) });
+  legend.createSpan({
+    text: t("view.heatmap.byDuration", language),
+    attr: { style: "margin-left:8px" }
+  });
+  const activityMap = await durationMap(data, activity, year);
+  const todayStr = ymdInZone(/* @__PURE__ */ new Date(), timezone);
+  const start = { y: year, m: 1, d: 1 };
+  const end = { y: year, m: 12, d: 31 };
+  const jan1Dow = weekdaySun0(start.y, start.m, start.d);
+  const daysToSubtract = jan1Dow;
+  let cursor = addDays(start.y, start.m, start.d, -daysToSubtract);
+  const weeks = [];
+  let weekCount = 0;
+  const endYmd = formatYmd(end.y, end.m, end.d);
+  while (weekCount < 60) {
+    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
+      const entry = activityMap.get(dateStr);
+      const minutes = entry ? entry.minutes : 0;
+      week.push({
+        date: dateStr,
+        minutes,
+        level: durationToLevel(minutes),
+        path: entry?.path ?? null,
+        fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
+        isCurrentYear: cursor.y === year,
+        isToday: dateStr === todayStr,
+        y: cursor.y,
+        m: cursor.m,
+        d: cursor.d
+      });
+      cursor = addDays(cursor.y, cursor.m, cursor.d, 1);
+    }
+    weeks.push(week);
+    weekCount++;
+  }
+  const monthRow = wrap.createDiv({ cls: "fitness-month-row" });
+  let lastMonth = "";
+  for (const week of weeks) {
+    if (!week.length) continue;
+    const first = week[0];
+    const monthName = monthShortForLanguage(first.y, first.m, first.d, language);
+    if (monthName !== lastMonth && first.d <= 7 && first.isCurrentYear) {
+      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
+      lastMonth = monthName;
+    } else if (monthName !== lastMonth && first.d <= 7) {
+      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
+      lastMonth = monthName;
+    } else {
+      monthRow.createDiv({ cls: "fitness-month-spacer" });
+    }
+  }
+  const gridWrap = wrap.createDiv({ cls: "fitness-grid-wrap" });
+  const dayLabels = gridWrap.createDiv({ cls: "fitness-day-labels" });
+  for (const d of DAY_NAMES[language]) {
+    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  }
+  const weeksEl = gridWrap.createDiv({ cls: "fitness-weeks" });
+  for (const week of weeks) {
+    const col = weeksEl.createDiv({ cls: "fitness-week" });
+    for (const day of week) {
+      const color = day.isCurrentYear ? colorFor(activity, day.level) : EMPTY_CELL;
+      const cell = col.createDiv({
+        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
+      });
+      cell.style.backgroundColor = color;
+      const tip = day.path ? t("view.heatmap.tooltipOpen", language, {
+        date: day.fullDate,
+        minutes: day.minutes
+      }) : t("view.heatmap.tooltip", language, {
+        date: day.fullDate,
+        minutes: day.minutes
+      });
+      cell.setAttr("title", tip);
+      if (day.path) {
+        const path = day.path;
+        cell.addEventListener("click", (e) => {
+          e.preventDefault();
+          void data.openPath(path);
+        });
+      }
+    }
+  }
+}
+async function renderHeatmaps(el, data, activityTypes, year, timezone, language) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin" });
+  for (const activity of [
+    ...exerciseActivities(activityTypes),
+    ...hobbyActivities(activityTypes)
+  ]) {
+    await renderOneHeatmap(root, data, activity, year, timezone, language);
+  }
+}
+function resolveHeatmapYear(opts, sourcePath, timezone) {
+  if (opts.year && Number(opts.year)) return Number(opts.year);
+  const fromPath = parseYmd(
+    sourcePath.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || ""
+  );
+  if (fromPath) return fromPath.y;
+  return Number(ymdInZone(/* @__PURE__ */ new Date(), timezone).slice(0, 4));
+}
+
+// src/views/timer.ts
+var import_obsidian2 = require("obsidian");
+async function modifyCurrentNote(plugin, sourcePath, updater) {
+  const file = plugin.data.getFileByPath(sourcePath);
+  if (!file) {
+    new import_obsidian2.Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
+    return;
+  }
+  const original = await plugin.app.vault.read(file);
+  await plugin.app.vault.modify(file, updater(original));
+  plugin.scheduleRefresh();
+}
+async function renderAtomicTimer(plugin, el, sourcePath) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin atomic-timer" });
+  if (!sourcePath) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: t("view.timer.needsReadingItem", plugin.settings.language)
+    });
+    return;
+  }
+  const markdown = await plugin.data.readBody(sourcePath);
+  const frontmatter = readTimerFrontmatter(markdown);
+  root.createEl("p", {
+    text: t("view.timer.total", plugin.settings.language, {
+      minutes: frontmatter.totalMin
+    }),
+    cls: "atomic-timer-total"
+  });
+  const actions = root.createDiv({ cls: "fitness-actions atomic-timer-actions" });
+  if (frontmatter.timerStartedAt) {
+    root.createEl("p", {
+      cls: "atomic-timer-running",
+      text: t("view.timer.runningSince", plugin.settings.language, {
+        time: frontmatter.timerStartedAt
+      })
+    });
+    actions.createEl("button", { text: t("view.timer.stop", plugin.settings.language) }).addEventListener("click", () => {
+      void modifyCurrentNote(plugin, sourcePath, (latest) => {
+        const latestFrontmatter = readTimerFrontmatter(latest);
+        if (!latestFrontmatter.timerStartedAt) {
+          new import_obsidian2.Notice(t("notice.timerNotRunning", plugin.settings.language));
+          return latest;
+        }
+        const note = window.prompt(t("modal.timeLogNote", plugin.settings.language), "") ?? "";
+        const result = stopTimer({
+          markdown: latest,
+          startedAtIso: latestFrontmatter.timerStartedAt,
+          stoppedAtIso: (/* @__PURE__ */ new Date()).toISOString(),
+          note
+        });
+        new import_obsidian2.Notice(
+          t("notice.timerLogged", plugin.settings.language, {
+            minutes: result.minutes
+          })
+        );
+        return result.markdown;
+      });
+    });
+    actions.createEl("button", { text: t("view.timer.resume", plugin.settings.language) }).addEventListener("click", () => {
+      new import_obsidian2.Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
+    });
+    actions.createEl("button", { text: t("view.timer.discard", plugin.settings.language) }).addEventListener("click", () => {
+      void modifyCurrentNote(
+        plugin,
+        sourcePath,
+        (latest) => updateTimerFrontmatter(latest, { timerStartedAtIso: null })
+      );
+    });
+    return;
+  }
+  actions.createEl("button", { text: t("view.timer.start", plugin.settings.language) }).addEventListener("click", () => {
+    void modifyCurrentNote(
+      plugin,
+      sourcePath,
+      (latest) => updateTimerFrontmatter(latest, {
+        timerStartedAtIso: (/* @__PURE__ */ new Date()).toISOString()
+      })
+    );
+  });
+}
+
+// src/views/today.ts
+function resolveTodayDate(opts, sourcePath, timezone) {
+  if (opts.date && parseYmd(opts.date)) return opts.date;
+  const fromPath = extractYmdFromPath(sourcePath);
+  if (fromPath) return fromPath;
+  return ymdInZone(/* @__PURE__ */ new Date(), timezone);
+}
+function renderTodaySessions(el, data, activityTypes, dateStr, language) {
+  el.empty();
+  const root = el.createDiv({ cls: "fitness-plugin" });
+  const box = root.createDiv();
+  box.createEl("strong", { text: t("view.today.title", language) });
+  const ul = box.createEl("ul");
+  const year = Number(dateStr.slice(0, 4));
+  for (const activity of exerciseActivities(activityTypes)) {
+    const path = `${activity.folder}/${year}/${dateStr}.md`;
+    const li = ul.createEl("li");
+    li.appendText(`${activity.label}: `);
+    if (data.exists(path)) {
+      const a = li.createEl("a", {
+        cls: "fitness-link",
+        text: dateStr
+      });
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        void data.openPath(path);
+      });
+    } else {
+      li.createEl("em", {
+        cls: "fitness-muted",
+        text: t("view.today.noSession", language)
+      });
+    }
+  }
+}
+
+// src/util/codeblock-languages.ts
+var ATOMIC_CODEBLOCK_LANGUAGES = [
+  "atomic-heatmap",
+  "atomic-today",
+  "atomic-dashboard",
+  "atomic-actions",
+  "atomic-golf-cues",
+  "atomic-gym-cues",
+  "atomic-cues",
+  "atomic-timer",
+  "atomic-bookshelf"
+];
+var FITNESS_CODEBLOCK_ALIASES = [
+  "fitness-heatmap",
+  "fitness-today",
+  "fitness-dashboard",
+  "fitness-actions",
+  "fitness-golf-cues",
+  "fitness-gym-cues",
+  "fitness-cues"
+];
+var FITNESS_TO_ATOMIC = {
+  "fitness-heatmap": "atomic-heatmap",
+  "fitness-today": "atomic-today",
+  "fitness-dashboard": "atomic-dashboard",
+  "fitness-actions": "atomic-actions",
+  "fitness-golf-cues": "atomic-golf-cues",
+  "fitness-gym-cues": "atomic-gym-cues",
+  "fitness-cues": "atomic-golf-cues"
+};
+function codeblockLanguages(deprecatedFitnessBlocksEnabled) {
+  return deprecatedFitnessBlocksEnabled ? [...ATOMIC_CODEBLOCK_LANGUAGES, ...FITNESS_CODEBLOCK_ALIASES] : [...ATOMIC_CODEBLOCK_LANGUAGES];
+}
+function resolveCodeblockKind(kind) {
+  return FITNESS_TO_ATOMIC[kind] ?? kind;
+}
+function resolveCueActivity(kind, options) {
+  const resolvedKind = resolveCodeblockKind(kind);
+  if (resolvedKind === "atomic-golf-cues") return "golf";
+  if (resolvedKind === "atomic-gym-cues") return "gym";
+  if (resolvedKind !== "atomic-cues") return null;
+  const activity = options.activity?.trim();
+  return activity || null;
+}
+
+// src/codeblocks.ts
+function frontmatterYear(plugin, sourcePath) {
+  const cache = plugin.app.metadataCache.getCache(sourcePath);
+  return cache?.frontmatter?.year;
+}
+async function renderBlock(plugin, kind, source, el, ctx) {
+  const opts = parseBlockOptions(source);
+  const sourcePath = ctx.sourcePath || "";
+  const data = plugin.data;
+  const settings = plugin.settings;
+  const activityTypes = settings.activityTypes;
+  const tz = settings.timezone;
+  const language = settings.language;
+  const resolvedKind = resolveCodeblockKind(kind);
+  try {
+    if (kind.startsWith("fitness-") && !settings.deprecatedFitnessBlocksEnabled) {
+      el.empty();
+      const root = el.createDiv({ cls: "fitness-plugin" });
+      root.createEl("p", {
+        text: t("view.legacyDisabled", language),
+        cls: "fitness-muted"
+      });
+      return;
+    }
+    switch (resolvedKind) {
+      case "atomic-heatmap": {
+        const year = resolveHeatmapYear(opts, sourcePath, tz);
+        await renderHeatmaps(el, data, activityTypes, year, tz, language);
+        break;
+      }
+      case "atomic-today": {
+        const dateStr = resolveTodayDate(opts, sourcePath, tz);
+        renderTodaySessions(el, data, activityTypes, dateStr, language);
+        break;
+      }
+      case "atomic-dashboard": {
+        const year = resolveDashboardYear(
+          opts,
+          frontmatterYear(plugin, sourcePath),
+          tz
+        );
+        await renderDashboard(
+          el,
+          data,
+          activityTypes,
+          year,
+          language
+        );
+        break;
+      }
+      case "atomic-golf-cues":
+      case "atomic-gym-cues":
+      case "atomic-cues": {
+        const activity = resolveCueActivity(resolvedKind, opts);
+        if (!activity) {
+          el.empty();
+          const root = el.createDiv({ cls: "fitness-plugin" });
+          root.createEl("p", {
+            text: t("view.atomicCuesRequiresActivity", language),
+            cls: "fitness-muted"
+          });
+          break;
+        }
+        const year = resolveCuesYear(
+          opts,
+          frontmatterYear(plugin, sourcePath),
+          tz
+        );
+        await renderCues(
+          el,
+          data,
+          activityTypes,
+          year,
+          tz,
+          activity,
+          language
+        );
+        break;
+      }
+      case "atomic-actions": {
+        renderActions(el, plugin);
+        break;
+      }
+      case "atomic-timer": {
+        await renderAtomicTimer(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-bookshelf": {
+        renderBookShelf(el, data, activityTypes, opts, language);
+        break;
+      }
+      default:
+        el.createEl("p", {
+          text: t("view.unknownAtomicBlock", language, { kind })
+        });
+    }
+  } catch (err) {
+    console.error("Atomic block error", kind, err);
+    el.empty();
+    el.createEl("p", {
+      text: t("view.atomicError", language, {
+        message: err instanceof Error ? err.message : String(err)
+      }),
+      cls: "mod-warning"
+    });
+  }
+}
+function registerCodeblocks(plugin) {
+  const kinds = codeblockLanguages(plugin.settings.deprecatedFitnessBlocksEnabled);
+  for (const kind of kinds) {
+    plugin.registerMarkdownCodeBlockProcessor(
+      kind,
+      async (source, el, ctx) => {
+        plugin.trackLiveBlock({ kind, el, source, sourcePath: ctx.sourcePath });
+        await renderBlock(plugin, kind, source, el, ctx);
+      }
+    );
+  }
+}
+
+// src/data/vault-source.ts
+var import_obsidian3 = require("obsidian");
+
+// src/util/hobby-time-log-cache.ts
+var HobbyTimeLogCache = class {
+  constructor() {
+    this.cache = /* @__PURE__ */ new Map();
+  }
+  get(path, mtime) {
+    const hit = this.cache.get(path);
+    if (!hit || hit.mtime !== mtime) return null;
+    return hit.entries;
+  }
+  set(path, mtime, entries) {
+    this.cache.set(path, { mtime, entries });
+  }
+  invalidate(path) {
+    if (!path) {
+      this.cache.clear();
+      return;
+    }
+    this.cache.delete(path);
+  }
+  rename(oldPath, newPath) {
+    const hit = this.cache.get(oldPath);
+    this.cache.delete(oldPath);
+    if (!hit) {
+      this.cache.delete(newPath);
+      return;
+    }
+    this.cache.set(newPath, hit);
+  }
+  get size() {
+    return this.cache.size;
+  }
+};
 
 // src/data/vault-source.ts
 function asList(value) {
@@ -1137,11 +2608,37 @@ function resolveDate(frontmatter, basename) {
 var VaultDataSource = class {
   constructor(app) {
     this.app = app;
+    this.hobbyTimeLogCache = new HobbyTimeLogCache();
+  }
+  /** Drop cached Time log parses (all paths, or one path after edit/delete). */
+  invalidateHobbyTimeLogCache(path) {
+    this.hobbyTimeLogCache.invalidate(
+      path ? (0, import_obsidian3.normalizePath)(path) : void 0
+    );
+  }
+  /** Keep cache entries aligned when a note is renamed. */
+  renameHobbyTimeLogCache(oldPath, newPath) {
+    this.hobbyTimeLogCache.rename((0, import_obsidian3.normalizePath)(oldPath), (0, import_obsidian3.normalizePath)(newPath));
+  }
+  /**
+   * Parsed Time log entries for a hobby item note.
+   * Reuses an in-memory parse while the file mtime is unchanged.
+   */
+  async getHobbyTimeLogEntries(path) {
+    const file = this.getFileByPath(path);
+    if (!file) return [];
+    const mtime = file.stat.mtime;
+    const cached = this.hobbyTimeLogCache.get(file.path, mtime);
+    if (cached) return cached;
+    const markdown = await this.app.vault.cachedRead(file);
+    const entries = parseTimeLog(markdown);
+    this.hobbyTimeLogCache.set(file.path, mtime, entries);
+    return entries;
   }
   listSessions(folder, year) {
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian2.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -1160,16 +2657,38 @@ var VaultDataSource = class {
     }
     return out;
   }
+  listHobbyItems(activity) {
+    if (activity.domain !== "hobby" || activity.noteModel !== "item" || !activity.supportsTimer) {
+      return [];
+    }
+    const prefix = hobbyItemsScanPrefix(activity.folder);
+    if (!prefix) return [];
+    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const out = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(scanPrefix)) continue;
+      if (!file.path.endsWith(".md")) continue;
+      const cache = this.app.metadataCache.getFileCache(file);
+      const fm = cache?.frontmatter ?? {};
+      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
+      out.push({
+        path: file.path,
+        basename: file.basename,
+        frontmatter: fm
+      });
+    }
+    return out;
+  }
   async readBody(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    if (!(af instanceof import_obsidian2.TFile)) return "";
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    if (!(af instanceof import_obsidian3.TFile)) return "";
     return this.app.vault.read(af);
   }
   exists(path) {
-    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
+    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
   }
   async ensureFolder(folderPath) {
-    const norm = (0, import_obsidian2.normalizePath)(folderPath);
+    const norm = (0, import_obsidian3.normalizePath)(folderPath);
     if (this.app.vault.getAbstractFileByPath(norm)) return;
     const parts = norm.split("/").filter(Boolean);
     let cur = "";
@@ -1181,48 +2700,142 @@ var VaultDataSource = class {
     }
   }
   async createNote(path, content) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     const parent = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
     if (parent) await this.ensureFolder(parent);
     return this.app.vault.create(norm, content);
   }
   async openPath(path) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
-    if (file instanceof import_obsidian2.TFile) {
+    if (file instanceof import_obsidian3.TFile) {
       await this.app.workspace.getLeaf(false).openFile(file);
       return;
     }
     await this.app.workspace.openLinkText(norm, "", false);
   }
   getFileByPath(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    return af instanceof import_obsidian2.TFile ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    return af instanceof import_obsidian3.TFile ? af : null;
   }
   isUnderSeriesFolder(path, folders) {
-    const norm = (0, import_obsidian2.normalizePath)(path);
+    const norm = (0, import_obsidian3.normalizePath)(path);
     return folders.some((f) => {
       if (!isSafeVaultFolder(f)) return false;
-      const p = (0, import_obsidian2.normalizePath)(f);
+      const p = (0, import_obsidian3.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
   }
   getFolder(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian2.normalizePath)(path));
-    return af instanceof import_obsidian2.TFolder ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    return af instanceof import_obsidian3.TFolder ? af : null;
+  }
+  /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
+  resolveResourcePath(linkOrPath, sourcePath = "") {
+    const trimmed = linkOrPath.trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed) || /^app:\/\//i.test(trimmed) || /^data:image\//i.test(trimmed)) {
+      return trimmed;
+    }
+    const fromLink = this.app.metadataCache.getFirstLinkpathDest(
+      trimmed,
+      sourcePath
+    );
+    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(trimmed));
+    const file = fromLink instanceof import_obsidian3.TFile ? fromLink : fromPath instanceof import_obsidian3.TFile ? fromPath : null;
+    if (!file) return null;
+    return this.app.vault.getResourcePath(file);
   }
 };
 
 // src/settings.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 
-// src/util/migrate-cues.ts
+// src/util/migrate-fitness.ts
+var MOVE_DEFINITIONS = [
+  {
+    kind: "dashboard",
+    from: "Fitness/Dashboard.md",
+    to: "atomics/Dashboard.md"
+  },
+  { kind: "gym", from: "Gym", to: "atomics/exercise/Gym" },
+  { kind: "golf", from: "Golf", to: "atomics/exercise/Golf" }
+];
+var FENCE_REWRITES = {
+  "fitness-heatmap": "atomic-heatmap",
+  "fitness-today": "atomic-today",
+  "fitness-dashboard": "atomic-dashboard",
+  "fitness-actions": "atomic-actions",
+  "fitness-golf-cues": "atomic-golf-cues",
+  "fitness-cues": "atomic-golf-cues",
+  "fitness-gym-cues": "atomic-gym-cues"
+};
 var OPEN_RE = /^( {0,3})(```+|~~~+)([^\n]*)$/;
 var CLOSE_RE = /^( {0,3})(```+|~~~+)[ \t]*$/;
+function normalizePath2(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "").trim();
+}
+function pathExists(existingPaths, path) {
+  const normalized = normalizePath2(path);
+  for (const existingPath of existingPaths) {
+    const existing = normalizePath2(existingPath);
+    if (existing === normalized || existing.startsWith(`${normalized}/`)) {
+      return true;
+    }
+  }
+  return false;
+}
+function moveWasPlanned(moves, from) {
+  return moves.some((move) => move.from === from);
+}
+function patchActivityFolders(settings, moves) {
+  let changed = false;
+  const next = settings.activityTypes.map((activity) => {
+    if (moveWasPlanned(moves, "Gym") && activity.folder === "Gym") {
+      changed = true;
+      return { ...activity, folder: "atomics/exercise/Gym" };
+    }
+    if (moveWasPlanned(moves, "Golf") && activity.folder === "Golf") {
+      changed = true;
+      return { ...activity, folder: "atomics/exercise/Golf" };
+    }
+    return activity;
+  });
+  return changed ? next : void 0;
+}
+function planFitnessMigration(input) {
+  const moves = [];
+  const skippedMoves = [];
+  for (const definition of MOVE_DEFINITIONS) {
+    if (!isSafeVaultFolder(definition.from) || !isSafeVaultFolder(definition.to)) {
+      continue;
+    }
+    if (!pathExists(input.existingPaths, definition.from)) continue;
+    const move = { from: definition.from, to: definition.to };
+    if (pathExists(input.existingPaths, definition.to)) {
+      skippedMoves.push(move);
+    } else {
+      moves.push(move);
+    }
+  }
+  const settingsPatch = {};
+  if (moveWasPlanned(moves, "Fitness/Dashboard.md") && input.settings.dashboardPath === "Fitness/Dashboard.md") {
+    settingsPatch.dashboardPath = "atomics/Dashboard.md";
+  }
+  if (moveWasPlanned(moves, "Golf") && input.settings.golfCuesPath === "Golf/Cues.md") {
+    settingsPatch.golfCuesPath = "atomics/exercise/Golf/Cues.md";
+  }
+  if (moveWasPlanned(moves, "Gym") && input.settings.gymCuesPath === "Gym/Cues.md") {
+    settingsPatch.gymCuesPath = "atomics/exercise/Gym/Cues.md";
+  }
+  const activityTypes = patchActivityFolders(input.settings, moves);
+  if (activityTypes) settingsPatch.activityTypes = activityTypes;
+  return { moves, skippedMoves, settingsPatch };
+}
 function parseInfoLanguage(info) {
   return info.trim().split(/\s+/, 1)[0] || "";
 }
-function rewriteFitnessCuesFences(markdown) {
+function rewriteFitnessFences(markdown) {
   const lines = String(markdown).split(/\r?\n/);
   let open = null;
   let replacements = 0;
@@ -1234,22 +2847,20 @@ function rewriteFitnessCuesFences(markdown) {
       }
       return line;
     }
-    const m = line.match(OPEN_RE);
-    if (!m) return line;
-    const indent = m[1];
-    const fence = m[2];
-    const info = m[3] ?? "";
-    const marker = fence[0];
+    const match = line.match(OPEN_RE);
+    if (!match) return line;
+    const indent = match[1];
+    const fence = match[2];
+    const info = match[3] ?? "";
+    const marker = fence[0] === "~" ? "~" : "`";
     const length = fence.length;
     const lang = parseInfoLanguage(info);
-    if (lang === "fitness-cues") {
-      replacements += 1;
-      const rest = info.replace(/^\s*fitness-cues\b/, "fitness-golf-cues");
-      open = { marker, length };
-      return `${indent}${fence}${rest}`;
-    }
+    const replacement = FENCE_REWRITES[lang];
     open = { marker, length };
-    return line;
+    if (!replacement) return line;
+    replacements += 1;
+    const rest = info.replace(new RegExp(`^\\s*${lang}\\b`), replacement);
+    return `${indent}${fence}${rest}`;
   });
   return {
     markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
@@ -1258,113 +2869,269 @@ function rewriteFitnessCuesFences(markdown) {
 }
 
 // src/util/merge-settings.ts
-function sanitizeSeries(series, fallback) {
-  if (!Array.isArray(series) || series.length === 0) return fallback;
-  const safe = series.filter(
-    (s) => s != null && typeof s.folder === "string" && isSafeVaultFolder(s.folder)
+function safeVaultPath(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  return isSafeVaultFolder(trimmed) ? trimmed : fallback;
+}
+function cloneActivities(activityTypes) {
+  return activityTypes.map((activity) => ({
+    ...activity,
+    colors: [
+      activity.colors[0],
+      activity.colors[1],
+      activity.colors[2],
+      activity.colors[3]
+    ]
+  }));
+}
+function normalizeActivities(values, fallback) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values.map((value) => normalizeActivityType(value, fallback[0].colors)).filter((activity) => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
+}
+function appendNewBuiltInActivities(activityTypes, builtIns) {
+  const existingIds = new Set(activityTypes.map((activity) => activity.id));
+  const addedBuiltIns = builtIns.filter(
+    (activity) => activity.domain === "hobby" && !existingIds.has(activity.id)
   );
-  return safe.length > 0 ? safe : fallback;
+  return [...activityTypes, ...cloneActivities(addedBuiltIns)];
+}
+function legacySeriesActivities(values, fallback) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values.map((value) => activityTypeFromSeries(value, fallback[0].colors)).filter((activity) => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 function mergeSettings(raw) {
-  const base = { ...DEFAULT_SETTINGS, series: DEFAULT_SETTINGS.series };
-  if (!raw) return { ...base, series: [...base.series] };
-  const golfCuesPath = raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || base.golfCuesPath;
+  const base = {
+    ...DEFAULT_SETTINGS,
+    activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes)
+  };
+  if (!raw) return base;
+  const golfCuesPath = safeVaultPath(
+    raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || "",
+    base.golfCuesPath
+  );
+  const activityTypes = appendNewBuiltInActivities(
+    normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes),
+    DEFAULT_SETTINGS.activityTypes
+  );
   return {
+    language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
-    dashboardPath: raw.dashboardPath || base.dashboardPath,
+    dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
-    gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
-    deprecatedFitnessCuesEnabled: raw.deprecatedFitnessCuesEnabled === false ? false : true,
-    series: [...sanitizeSeries(raw.series, base.series)]
+    gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
+    deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
+    activityTypes
   };
 }
 
 // src/settings.ts
-var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
+    this.pendingExerciseName = "";
     this.plugin = plugin;
   }
   display() {
     const { containerEl } = this;
+    const language = this.plugin.settings.language;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Fitness" });
-    new import_obsidian3.Setting(containerEl).setName("Timezone").setDesc("IANA timezone for \u201Ctoday\u201D and session dates (e.g. Asia/Hong_Kong).").addText(
+    containerEl.createEl("h2", { text: t("settings.title", language) });
+    new import_obsidian4.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+      (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
+        if (!isLanguage(value)) return;
+        this.plugin.settings.language = value;
+        await this.plugin.saveSettings();
+        this.display();
+        await this.plugin.refreshAll();
+        new import_obsidian4.Notice(t("notice.reloadForCommands", value));
+      })
+    );
+    new import_obsidian4.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Dashboard path").setDesc("Vault-relative path opened by \u201COpen dashboard\u201D.").addText(
-      (text) => text.setPlaceholder("Fitness/Dashboard.md").setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
-        this.plugin.settings.dashboardPath = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+    new import_obsidian4.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
+        const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+        if (!isSafeVaultFolder(next)) {
+          new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          return;
+        }
+        this.plugin.settings.dashboardPath = next;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Golf cues path").setDesc("Vault-relative path for golf cue rollup note.").addText(
-      (text) => text.setPlaceholder("Golf/Cues.md").setValue(this.plugin.settings.golfCuesPath).onChange(async (value) => {
-        this.plugin.settings.golfCuesPath = value.trim() || DEFAULT_SETTINGS.golfCuesPath;
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian3.Setting(containerEl).setName("Gym cues path").setDesc("Vault-relative path for gym cue rollup note.").addText(
-      (text) => text.setPlaceholder("Gym/Cues.md").setValue(this.plugin.settings.gymCuesPath).onChange(async (value) => {
-        this.plugin.settings.gymCuesPath = value.trim() || DEFAULT_SETTINGS.gymCuesPath;
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-cues` block").setDesc(
-      "Keep supporting the old golf cue codeblock name. Turn off after migrating notes (or use Migrate)."
-    ).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessCuesEnabled).onChange(async (value) => {
-        this.plugin.settings.deprecatedFitnessCuesEnabled = value;
+    this.renderExerciseTypes(containerEl);
+    new import_obsidian4.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
+        this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian3.Notice(
-          "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration."
-        );
+        new import_obsidian4.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Migrate legacy cue blocks").setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.").addButton(
-      (button) => button.setButtonText("Migrate `fitness-cues` \u2192 `fitness-golf-cues`").setCta().onClick(() => {
-        void this.migrateFitnessCuesFences();
+    new import_obsidian4.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
+      (button) => button.setButtonText(t("settings.migrateFitness", language)).setCta().onClick(() => {
+        void this.migrateFromFitnessToAtomic();
       })
     );
+  }
+  async saveAndRefresh() {
+    await this.plugin.saveSettings();
+    await this.plugin.refreshAll();
+  }
+  uniqueActivityId(baseId) {
+    const used = new Set(this.plugin.settings.activityTypes.map((activity) => activity.id));
+    if (!used.has(baseId)) return baseId;
+    let index = 2;
+    while (used.has(`${baseId}-${index}`)) index += 1;
+    return `${baseId}-${index}`;
+  }
+  renderExerciseTypes(containerEl) {
+    const language = this.plugin.settings.language;
+    containerEl.createEl("h3", { text: t("settings.exerciseTypes", language) });
     containerEl.createEl("p", {
-      text: "Series (folders, labels, colors) use defaults: Gym + Golf. Edit plugin data.json advanced series later if needed.",
+      text: t("settings.exerciseTypesDesc", language),
       cls: "setting-item-description"
     });
+    for (const activity of exerciseActivities(this.plugin.settings.activityTypes)) {
+      this.renderExerciseType(containerEl, activity);
+    }
+    new import_obsidian4.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
+      (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
+        this.pendingExerciseName = value;
+      })
+    ).addButton(
+      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
+        const name = this.pendingExerciseName.trim();
+        if (!name) {
+          new import_obsidian4.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
+          return;
+        }
+        const activity = createExerciseActivityType(name);
+        activity.id = this.uniqueActivityId(activity.id);
+        this.plugin.settings.activityTypes = [
+          ...this.plugin.settings.activityTypes,
+          activity
+        ];
+        this.pendingExerciseName = "";
+        await this.saveAndRefresh();
+        this.display();
+      })
+    );
   }
-  async migrateFitnessCuesFences() {
+  renderExerciseType(containerEl, activity) {
+    const language = this.plugin.settings.language;
+    new import_obsidian4.Setting(containerEl).setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addText(
+      (text) => text.setPlaceholder(t("settings.labelPlaceholder", language)).setValue(activity.label).onChange(async (value) => {
+        const label = value.trim();
+        if (!label) return;
+        activity.label = label;
+        await this.saveAndRefresh();
+      })
+    ).addText(
+      (text) => text.setPlaceholder(t("settings.exerciseFolderPlaceholder", language)).setValue(activity.folder).onChange(async (value) => {
+        const folder = value.trim();
+        if (!isSafeVaultFolder(folder)) {
+          new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          return;
+        }
+        activity.folder = folder;
+        await this.saveAndRefresh();
+      })
+    ).addToggle(
+      (toggle) => toggle.setTooltip(t("settings.enableCuesTooltip", language)).setValue(activity.supportsCues).onChange(async (value) => {
+        activity.supportsCues = value;
+        await this.saveAndRefresh();
+      })
+    );
+    new import_obsidian4.Setting(containerEl).setName(t("settings.colors", language, { label: activity.label })).setDesc(t("settings.colorsDesc", language)).addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
+  }
+  bindColorText(text, activity, index) {
+    const language = this.plugin.settings.language;
+    text.setPlaceholder(t("settings.colorPlaceholder", language, { number: index + 1 })).setValue(activity.colors[index]).onChange(async (value) => {
+      const color = value.trim();
+      if (!color) return;
+      activity.colors[index] = color;
+      await this.saveAndRefresh();
+    });
+  }
+  async ensureParentFolder(path) {
+    const normalized = (0, import_obsidian4.normalizePath)(path);
+    const slash = normalized.lastIndexOf("/");
+    if (slash <= 0) return;
+    await this.plugin.data.ensureFolder(normalized.slice(0, slash));
+  }
+  async migrateFromFitnessToAtomic() {
+    const existingPaths = new Set(
+      this.app.vault.getAllLoadedFiles().map((file) => file.path)
+    );
+    const plan = planFitnessMigration({
+      existingPaths,
+      settings: this.plugin.settings
+    });
+    let movedPaths = 0;
+    let skippedPaths = plan.skippedMoves.length;
     let changedFiles = 0;
     let replacements = 0;
     try {
+      for (const move of plan.moves) {
+        const from = (0, import_obsidian4.normalizePath)(move.from);
+        const to = (0, import_obsidian4.normalizePath)(move.to);
+        const source = this.app.vault.getAbstractFileByPath(from);
+        const destination = this.app.vault.getAbstractFileByPath(to);
+        if (!source || destination) {
+          skippedPaths += 1;
+          continue;
+        }
+        await this.ensureParentFolder(to);
+        await this.app.vault.rename(source, to);
+        movedPaths += 1;
+      }
       for (const file of this.app.vault.getMarkdownFiles()) {
         const original = await this.app.vault.read(file);
-        const result = rewriteFitnessCuesFences(original);
+        const result = rewriteFitnessFences(original);
         if (result.replacements === 0) continue;
         await this.app.vault.modify(file, result.markdown);
         changedFiles += 1;
         replacements += result.replacements;
       }
-      this.plugin.settings.deprecatedFitnessCuesEnabled = false;
+      Object.assign(this.plugin.settings, plan.settingsPatch);
+      this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
-      new import_obsidian3.Notice(
-        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`
+      new import_obsidian4.Notice(
+        t("notice.migrationComplete", this.plugin.settings.language, {
+          movedPaths,
+          pathWord: movedPaths === 1 ? "path" : "paths",
+          skippedPaths,
+          destinationWord: skippedPaths === 1 ? "destination" : "destinations",
+          replacements,
+          blockWord: replacements === 1 ? "block" : "blocks",
+          changedFiles,
+          fileWord: changedFiles === 1 ? "file" : "files"
+        })
       );
     } catch (err) {
-      console.error("Fitness cues migration failed", err);
+      console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian3.Notice(`Failed to migrate fitness-cues blocks: ${message}`);
+      new import_obsidian4.Notice(
+        t("notice.migrationFailed", this.plugin.settings.language, { message })
+      );
     }
   }
 };
 
 // src/main.ts
-var FitnessPlugin = class extends import_obsidian4.Plugin {
+var FitnessPlugin = class extends import_obsidian5.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -1378,30 +3145,87 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.addCommand({
       id: "fitness-new-gym-session",
-      name: "New gym session",
+      name: t("command.newGymSession", this.settings.language),
       callback: () => {
         void this.createGymSession();
       }
     });
     this.addCommand({
       id: "fitness-new-golf-session",
-      name: "New golf session",
+      name: t("command.newGolfSession", this.settings.language),
       callback: () => {
         void this.createGolfSession();
       }
     });
     this.addCommand({
+      id: "atomic-new-exercise-session",
+      name: t("command.newExerciseSession", this.settings.language),
+      callback: () => {
+        void this.createExerciseSession();
+      }
+    });
+    this.addCommand({
+      id: "atomic-new-reading-item",
+      name: t("command.newReadingItem", this.settings.language),
+      callback: () => {
+        void this.createReadingItem();
+      }
+    });
+    this.addCommand({
+      id: "atomic-ensure-reading-bookshelf",
+      name: t("command.ensureReadingBookshelf", this.settings.language),
+      callback: () => {
+        void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
+      }
+    });
+    this.addCommand({
+      id: "atomic-open-reading-bookshelf",
+      name: t("command.openReadingBookshelf", this.settings.language),
+      callback: () => {
+        void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
+      }
+    });
+    this.addCommand({
+      id: "atomic-ensure-book-shelf",
+      name: t("command.ensureBookShelf", this.settings.language),
+      callback: () => {
+        void ensureBookShelfHostCommand(this.data, this.settings.language);
+      }
+    });
+    this.addCommand({
+      id: "atomic-open-book-shelf",
+      name: t("command.openBookShelf", this.settings.language),
+      callback: () => {
+        void openBookShelfHostCommand(this.data, this.settings.language);
+      }
+    });
+    this.addCommand({
       id: "fitness-open-dashboard",
-      name: "Open dashboard",
+      name: t("command.openDashboard", this.settings.language),
       callback: () => {
         void this.openDashboard();
       }
     });
     const schedule = () => this.scheduleRefresh();
+    this.registerEvent(
+      this.app.vault.on("modify", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        this.data.renameHobbyTimeLogCache(oldPath, file.path);
+        schedule();
+      })
+    );
     this.registerEvent(this.app.vault.on("create", schedule));
-    this.registerEvent(this.app.vault.on("modify", schedule));
-    this.registerEvent(this.app.vault.on("delete", schedule));
-    this.registerEvent(this.app.vault.on("rename", schedule));
     this.registerEvent(this.app.metadataCache.on("resolved", schedule));
   }
   onunload() {
@@ -1438,39 +3262,97 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       await renderBlock(this, block.kind, block.source, block.el, ctx);
     }
   }
-  seriesByKind(kind) {
-    return this.settings.series.find((s) => s.kind === kind);
+  exerciseActivityById(id) {
+    return exerciseActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id
+    );
+  }
+  hobbyActivityById(id) {
+    return hobbyActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id
+    );
+  }
+  chooseExerciseActivity() {
+    const activities = exerciseActivities(this.settings.activityTypes);
+    if (!activities.length) {
+      new import_obsidian5.Notice(t("notice.noExerciseActivities", this.settings.language));
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      let settled = false;
+      const modal = new class extends import_obsidian5.FuzzySuggestModal {
+        getItems() {
+          return activities;
+        }
+        getItemText(activity) {
+          return activity.label;
+        }
+        onChooseItem(activity) {
+          if (settled) return;
+          settled = true;
+          resolve(activity);
+        }
+        onClose() {
+          if (settled) return;
+          settled = true;
+          resolve(null);
+        }
+      }(this.app);
+      modal.setPlaceholder(t("modal.exerciseTypePlaceholder", this.settings.language));
+      modal.open();
+    });
+  }
+  async createExerciseSession(activity) {
+    const picked = activity ?? await this.chooseExerciseActivity();
+    if (!picked) return;
+    await createActivitySession(
+      this.app,
+      this.data,
+      picked,
+      this.settings.timezone,
+      this.settings.language
+    );
   }
   async createGymSession() {
-    const series = this.seriesByKind("gym");
-    if (!series) {
-      new import_obsidian4.Notice("No gym series configured");
+    const activity = this.exerciseActivityById("gym");
+    if (!activity) {
+      new import_obsidian5.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
       this.app,
       this.data,
-      series,
-      this.settings.timezone
+      activity,
+      this.settings.timezone,
+      this.settings.language
     );
   }
   async createGolfSession() {
-    const series = this.seriesByKind("golf");
-    if (!series) {
-      new import_obsidian4.Notice("No golf series configured");
+    const activity = this.exerciseActivityById("golf");
+    if (!activity) {
+      new import_obsidian5.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
       this.app,
       this.data,
-      series,
-      this.settings.timezone
+      activity,
+      this.settings.timezone,
+      this.settings.language
     );
+  }
+  async createReadingItem() {
+    const activity = this.hobbyActivityById("reading");
+    if (!activity) {
+      new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+      return;
+    }
+    await createReadingItem(this.app, this.data, activity, this.settings.language);
   }
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian4.Notice(`Dashboard not found: ${path}`);
+      new import_obsidian5.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);

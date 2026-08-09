@@ -45,7 +45,7 @@ function writeVersionTree(dir, version) {
     join(dir, "manifest.json"),
     `${JSON.stringify(
       {
-        id: "obsidian-fitness",
+        id: "obsidian-atomic",
         version,
         minAppVersion: "1.5.0",
       },

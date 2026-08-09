@@ -38,3 +38,14 @@ export function sessionScanPrefix(
   const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
   return `${base}/${year}/`;
 }
+
+export function readingItemsFolder(folder: string): string | null {
+  if (!isSafeVaultFolder(folder)) return null;
+  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
+  return `${base}/Items`;
+}
+
+export function hobbyItemsScanPrefix(folder: string): string | null {
+  const itemsFolder = readingItemsFolder(folder);
+  return itemsFolder ? `${itemsFolder}/` : null;
+}

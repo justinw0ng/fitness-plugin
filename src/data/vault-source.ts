@@ -1,6 +1,12 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
-import type { SessionMeta } from "../types";
 import {
+  parseTimeLog,
+  type TimeLogEntry,
+} from "../core/hobby";
+import type { ActivityType, HobbyItemMeta, SessionMeta } from "../types";
+import { HobbyTimeLogCache } from "../util/hobby-time-log-cache";
+import {
+  hobbyItemsScanPrefix,
   isSafeVaultFolder,
   sessionScanPrefix,
 } from "../util/vault-path";
@@ -29,7 +35,38 @@ function resolveDate(
 }
 
 export class VaultDataSource {
+  private readonly hobbyTimeLogCache = new HobbyTimeLogCache();
+
   constructor(private app: App) {}
+
+  /** Drop cached Time log parses (all paths, or one path after edit/delete). */
+  invalidateHobbyTimeLogCache(path?: string): void {
+    this.hobbyTimeLogCache.invalidate(
+      path ? normalizePath(path) : undefined,
+    );
+  }
+
+  /** Keep cache entries aligned when a note is renamed. */
+  renameHobbyTimeLogCache(oldPath: string, newPath: string): void {
+    this.hobbyTimeLogCache.rename(normalizePath(oldPath), normalizePath(newPath));
+  }
+
+  /**
+   * Parsed Time log entries for a hobby item note.
+   * Reuses an in-memory parse while the file mtime is unchanged.
+   */
+  async getHobbyTimeLogEntries(path: string): Promise<TimeLogEntry[]> {
+    const file = this.getFileByPath(path);
+    if (!file) return [];
+    const mtime = file.stat.mtime;
+    const cached = this.hobbyTimeLogCache.get(file.path, mtime);
+    if (cached) return cached;
+
+    const markdown = await this.app.vault.cachedRead(file);
+    const entries = parseTimeLog(markdown);
+    this.hobbyTimeLogCache.set(file.path, mtime, entries);
+    return entries;
+  }
 
   listSessions(folder: string, year: number): SessionMeta[] {
     const prefix = sessionScanPrefix(folder, year);
@@ -50,6 +87,33 @@ export class VaultDataSource {
         weight_unit: fm.weight_unit === "lb" ? "lb" : "kg",
         focus: asList(fm.focus),
         felt: String(fm.felt || ""),
+      });
+    }
+    return out;
+  }
+
+  listHobbyItems(activity: ActivityType): HobbyItemMeta[] {
+    if (
+      activity.domain !== "hobby" ||
+      activity.noteModel !== "item" ||
+      !activity.supportsTimer
+    ) {
+      return [];
+    }
+    const prefix = hobbyItemsScanPrefix(activity.folder);
+    if (!prefix) return [];
+    const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
+    const out: HobbyItemMeta[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(scanPrefix)) continue;
+      if (!file.path.endsWith(".md")) continue;
+      const cache = this.app.metadataCache.getFileCache(file);
+      const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
+      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
+      out.push({
+        path: file.path,
+        basename: file.basename,
+        frontmatter: fm,
       });
     }
     return out;
@@ -115,5 +179,32 @@ export class VaultDataSource {
   getFolder(path: string): TFolder | null {
     const af = this.app.vault.getAbstractFileByPath(normalizePath(path));
     return af instanceof TFolder ? af : null;
+  }
+
+  /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
+  resolveResourcePath(linkOrPath: string, sourcePath = ""): string | null {
+    const trimmed = linkOrPath.trim();
+    if (!trimmed) return null;
+    if (
+      /^https?:\/\//i.test(trimmed) ||
+      /^app:\/\//i.test(trimmed) ||
+      /^data:image\//i.test(trimmed)
+    ) {
+      return trimmed;
+    }
+
+    const fromLink = this.app.metadataCache.getFirstLinkpathDest(
+      trimmed,
+      sourcePath,
+    );
+    const fromPath = this.app.vault.getAbstractFileByPath(normalizePath(trimmed));
+    const file =
+      fromLink instanceof TFile
+        ? fromLink
+        : fromPath instanceof TFile
+          ? fromPath
+          : null;
+    if (!file) return null;
+    return this.app.vault.getResourcePath(file);
   }
 }

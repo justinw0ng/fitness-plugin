@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-fitness",
-  "name": "Fitness",
+  "id": "obsidian-atomic",
+  "name": "Atomic",
   "version": "1.0.3",
   "minAppVersion": "1.5.0",
-  "description": "Gym and golf session heatmaps, dashboard, cue rollup, and session creation.",
+  "description": "Habit tracker for exercise and hobbies — heatmaps, cues, timers, and dashboards under atomics/.",
   "author": "Justin Wong",
   "authorUrl": "https://github.com/justinw0ng/obsidian-atomic",
   "isDesktopOnly": false

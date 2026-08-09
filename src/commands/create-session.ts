@@ -5,13 +5,16 @@ import {
 } from "../core";
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
-import type { SeriesConfig } from "../types";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t, type Language } from "../i18n/index.ts";
+import type { ActivityType } from "../types";
 import { yamlScalar } from "../util/yaml";
 
 function promptText(
   app: App,
   title: string,
   defaultValue: string,
+  language: Language,
 ): Promise<string | null> {
   return new Promise((resolve) => {
     const modal = new (class extends Modal {
@@ -38,11 +41,13 @@ function promptText(
         });
         new Setting(contentEl)
           .addButton((btn) =>
-            btn.setButtonText("Cancel").onClick(() => this.finish(null)),
+            btn
+              .setButtonText(t("modal.cancel", language))
+              .onClick(() => this.finish(null)),
           )
           .addButton((btn) =>
             btn
-              .setButtonText("OK")
+              .setButtonText(t("modal.ok", language))
               .setCta()
               .onClick(() => this.finish(this.value)),
           );
@@ -99,106 +104,135 @@ function suggestOne(
 }
 
 function gymBody(
+  activity: ActivityType,
   date: string,
   location: string,
   locationDetail: string,
   weightUnit: string,
+  language: Language,
 ): string {
-  const muscleHints = [
-    "Chest / 胸",
-    "Back / 背",
-    "Shoulders / 肩",
-    "Biceps / 二頭",
-    "Triceps / 三頭",
-    "Quads / 股四頭",
-    "Hamstrings / 腿後腱",
-    "Glutes / 臀",
-    "Calves / 小腿",
-    "Core / 核心",
-  ];
+  const muscleHints =
+    language === "en"
+      ? ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Quads", "Hamstrings", "Glutes", "Calves", "Core"]
+      : [
+          "Chest / 胸",
+          "Back / 背",
+          "Shoulders / 肩",
+          "Biceps / 二頭",
+          "Triceps / 三頭",
+          "Quads / 股四頭",
+          "Hamstrings / 腿後腱",
+          "Glutes / 臀",
+          "Calves / 小腿",
+          "Core / 核心",
+        ];
   return `---
 type: session
 date: ${date}
-activity: gym
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location: ${yamlScalar(location)}
 location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
-# 🏋️ Gym / 健身 — ${date}
+# ${activity.label} — ${date}
 
-<!-- 💪 Muscles / 肌群: ${muscleHints.join(", ")} -->
+<!-- 💪 ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
-| 💪 Exercise / 動作 | 🧬 Muscle / 肌群 | ⚖️ Weight / 重量 | 🔢 Reps / 次數 | 🗒️ Notes / 備註 |
+| ${t("template.gymTable.exercise", language)} | ${t("template.gymTable.muscle", language)} | ${t("template.gymTable.weight", language)} | ${t("template.gymTable.reps", language)} | ${t("template.gymTable.notes", language)} |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 |  |  |  |  |  |
 |  |  |  |  |  |
-
-## 💡 Reminders / 提醒
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
 
 - 
+` : ""}
 `;
 }
 
-function golfBody(date: string): string {
+function golfBody(activity: ActivityType, date: string, language: Language): string {
   return `---
 type: session
 date: ${date}
-activity: golf
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location:
 focus: []
 club: []
+felt:
 ---
 
-# ⛳ Golf / 高爾夫 — ${date}
+# ${activity.label} — ${date}
 
-<!-- 📍 location / 地點: Home net / 家用網, Driving range / 練習場, Course / 球場, Other / 其他 -->
-<!-- 🎯 focus / 重點 (multi): Grip / 握桿, Stance / 站姿, Takeaway / 起桿, Backswing / 上桿, Transition / 轉換, Downswing / 下桿, Impact / 擊球, Follow-through / 送桿, Tempo / 節奏, Alignment / 瞄準線 -->
-<!-- 🏌️ club / 球桿 (multi): Driver / 一號木, 3W / 三號木, 5W / 五號木, Hybrid / 混血桿, 4i–9i / 鐵桿, PW / 劈起桿, GW / 缺口桿, SW / 沙坑桿, LW / 高吊桿, Putter / 推桿, Mixed / 混合 -->
-
-## 💡 Reminders / 提醒
+<!-- ${t("template.golfLocationHint", language)} -->
+<!-- ${t("template.golfFocusHint", language)} -->
+<!-- ${t("template.golfClubHint", language)} -->
+<!-- ${t("template.golfFeltHint", language)} -->
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
 
 - 
+` : ""}
 `;
 }
 
-export async function createGymSession(
+function genericExerciseBody(
+  activity: ActivityType,
+  date: string,
+  language: Language,
+): string {
+  return `---
+type: session
+date: ${date}
+activity: ${yamlScalar(activity.id)}
+duration_min:
+location:
+---
+
+# ${activity.label} — ${date}
+${activity.supportsCues ? `
+## ${t("template.reminders", language)}
+
+- 
+` : ""}
+`;
+}
+
+async function promptSessionDate(
   app: App,
-  data: VaultDataSource,
-  series: SeriesConfig,
   timezone: string,
-): Promise<void> {
+  language: Language,
+): Promise<string | null> {
   const today = ymdInZone(new Date(), timezone);
-  const dateRaw = await promptText(app, "Date / 日期 (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
+  const dateRaw = await promptText(app, t("modal.dateTitle", language), today, language);
+  if (dateRaw === null) return null;
+  const date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new Notice("Invalid date / 日期無效");
-    return;
+    new Notice(t("notice.invalidDate", language));
+    return null;
   }
-  const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
-  const target = `${folder}/${date}.md`;
+  return date;
+}
 
-  if (data.exists(target)) {
-    await data.openPath(target);
-    new Notice(`Opened existing gym session / 已開啟: ${target}`);
-    return;
-  }
-
+async function gymSessionBody(
+  app: App,
+  activity: ActivityType,
+  date: string,
+  language: Language,
+): Promise<string> {
   const locationLabels = [
-    "Home / 家中",
-    "Commercial / 商業健身房",
-    "Hotel/Travel / 酒店／旅途",
-    "Other / 其他",
+    t("location.home", language),
+    t("location.commercial", language),
+    t("location.hotelTravel", language),
+    t("location.other", language),
   ];
   let location =
     (await suggestOne(
       app,
-      "Location / 地點 (Esc to skip / 略過)",
+      t("modal.locationPlaceholder", language),
       GYM_LOCATIONS,
       locationLabels,
     )) || "";
@@ -206,11 +240,16 @@ export async function createGymSession(
   let locationDetail = "";
   if (location === "Other") {
     locationDetail =
-      (await promptText(app, "Other location detail / 其他地點說明", "")) || "";
+      (await promptText(
+        app,
+        t("modal.otherLocationDetail", language),
+        "",
+        language,
+      )) || "";
   }
 
   let weightUnit =
-    (await suggestOne(app, "Weight unit / 重量單位 (Esc → kg)", [
+    (await suggestOne(app, t("modal.weightUnitPlaceholder", language), [
       "kg",
       "lb",
     ])) || "kg";
@@ -219,39 +258,64 @@ export async function createGymSession(
   // silence unused MUSCLES (kept for future editor UX / parity with templates)
   void MUSCLES;
 
-  await data.createNote(
-    target,
-    gymBody(date, location, locationDetail, weightUnit),
-  );
+  return gymBody(activity, date, location, locationDetail, weightUnit, language);
+}
+
+export async function createActivitySession(
+  app: App,
+  data: VaultDataSource,
+  activity: ActivityType,
+  timezone: string,
+  language: Language,
+): Promise<void> {
+  const date = await promptSessionDate(app, timezone, language);
+  if (!date) return;
+  const year = date.slice(0, 4);
+  const folder = `${activity.folder}/${year}`;
+  const target = `${folder}/${date}.md`;
+
+  if (data.exists(target)) {
+    await data.openPath(target);
+    new Notice(
+      t("notice.openedExistingSession", language, {
+        activity: activity.label,
+        path: target,
+      }),
+    );
+    return;
+  }
+
+  const body = activity.supportsSetTable
+    ? await gymSessionBody(app, activity, date, language)
+    : activity.id === "golf"
+      ? golfBody(activity, date, language)
+      : genericExerciseBody(activity, date, language);
+  await data.createNote(target, body);
   await data.openPath(target);
-  new Notice(`Created gym session / 已建立: ${target}`);
+  new Notice(
+    t("notice.createdSession", language, {
+      activity: activity.label,
+      path: target,
+    }),
+  );
+}
+
+export async function createGymSession(
+  app: App,
+  data: VaultDataSource,
+  activity: ActivityType,
+  timezone: string,
+  language: Language,
+): Promise<void> {
+  await createActivitySession(app, data, activity, timezone, language);
 }
 
 export async function createGolfSession(
   app: App,
   data: VaultDataSource,
-  series: SeriesConfig,
+  activity: ActivityType,
   timezone: string,
+  language: Language,
 ): Promise<void> {
-  const today = ymdInZone(new Date(), timezone);
-  const dateRaw = await promptText(app, "Date / 日期 (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new Notice("Invalid date / 日期無效");
-    return;
-  }
-  const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
-  const target = `${folder}/${date}.md`;
-
-  if (data.exists(target)) {
-    await data.openPath(target);
-    new Notice(`Opened existing golf session / 已開啟: ${target}`);
-    return;
-  }
-
-  await data.createNote(target, golfBody(date));
-  await data.openPath(target);
-  new Notice(`Created golf session / 已建立: ${target}`);
+  await createActivitySession(app, data, activity, timezone, language);
 }

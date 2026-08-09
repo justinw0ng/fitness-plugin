@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Reading bookshelf (Obsidian Bases) mockup</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --panel: #262626;
+      --ink: #e6e6e6;
+      --muted: #9a9a9a;
+      --line: #3a3a3a;
+      --accent: #7f6df2;
+      --chip: #3d3d5c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    h1 { margin: 0 0 6px; font-size: 1.25rem; }
+    .lead { color: var(--muted); margin: 0 0 16px; max-width: 70ch; font-size: 0.95rem; }
+    .note {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      background: #222;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .shell {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      max-width: 1100px;
+    }
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.9rem;
+    }
+    .tab {
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--muted);
+    }
+    .tab.on { background: #333; color: var(--ink); }
+    .cmd {
+      margin-left: auto;
+      color: var(--accent);
+      font-size: 0.82rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      padding: 14px;
+    }
+    .card {
+      background: #2b2b2b;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .cover {
+      height: 140px;
+      background: linear-gradient(145deg, #444, #222);
+      display: flex;
+      align-items: flex-end;
+      padding: 8px;
+      font-size: 0.75rem;
+      color: #ccc;
+    }
+    .body { padding: 10px; font-size: 0.8rem; }
+    .title { color: #8ab4ff; margin: 0 0 8px; font-weight: 600; }
+    .row { margin: 0 0 6px; color: var(--muted); }
+    .row b { color: #bbb; font-weight: 500; }
+    .pill {
+      display: inline-block;
+      margin: 2px 4px 0 0;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--chip);
+      color: #c8c8ff;
+      font-size: 0.72rem;
+    }
+    pre {
+      max-width: 1100px;
+      margin-top: 16px;
+      padding: 12px;
+      background: #151515;
+      border: 1px solid var(--line);
+      color: #c8e6c9;
+      overflow: auto;
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reading bookshelf — Obsidian Bases</h1>
+  <p class="lead">Atomic does not paint this gallery itself. A plugin command writes/opens <code>atomics/hobbies/Reading/Bookshelf.base</code>; Bases Cards renders covers and properties from book item notes.</p>
+  <div class="note">Commands: <strong>Atomic: Open reading bookshelf</strong> · <strong>Atomic: Ensure reading bookshelf</strong></div>
+
+  <div class="shell">
+    <div class="bar">
+      <strong>Books</strong>
+      <span class="tab">Table</span>
+      <span class="tab on">Cards</span>
+      <span class="cmd">cover → local property · Fit image · Include fields</span>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <div class="cover">Thinking, Fast and Slow</div>
+        <div class="body">
+          <div class="title">Thinking Fast and Slow (book)</div>
+          <div class="row"><b>authors</b> <span class="pill">Daniel Kahneman</span></div>
+          <div class="row"><b>description</b> Dual-system thinking…</div>
+          <div class="row"><b>pages</b> 432</div>
+          <div class="row"><b>status</b> To Read Again</div>
+          <div class="row"><b>tags</b> <span class="pill">book_notes</span><span class="pill">thinking</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="cover">Atomic Habits</div>
+        <div class="body">
+          <div class="title">Atomic Habits</div>
+          <div class="row"><b>authors</b> <span class="pill">James Clear</span></div>
+          <div class="row"><b>description</b> Tiny changes, remarkable results…</div>
+          <div class="row"><b>pages</b> 320</div>
+          <div class="row"><b>status</b> reading</div>
+          <div class="row"><b>tags</b> <span class="pill">habits</span><span class="pill">productivity</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="cover">Building a Second Brain</div>
+        <div class="body">
+          <div class="title">Building a Second Brain</div>
+          <div class="row"><b>authors</b> <span class="pill">Tiago Forte</span></div>
+          <div class="row"><b>description</b> CODE method for notes…</div>
+          <div class="row"><b>pages</b> 272</div>
+          <div class="row"><b>status</b> to-read</div>
+          <div class="row"><b>tags</b> <span class="pill">pkm</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="cover">Make Time</div>
+        <div class="body">
+          <div class="title">Make Time</div>
+          <div class="row"><b>authors</b> <span class="pill">Jake Knapp</span><span class="pill">John Zeratsky</span></div>
+          <div class="row"><b>description</b> Highlight / Laser / Energize…</div>
+          <div class="row"><b>pages</b> 284</div>
+          <div class="row"><b>status</b> finished</div>
+          <div class="row"><b>tags</b> <span class="pill">productivity</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <pre>filters:
+  and:
+    - 'file.inFolder("atomics/hobbies/Reading/Items")'
+    - 'type == "atomic-item"'
+    - 'activity == "reading"'
+views:
+  - type: cards
+    name: Cards
+    # image property: cover
+  - type: table
+    name: Table</pre>
+</body>
+</html>
