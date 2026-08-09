@@ -22,7 +22,7 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic habit tr
   3. Create a Reading item, start/stop its timer, and confirm Reading minutes appear in `atomic-heatmap`
   4. In Settings, confirm one color picker + shade swatches, enable/disable, Delete, and Add general habit
   5. Confirm `atomic-heatmap` with `activity: reading` and `activity: gym, golf` filters correctly
-  6. Run **Open reading bookshelf** with Bases enabled; with Bases disabled or Reading disabled, confirm the command shows a Notice
+  6. Run **Open reading notes in Bases** with Bases enabled; with Bases disabled or Reading disabled, confirm the command shows a Notice
   7. Confirm legacy `fitness-*` aliases work while **Allow legacy `fitness-*` blocks** is on
   8. Run **Migrate from Fitness → Atomic** on demo notes and confirm the legacy toggle turns off
 - Skip Obsidian GUI E2E **only** when Obsidian cannot be installed or launched in the environment; say so in the PR/summary. HTML mockups under `docs/mockups/` remain useful for design review, but they do not replace E2E when Obsidian can run.

@@ -45,7 +45,7 @@ export const zhHantEn = {
   "command.newReadingItem": "New reading item / 新增閱讀項目",
   "command.newHobbyItem": "New hobby item / 新增興趣項目",
   "command.ensureReadingBookshelf": "Ensure reading bookshelf / 建立閱讀 Bookshelf",
-  "command.openReadingBookshelf": "Open reading bookshelf / 開啟閱讀 Bookshelf",
+  "command.openReadingBookshelf": "Open reading notes in Bases / 在 Bases 開啟閱讀筆記",
   "command.ensureBookShelf": "Ensure book shelf / 建立書架",
   "command.openBookShelf": "Open book shelf / 開啟書架",
   "command.openDashboard": "Open dashboard / 開啟儀表板",

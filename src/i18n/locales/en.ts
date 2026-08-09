@@ -45,7 +45,7 @@ export const en = {
   "command.newReadingItem": "New reading item",
   "command.newHobbyItem": "New hobby item",
   "command.ensureReadingBookshelf": "Ensure reading bookshelf",
-  "command.openReadingBookshelf": "Open reading bookshelf",
+  "command.openReadingBookshelf": "Open reading notes in Bases",
   "command.ensureBookShelf": "Ensure book shelf",
   "command.openBookShelf": "Open book shelf",
   "command.openDashboard": "Open dashboard",
