@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mergeSettings } from "../src/util/merge-settings.ts";
 import { rewriteFitnessCuesFences } from "../src/util/migrate-cues.ts";
-import { DEFAULT_SETTINGS } from "../src/types.ts";
 
 test("mergeSettings defaults include golf/gym paths and legacy on", () => {
   const s = mergeSettings(null);
