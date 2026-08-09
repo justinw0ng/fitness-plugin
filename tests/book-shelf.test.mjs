@@ -7,6 +7,7 @@ import {
   parseCoverRef,
   resolveCoverSrc,
   shelfColorFor,
+  titleLengthClass,
 } from "../src/views/book-shelf.ts";
 
 test("shelfColorFor uses valid spine_color and hashes missing colors", () => {
@@ -146,6 +147,15 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
   assert.equal(
     resolveCoverSrc("", data, "atomics/hobbies/Reading/Items/Current.md"),
     null,
+  );
+});
+
+test("titleLengthClass shrinks type for long book titles", () => {
+  assert.equal(titleLengthClass("Blink"), "");
+  assert.equal(titleLengthClass("Building a Second Brain"), "is-title-sm");
+  assert.equal(
+    titleLengthClass("Thinking, Fast and Slow — Annotated Edition"),
+    "is-title-xs",
   );
 });
 

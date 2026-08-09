@@ -158,6 +158,14 @@ export function chunkItems<T>(items: T[], size: number): T[][] {
   return rows;
 }
 
+/** Smaller cover/page type for long titles so they wrap inside the book face. */
+export function titleLengthClass(title: string): string {
+  const length = title.trim().length;
+  if (length > 36) return "is-title-xs";
+  if (length > 22) return "is-title-sm";
+  return "";
+}
+
 function createBook(
   parent: HTMLElement,
   item: BookShelfItem,
@@ -177,9 +185,13 @@ function createBook(
     void data.openPath(item.path);
   });
 
+  const titleClass = titleLengthClass(item.title);
   const volume = button.createDiv({ cls: "atomic-book-volume" });
   const pages = volume.createDiv({ cls: "atomic-book-pages" });
-  pages.createDiv({ cls: "atomic-book-page-title", text: item.title });
+  pages.createDiv({
+    cls: ["atomic-book-page-title", titleClass].filter(Boolean).join(" "),
+    text: item.title,
+  });
   pages.createDiv({
     cls: "atomic-book-page-author",
     text: item.authors[0] || item.status,
@@ -194,14 +206,20 @@ function createBook(
       attr: { src: coverSrc, alt: "" },
     });
   } else {
-    face.createDiv({ cls: "atomic-book-cover-title", text: item.title });
+    face.createDiv({
+      cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
+      text: item.title,
+    });
   }
   cover.createDiv({ cls: "atomic-book-cover-inside" });
   cover.createDiv({ cls: "atomic-book-cover-sleeve" });
   face.createDiv({ cls: "atomic-book-cover-shine" });
 
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
-  spine.createDiv({ cls: "atomic-book-spine-title", text: item.title });
+  spine.createDiv({
+    cls: ["atomic-book-spine-title", titleClass].filter(Boolean).join(" "),
+    text: item.title,
+  });
 
   const detail = button.createDiv({ cls: "atomic-book-detail" });
   detail.createDiv({ cls: "atomic-book-detail-title", text: item.title });

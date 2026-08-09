@@ -308,9 +308,23 @@
 }
 
 .fitness-plugin .atomic-book-page-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  max-height: 4.6em;
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-book-page-title.is-title-sm {
+  font-size: 9px;
+}
+
+.fitness-plugin .atomic-book-page-title.is-title-xs {
+  font-size: 8px;
+  line-height: 1.1;
 }
 
 .fitness-plugin .atomic-book-page-author {
@@ -385,14 +399,29 @@
 
 .fitness-plugin .atomic-book-cover-title {
   position: absolute;
-  inset: 12px 9px;
+  inset: 10px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-book-cover-title.is-title-sm {
+  font-size: 8.5px;
+  inset: 8px 6px;
+}
+
+.fitness-plugin .atomic-book-cover-title.is-title-xs {
+  font-size: 7.5px;
+  line-height: 1.1;
+  inset: 7px 5px;
 }
 
 .fitness-plugin .atomic-book-cover-shine {
@@ -423,6 +452,18 @@
   line-height: 1;
   padding: 8px 2px;
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-height: 100%;
+}
+
+.fitness-plugin .atomic-book-spine-title.is-title-sm {
+  font-size: 8px;
+}
+
+.fitness-plugin .atomic-book-spine-title.is-title-xs {
+  font-size: 7px;
 }
 
 .fitness-plugin .atomic-book-detail {
