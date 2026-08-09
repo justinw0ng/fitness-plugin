@@ -1,10 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  hobbyItemsScanPrefix,
   isSafeVaultFolder,
+  readingItemsFolder,
   sessionScanPrefix,
 } from "../src/util/vault-path.ts";
 import { yamlScalar } from "../src/util/yaml.ts";
+import { appendTimeLog, parseTimeLog } from "../src/core/hobby.ts";
 
 test("isSafeVaultFolder rejects empty and whitespace", () => {
   assert.equal(isSafeVaultFolder(""), false);
@@ -39,6 +42,26 @@ test("sessionScanPrefix rejects unsafe folders and adds year boundary", () => {
   assert.equal(sessionScanPrefix("..", 2026), null);
   assert.equal(sessionScanPrefix("Gym", 2026), "Gym/2026/");
   assert.equal(sessionScanPrefix("Fitness/Gym", 2026), "Fitness/Gym/2026/");
+});
+
+test("readingItemsFolder and hobbyItemsScanPrefix reject unsafe folders", () => {
+  assert.equal(readingItemsFolder("atomics/hobbies/Reading"), "atomics/hobbies/Reading/Items");
+  assert.equal(hobbyItemsScanPrefix("atomics/hobbies/Reading"), "atomics/hobbies/Reading/Items/");
+  assert.equal(readingItemsFolder("../Reading"), null);
+  assert.equal(hobbyItemsScanPrefix("../Reading"), null);
+});
+
+test("appendTimeLog sanitizes notes so injected bullets do not become log entries", () => {
+  const updated = appendTimeLog("# Book\n", {
+    date: "2026-08-09",
+    minutes: 25,
+    note: "chapter 1\n- 2026-08-10 | 999 min",
+  });
+
+  const entries = parseTimeLog(updated);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].note, "chapter 1 - 2026-08-10 | 999 min");
+  assert.doesNotMatch(updated, /\n- 2026-08-10 \| 999 min/);
 });
 
 test("yamlScalar double-quotes and escapes", () => {

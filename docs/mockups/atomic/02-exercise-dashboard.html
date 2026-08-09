@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Exercise dashboard mockup</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --ink: #132019;
+      --muted: #617068;
+      --line: #d5ddd8;
+      --panel: #fffdf9;
+      --gym: #30a14e;
+      --golf: #f76707;
+      --run: #3b82f6;
+    }
+    body {
+      margin: 0;
+      padding: 28px;
+      font-family: "Source Serif 4", Georgia, serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    h1 { margin: 0 0 4px; }
+    .lead { color: var(--muted); margin: 0 0 20px; }
+    .note {
+      max-width: 980px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 20px 22px 28px;
+    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .actions span {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 8px 12px;
+      font-size: 0.92rem;
+    }
+    h2 { font-size: 1.05rem; margin: 22px 0 10px; }
+    .heat {
+      display: grid;
+      grid-template-columns: repeat(28, 12px);
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+    .cell { width: 12px; height: 12px; border-radius: 50%; background: #ebedf0; }
+    .g1 { background: #9be9a8; } .g2 { background: #40c463; } .g3 { background: var(--gym); }
+    .o1 { background: #ffd8a8; } .o2 { background: #ffa94d; } .o3 { background: var(--golf); }
+    .b1 { background: #bfdbfe; } .b2 { background: #60a5fa; } .b3 { background: var(--run); }
+    .legend { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stat { border: 1px solid var(--line); padding: 12px; background: #fff; }
+    .stat b { display: block; font-size: 1.3rem; }
+    .stat span { color: var(--muted); font-size: 0.85rem; }
+    .cues { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cuebox { border: 1px solid var(--line); padding: 12px; background: #fff; }
+    .cuebox h3 { margin: 0 0 8px; font-size: 0.95rem; }
+    ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>Exercise dashboard</h1>
+  <p class="lead">Golf + Gym defaults, plus user-defined Running. Cues stay for exercise/sports.</p>
+  <div class="note">
+    <div class="actions">
+      <span>New gym session</span>
+      <span>New golf session</span>
+      <span>New running session</span>
+      <span>Open cues</span>
+    </div>
+
+    <h2>Gym</h2>
+    <div class="heat">
+      <div class="cell"></div><div class="cell g1"></div><div class="cell"></div><div class="cell g2"></div>
+      <div class="cell g1"></div><div class="cell"></div><div class="cell g3"></div><div class="cell"></div>
+      <div class="cell g2"></div><div class="cell"></div><div class="cell g1"></div><div class="cell g2"></div>
+      <div class="cell"></div><div class="cell g3"></div><div class="cell"></div><div class="cell g1"></div>
+      <div class="cell"></div><div class="cell g2"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell g1"></div><div class="cell g3"></div><div class="cell"></div><div class="cell g2"></div>
+      <div class="cell"></div><div class="cell g1"></div><div class="cell"></div><div class="cell g2"></div>
+    </div>
+    <div class="legend">Daily session notes · duration levels · set-table volume on yearly stats</div>
+
+    <h2>Golf</h2>
+    <div class="heat">
+      <div class="cell o1"></div><div class="cell"></div><div class="cell o2"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell o3"></div><div class="cell o1"></div><div class="cell"></div>
+      <div class="cell o2"></div><div class="cell"></div><div class="cell"></div><div class="cell o1"></div>
+      <div class="cell o3"></div><div class="cell"></div><div class="cell o2"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell o1"></div><div class="cell"></div><div class="cell o2"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell o3"></div><div class="cell"></div>
+      <div class="cell o1"></div><div class="cell"></div><div class="cell o2"></div><div class="cell"></div>
+    </div>
+
+    <h2>Running (custom)</h2>
+    <div class="heat">
+      <div class="cell"></div><div class="cell b1"></div><div class="cell b2"></div><div class="cell"></div>
+      <div class="cell b1"></div><div class="cell"></div><div class="cell"></div><div class="cell b3"></div>
+      <div class="cell"></div><div class="cell b2"></div><div class="cell"></div><div class="cell b1"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell b2"></div><div class="cell"></div>
+      <div class="cell b1"></div><div class="cell"></div><div class="cell b3"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell b1"></div><div class="cell"></div><div class="cell b2"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell b1"></div><div class="cell"></div>
+    </div>
+
+    <h2>This year</h2>
+    <div class="stats">
+      <div class="stat"><b>48</b><span>exercise sessions</span></div>
+      <div class="stat"><b>62h</b><span>total duration</span></div>
+      <div class="stat"><b>18</b><span>cue keepers</span></div>
+    </div>
+
+    <h2>Cues (exercise only)</h2>
+    <div class="cues">
+      <div class="cuebox">
+        <h3>Golf — This month</h3>
+        <ul><li>Quiet hands</li><li>Finish belt-high</li></ul>
+      </div>
+      <div class="cuebox">
+        <h3>Gym — Keepers</h3>
+        <ul><li>Brace before pull</li><li>Full lockout</li></ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

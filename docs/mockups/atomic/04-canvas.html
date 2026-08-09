@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Canvas linking mockup</title>
+  <style>
+    :root {
+      --bg: #eef2f0;
+      --ink: #152019;
+      --muted: #5f6c64;
+      --line: #cfd8d2;
+      --card: #fffdf8;
+      --accent: #1f6b4a;
+    }
+    body {
+      margin: 0;
+      padding: 28px;
+      font-family: "Source Serif 4", Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    h1 { margin: 0 0 4px; }
+    .lead { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+    .canvas {
+      position: relative;
+      max-width: 980px;
+      height: 460px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(#e7ece9 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(90deg, #e7ece9 1px, transparent 1px) 0 0 / 28px 28px,
+        #f7faf8;
+      overflow: hidden;
+    }
+    .node {
+      position: absolute;
+      width: 200px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      box-shadow: 0 1px 0 rgba(20, 40, 30, 0.04);
+    }
+    .node h3 { margin: 0 0 6px; font-size: 0.98rem; }
+    .node p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .n1 { left: 60px; top: 70px; }
+    .n2 { left: 340px; top: 120px; border-color: var(--accent); }
+    .n3 { left: 620px; top: 80px; }
+    .n4 { left: 380px; top: 280px; }
+    svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .legend {
+      max-width: 980px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Canvas linking</h1>
+  <p class="lead">Atomic does not invent a canvas format. Item notes are normal vault files, so Obsidian Canvas can hold them beside related ideas.</p>
+
+  <div class="canvas" aria-label="Canvas mock">
+    <svg class="edges" viewBox="0 0 980 460" preserveAspectRatio="none">
+      <path d="M260 110 C300 110, 300 150, 340 150" stroke="#8aa193" fill="none" stroke-width="2" />
+      <path d="M540 160 C580 160, 580 120, 620 120" stroke="#8aa193" fill="none" stroke-width="2" />
+      <path d="M440 190 C440 230, 450 260, 460 280" stroke="#8aa193" fill="none" stroke-width="2" />
+    </svg>
+    <div class="node n1">
+      <h3>Identity</h3>
+      <p>Who I want to become</p>
+    </div>
+    <div class="node n2">
+      <h3>Atomic Habits</h3>
+      <p>Reading item · 3h 5m · ch.3</p>
+    </div>
+    <div class="node n3">
+      <h3>Morning stack</h3>
+      <p>Coffee → 20 min read</p>
+    </div>
+    <div class="node n4">
+      <h3>Gym cues</h3>
+      <p>Exercise domain stays separate</p>
+    </div>
+  </div>
+  <p class="legend">User action: open Canvas → drag <code>atomics/hobbies/Reading/Items/Atomic Habits.md</code> onto the board (or paste <code>[[Atomic Habits]]</code>). Optional frontmatter <code>related_canvas</code> only helps dashboard navigation.</p>
+</body>
+</html>

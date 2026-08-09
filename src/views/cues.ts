@@ -6,19 +6,14 @@ import {
   type Cue,
 } from "../core";
 import {
-  monthLongEn,
-  monthLongZh,
+  formatMonthLabel,
   nowMonth,
   nowYear,
 } from "../dates";
-import type { SeriesConfig } from "../types";
-
-type CueKind = "golf" | "gym";
-
-const CUE_SERIES_FOLDERS: Record<CueKind, string> = {
-  golf: "Golf",
-  gym: "Gym",
-};
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t, type Language } from "../i18n/index.ts";
+import type { ActivityType } from "../types";
+import { resolveCueActivityType } from "../util/activity-types";
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -34,20 +29,19 @@ export function resolveCuesYear(
 export async function renderCues(
   el: HTMLElement,
   data: VaultDataSource,
-  seriesList: SeriesConfig[],
+  activityTypes: ActivityType[],
   year: number,
   timezone: string,
-  kind: CueKind,
+  activity: string,
+  language: Language,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
 
-  const series =
-    seriesList.find((s) => s.kind === kind) ||
-    seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
-  if (!series) {
+  const activityType = resolveCueActivityType(activityTypes, activity);
+  if (!activityType) {
     root.createEl("p", {
-      text: `No ${kind} series configured.`,
+      text: t("view.cues.noCueActivity", language, { activity }),
       cls: "fitness-muted",
     });
     return;
@@ -55,13 +49,10 @@ export async function renderCues(
 
   const currentYear = nowYear(timezone);
   const month = year === currentYear ? nowMonth(timezone) : 12;
-  const monthLabel =
-    year === currentYear
-      ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}`
-      : `December ${year} / ${year}年12月`;
+  const monthLabel = formatMonthLabel(year, month, language);
 
   const cues: Cue[] = [];
-  for (const p of data.listSessions(series.folder, year)) {
+  for (const p of data.listSessions(activityType.folder, year)) {
     if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");
@@ -75,11 +66,11 @@ export async function renderCues(
   const keepers = buildKeepers(cues, year);
 
   root.createEl("h2", {
-    text: `📅 This month / 本月 — ${monthLabel}`,
+    text: t("view.cues.thisMonth", language, { month: monthLabel }),
   });
   if (!thisMonth.length) {
     root.createEl("p", {
-      text: "No reminders this month / 本月尚無提醒",
+      text: t("view.cues.noReminders", language),
       cls: "fitness-muted",
     });
   } else {
@@ -91,11 +82,11 @@ export async function renderCues(
   }
 
   root.createEl("h2", {
-    text: `⭐ Keepers / 常駐提醒 (≥2 in ${year})`,
+    text: t("view.cues.keepers", language, { year }),
   });
   if (!keepers.length) {
     root.createEl("p", {
-      text: "No keepers yet / 尚無常駐提醒",
+      text: t("view.cues.noKeepers", language),
       cls: "fitness-muted",
     });
   } else {
@@ -105,7 +96,11 @@ export async function renderCues(
       const li = ul.createEl("li");
       li.createEl("strong", { text: k.text });
       li.appendText(
-        ` (×${k.count}, last / 最近 ${k.lastSeen}${focusBit})`,
+        t("view.cues.lastSeen", language, {
+          count: k.count,
+          lastSeen: k.lastSeen,
+          focus: focusBit,
+        }),
       );
     }
   }

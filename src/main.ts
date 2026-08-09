@@ -1,13 +1,26 @@
-import { Notice, Plugin } from "obsidian";
+import { FuzzySuggestModal, Notice, Plugin } from "obsidian";
 import {
+  createActivitySession,
   createGolfSession,
   createGymSession,
 } from "./commands/create-session";
+import { createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
+import {
+  ensureBookShelfHostCommand,
+  openBookShelfHostCommand,
+} from "./hobbies/book-shelf-host";
+import {
+  ensureReadingBookshelfCommand,
+  openReadingBookshelfCommand,
+} from "./hobbies/reading-bookshelf";
 import { FitnessSettingTab, mergeSettings } from "./settings";
-import type { FitnessSettings, SeriesConfig } from "./types";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t } from "./i18n/index.ts";
+import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import { exerciseActivities, hobbyActivities } from "./util/activity-types";
 
 export default class FitnessPlugin extends Plugin {
   settings: FitnessSettings = DEFAULT_SETTINGS;
@@ -24,7 +37,7 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "fitness-new-gym-session",
-      name: "New gym session",
+      name: t("command.newGymSession", this.settings.language),
       callback: () => {
         void this.createGymSession();
       },
@@ -32,25 +45,88 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "fitness-new-golf-session",
-      name: "New golf session",
+      name: t("command.newGolfSession", this.settings.language),
       callback: () => {
         void this.createGolfSession();
       },
     });
 
     this.addCommand({
+      id: "atomic-new-exercise-session",
+      name: t("command.newExerciseSession", this.settings.language),
+      callback: () => {
+        void this.createExerciseSession();
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-new-reading-item",
+      name: t("command.newReadingItem", this.settings.language),
+      callback: () => {
+        void this.createReadingItem();
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-ensure-reading-bookshelf",
+      name: t("command.ensureReadingBookshelf", this.settings.language),
+      callback: () => {
+        void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-open-reading-bookshelf",
+      name: t("command.openReadingBookshelf", this.settings.language),
+      callback: () => {
+        void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-ensure-book-shelf",
+      name: t("command.ensureBookShelf", this.settings.language),
+      callback: () => {
+        void ensureBookShelfHostCommand(this.data, this.settings.language);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-open-book-shelf",
+      name: t("command.openBookShelf", this.settings.language),
+      callback: () => {
+        void openBookShelfHostCommand(this.data, this.settings.language);
+      },
+    });
+
+    this.addCommand({
       id: "fitness-open-dashboard",
-      name: "Open dashboard",
+      name: t("command.openDashboard", this.settings.language),
       callback: () => {
         void this.openDashboard();
       },
     });
 
     const schedule = () => this.scheduleRefresh();
+    this.registerEvent(
+      this.app.vault.on("modify", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        this.data.renameHobbyTimeLogCache(oldPath, file.path);
+        schedule();
+      }),
+    );
     this.registerEvent(this.app.vault.on("create", schedule));
-    this.registerEvent(this.app.vault.on("modify", schedule));
-    this.registerEvent(this.app.vault.on("delete", schedule));
-    this.registerEvent(this.app.vault.on("rename", schedule));
     this.registerEvent(this.app.metadataCache.on("resolved", schedule));
   }
 
@@ -96,42 +172,107 @@ export default class FitnessPlugin extends Plugin {
     }
   }
 
-  seriesByKind(kind: SeriesConfig["kind"]): SeriesConfig | undefined {
-    return this.settings.series.find((s) => s.kind === kind);
+  exerciseActivityById(id: string): ActivityType | undefined {
+    return exerciseActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id,
+    );
+  }
+
+  hobbyActivityById(id: string): ActivityType | undefined {
+    return hobbyActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id,
+    );
+  }
+
+  private chooseExerciseActivity(): Promise<ActivityType | null> {
+    const activities = exerciseActivities(this.settings.activityTypes);
+    if (!activities.length) {
+      new Notice(t("notice.noExerciseActivities", this.settings.language));
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      let settled = false;
+      const modal = new (class extends FuzzySuggestModal<ActivityType> {
+        getItems(): ActivityType[] {
+          return activities;
+        }
+
+        getItemText(activity: ActivityType): string {
+          return activity.label;
+        }
+
+        onChooseItem(activity: ActivityType) {
+          if (settled) return;
+          settled = true;
+          resolve(activity);
+        }
+
+        onClose() {
+          if (settled) return;
+          settled = true;
+          resolve(null);
+        }
+      })(this.app);
+      modal.setPlaceholder(t("modal.exerciseTypePlaceholder", this.settings.language));
+      modal.open();
+    });
+  }
+
+  async createExerciseSession(activity?: ActivityType) {
+    const picked = activity ?? (await this.chooseExerciseActivity());
+    if (!picked) return;
+    await createActivitySession(
+      this.app,
+      this.data,
+      picked,
+      this.settings.timezone,
+      this.settings.language,
+    );
   }
 
   async createGymSession() {
-    const series = this.seriesByKind("gym");
-    if (!series) {
-      new Notice("No gym series configured");
+    const activity = this.exerciseActivityById("gym");
+    if (!activity) {
+      new Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone,
+      this.settings.language,
     );
   }
 
   async createGolfSession() {
-    const series = this.seriesByKind("golf");
-    if (!series) {
-      new Notice("No golf series configured");
+    const activity = this.exerciseActivityById("golf");
+    if (!activity) {
+      new Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone,
+      this.settings.language,
     );
+  }
+
+  async createReadingItem() {
+    const activity = this.hobbyActivityById("reading");
+    if (!activity) {
+      new Notice(t("notice.noReadingHobby", this.settings.language));
+      return;
+    }
+    await createReadingItem(this.app, this.data, activity, this.settings.language);
   }
 
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new Notice(`Dashboard not found: ${path}`);
+      new Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);

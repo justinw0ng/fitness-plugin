@@ -1,3 +1,5 @@
+import type { Language } from "./i18n/types";
+
 export type SeriesKind = "gym" | "golf" | "generic";
 
 export interface SeriesConfig {
@@ -6,6 +8,22 @@ export interface SeriesConfig {
   folder: string;
   colors: [string, string, string, string];
   kind: SeriesKind;
+}
+
+export type Domain = "exercise" | "hobby";
+
+export type NoteModel = "dailySession" | "item";
+
+export interface ActivityType {
+  id: string;
+  domain: Domain;
+  label: string;
+  folder: string;
+  colors: [string, string, string, string];
+  noteModel: NoteModel;
+  supportsCues: boolean;
+  supportsTimer: boolean;
+  supportsSetTable: boolean;
 }
 
 export interface SessionMeta {
@@ -18,18 +36,25 @@ export interface SessionMeta {
   basename: string;
 }
 
+export interface HobbyItemMeta {
+  path: string;
+  basename: string;
+  frontmatter: Record<string, unknown>;
+}
+
 export interface DayActivity {
   minutes: number;
   path: string | null;
 }
 
 export interface FitnessSettings {
+  language: Language;
   timezone: string;
-  series: SeriesConfig[];
+  activityTypes: ActivityType[];
   dashboardPath: string;
   golfCuesPath: string;
   gymCuesPath: string;
-  deprecatedFitnessCuesEnabled: boolean;
+  deprecatedFitnessBlocksEnabled: boolean;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -46,28 +71,57 @@ export const ORANGE: [string, string, string, string] = [
   "#d9480f",
 ];
 
+export const BLUE: [string, string, string, string] = [
+  "#bfdbfe",
+  "#60a5fa",
+  "#2563eb",
+  "#1e3a8a",
+];
+
 export const EMPTY_CELL = "#ebedf0";
 
+export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
+  {
+    id: "gym",
+    domain: "exercise",
+    label: "🏋️ Gym / 健身",
+    folder: "atomics/exercise/Gym",
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: true,
+  },
+  {
+    id: "golf",
+    domain: "exercise",
+    label: "⛳ Golf / 高爾夫",
+    folder: "atomics/exercise/Golf",
+    colors: ORANGE,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false,
+  },
+  {
+    id: "reading",
+    domain: "hobby",
+    label: "Reading",
+    folder: "atomics/hobbies/Reading",
+    colors: BLUE,
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
+    supportsSetTable: false,
+  },
+];
+
 export const DEFAULT_SETTINGS: FitnessSettings = {
+  language: "zh-Hant-en",
   timezone: "Asia/Hong_Kong",
-  dashboardPath: "Fitness/Dashboard.md",
-  golfCuesPath: "Golf/Cues.md",
-  gymCuesPath: "Gym/Cues.md",
-  deprecatedFitnessCuesEnabled: true,
-  series: [
-    {
-      id: "gym",
-      label: "🏋️ Gym / 健身",
-      folder: "Gym",
-      colors: GREEN,
-      kind: "gym",
-    },
-    {
-      id: "golf",
-      label: "⛳ Golf / 高爾夫",
-      folder: "Golf",
-      colors: ORANGE,
-      kind: "golf",
-    },
-  ],
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
+  deprecatedFitnessBlocksEnabled: true,
+  activityTypes: DEFAULT_ACTIVITY_TYPES,
 };
