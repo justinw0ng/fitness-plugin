@@ -16,7 +16,8 @@ import {
   openReadingBookshelfCommand,
 } from "./hobbies/reading-bookshelf";
 import { FitnessSettingTab, mergeSettings } from "./settings";
-import { t } from "./i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t } from "./i18n/index.ts";
 import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { exerciseActivities, hobbyActivities } from "./util/activity-types";

@@ -5,7 +5,8 @@ import {
 } from "../core";
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
-import { t, type Language } from "../i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 import { yamlScalar } from "../util/yaml";
 

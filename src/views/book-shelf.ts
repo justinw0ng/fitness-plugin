@@ -1,5 +1,6 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { t, type Language } from "../i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, HobbyItemMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";

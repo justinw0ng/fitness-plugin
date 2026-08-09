@@ -1,6 +1,7 @@
 import { Notice } from "obsidian";
 import type FitnessPlugin from "../main";
-import { t } from "../i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t } from "../i18n/index.ts";
 import {
   readTimerFrontmatter,
   stopTimer,

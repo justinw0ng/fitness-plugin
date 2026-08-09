@@ -9,7 +9,8 @@ import {
 import type FitnessPlugin from "./main";
 import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
-import { isLanguage, t } from "./i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isLanguage, t } from "./i18n/index.ts";
 import {
   planFitnessMigration,
   rewriteFitnessFences,

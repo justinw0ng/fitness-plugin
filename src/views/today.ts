@@ -4,7 +4,8 @@ import {
   parseYmd,
   ymdInZone,
 } from "../dates";
-import { t, type Language } from "../i18n";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 import { exerciseActivities } from "../util/activity-types";
 
