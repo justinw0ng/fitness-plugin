@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Settings mockup</title>
+  <style>
+    :root {
+      --bg: #f3f6f4;
+      --panel: #fffcf7;
+      --ink: #14201a;
+      --muted: #5d6b63;
+      --line: #d7e0da;
+      --accent: #1f6b4a;
+      --soft: #e3f0e9;
+      --warn: #8a5a00;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Serif 4", "Libre Baskerville", Georgia, serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #e8f2ec 0%, transparent 220px),
+        var(--bg);
+      padding: 28px;
+    }
+    h1 { margin: 0 0 6px; font-size: 1.45rem; }
+    .lead { color: var(--muted); margin: 0 0 22px; max-width: 60ch; }
+    .shell {
+      max-width: 920px;
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+    aside { background: #edf3ef; padding: 18px 12px; border-right: 1px solid var(--line); }
+    aside .eyebrow { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    aside a { display: block; padding: 8px 10px; border-radius: 4px; color: inherit; text-decoration: none; margin-bottom: 2px; }
+    aside a.on { background: var(--soft); color: var(--accent); font-weight: 700; }
+    main { padding: 22px 26px 28px; }
+    h2 { margin: 0; }
+    .sub { color: var(--muted); margin: 4px 0 18px; }
+    section { margin-top: 22px; }
+    section h3 { margin: 0 0 8px; font-size: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 250px; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .label { font-weight: 700; }
+    .desc { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
+    input, select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); background: #fff; font: inherit; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--accent); font-size: 0.78rem; }
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      margin-right: 8px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: inherit;
+      cursor: default;
+    }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .legacy { background: #fff8e8; border: 1px solid #f0d9a4; padding: 12px; color: var(--warn); }
+  </style>
+</head>
+<body>
+  <h1>Atomic settings</h1>
+  <p class="lead">One plugin, two domains. Exercise types keep cues. Hobby types stay cue-free and item-centric.</p>
+
+  <div class="shell">
+    <aside>
+      <div class="eyebrow">Settings</div>
+      <a href="#">Community plugins</a>
+      <a class="on" href="#">Atomic</a>
+      <a href="#">Hotkeys</a>
+    </aside>
+    <main>
+      <h2>Atomic</h2>
+      <p class="sub">Visualize habits so they last — exercise + hobbies in your vault.</p>
+
+      <div class="row">
+        <div>
+          <div class="label">Language</div>
+          <div class="desc">Owned by the separate i18n PR.</div>
+        </div>
+        <select><option>Traditional Chinese &amp; English</option><option>English</option></select>
+      </div>
+      <div class="row">
+        <div>
+          <div class="label">Timezone</div>
+          <div class="desc">Day boundaries for heatmaps and Today.</div>
+        </div>
+        <input value="Asia/Hong_Kong" readonly />
+      </div>
+      <div class="row">
+        <div>
+          <div class="label">Dashboard path</div>
+          <div class="desc">Default <code>Atomic/Dashboard.md</code>.</div>
+        </div>
+        <input value="Atomic/Dashboard.md" readonly />
+      </div>
+
+      <section>
+        <h3>Exercise types</h3>
+        <table>
+          <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
+          <tbody>
+            <tr><td>Gym / 健身</td><td><code>Gym</code></td><td><span class="pill">on</span></td><td>daily session + sets</td></tr>
+            <tr><td>Golf / 高爾夫</td><td><code>Golf</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
+            <tr><td>Running</td><td><code>Exercise/Running</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
+          </tbody>
+        </table>
+        <button class="btn primary">Add exercise type</button>
+      </section>
+
+      <section>
+        <h3>Hobby types</h3>
+        <table>
+          <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
+          <tbody>
+            <tr><td>Reading</td><td><code>Hobbies/Reading</code></td><td>off</td><td>item + timer</td></tr>
+          </tbody>
+        </table>
+        <button class="btn primary">Add hobby type</button>
+      </section>
+
+      <section>
+        <h3>Legacy Fitness blocks</h3>
+        <div class="legacy">
+          Allow <code>fitness-*</code> aliases while migrating vaults.
+          <div><button class="btn">Migrate fitness-* → atomic-*</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
