@@ -12,8 +12,8 @@ This is the **phased work map** for multi-agent execution after design approval.
 - Plugin id: `obsidian-atomic`
 - Default content root: `atomics/**`
 - One-click **Migrate from Fitness → Atomic** (skip if destination exists)
-- Reading bookshelf: Obsidian Bases Cards + Table, via plugin commands on demand (`Bookshelf.base`)
-- Soft-require Bases core plugin for bookshelf commands only
+- Reading Bases bookshelf: Cards + Table on demand (`Bookshelf.base`); soft-require Bases
+- Reading spine shelf: Stripe Press–style `atomic-spine-shelf`; click spine → book note (`Spine Shelf.md`)
 
 ## Parallelism map
 
@@ -52,8 +52,8 @@ This is the **phased work map** for multi-agent execution after design approval.
 - [ ] Default Reading at `atomics/hobbies/Reading` (`noteModel: item`)
 - [ ] Book item notes: `cover`, `authors`, `description`, `pages`, `status`, `tags` + timer fields
 - [ ] TDD timer core + `atomic-timer` UI
-- [ ] Commands: **Open / Ensure reading bookshelf** → `atomics/hobbies/Reading/Bookshelf.base` (Bases Cards + Table); create if missing; never clobber existing
-- [ ] Soft-require Bases (Notice if disabled)
+- [ ] Commands: **Open / Ensure reading bookshelf** → `Bookshelf.base` (Bases); create if missing; never clobber; soft-require Bases
+- [ ] `atomic-spine-shelf` + **Open / Ensure reading spine shelf**; click spine opens book note
 - [ ] Hobby minutes → heatmap; optional Library embed; Canvas docs
 - [ ] Security tests: path + log injection + bookshelf path
 
@@ -70,7 +70,8 @@ This is the **phased work map** for multi-agent execution after design approval.
 2. One-click Fitness migrate works (skip-on-conflict)
 3. Exercise: Gym, Golf, custom types with cues/dashboard/heatmaps
 4. Reading: item notes, remarks, Start/Stop timer
-5. Reading bookshelf opens on demand via Obsidian Bases (Cards + Table)
+5. Reading Bases bookshelf opens on demand (Cards + Table)
+6. Reading spine shelf opens on demand; clicking a spine opens the book note
 6. Notes remain Canvas-linkable markdown
 7. Language PR sequenced; tests/docs green
 

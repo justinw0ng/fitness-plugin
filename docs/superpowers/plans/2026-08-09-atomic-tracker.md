@@ -17,9 +17,9 @@
 - Hobby default: Reading at `atomics/hobbies/Reading` only (no other built-in hobbies)
 - Cue blocks: dedicated `atomic-golf-cues` / `atomic-gym-cues` **plus** generic `atomic-cues`
 - Hobby heatmaps: timer-log minutes
-- Reading bookshelf: Obsidian Bases `.base` file (Cards + Table), created/opened **on demand** by plugin commands — not a custom gallery UI
-- Bookshelf path: `atomics/hobbies/Reading/Bookshelf.base`; soft-require Bases core plugin (Notice if off)
-- Book properties for Bases: `cover`, `authors`, `description`, `pages`, `status`, `tags` (+ existing timer fields)
+- Reading Bases bookshelf: `.base` file (Cards + Table), on-demand commands; path `atomics/hobbies/Reading/Bookshelf.base`; soft-require Bases
+- Reading spine shelf: Stripe Press–inspired `atomic-spine-shelf` codeblock; click spine → open book note; host `atomics/hobbies/Reading/Spine Shelf.md`
+- Book properties: `cover`, `authors`, `description`, `pages`, `status`, `tags`, optional `spine_color` (+ timer fields)
 - Migrate conflicts: skip destination if it already exists (no merge/overwrite)
 - One-click Settings migrate: folders + fences + settings + disable legacy aliases; idempotent
 - Keep `fitness-*` aliases until migrate turns them off
@@ -404,18 +404,59 @@ v1 never overwrites an existing `.base` (user customizations in Bases UI win).
 - [ ] Implement template + command wiring
 - [ ] Commit
 
-### Task C5: Hobby heatmap + library + dashboard section
+### Task C5: Stripe Press–style spine shelf
 
-- [ ] Heatmap series from `minutesByDate`
-- [ ] Optional `Library.md` with `![[Bookshelf.base]]` embed when created via plugin
-- [ ] Dashboard hobby section
-- [ ] Docs: Bases bookshelf commands; Canvas = drag wikilink; optional `related_canvas`
-- [ ] Security tests: folder safety + log injection + bookshelf path safety
+**Files:**
+- Create: `src/views/spine-shelf.ts`, `src/hobbies/spine-shelf-host.ts`
+- Modify: `src/codeblocks.ts`, `src/main.ts`, `styles.css`
+- Test: `tests/spine-shelf.test.mjs` (color hash, item→spine model, ordering; DOM optional via jsdom only if already in repo — prefer pure model tests)
+
+**Interfaces:**
+
+```ts
+export type SpineItem = {
+  path: string;
+  title: string;
+  authors: string[];
+  status: string;
+  spineColor: string; // resolved hex
+  cover?: string;
+};
+
+export function spineColorFor(item: {
+  spine_color?: string;
+  title: string;
+  path: string;
+}): string;
+
+export function buildSpineItems(
+  files: Array<{ path: string; frontmatter: Record<string, unknown>; basename: string }>,
+): SpineItem[];
+```
+
+Renderer:
+
+- Register `atomic-spine-shelf`
+- Build shelf rows of button/spines; `click` → open note at `path`
+- Hover title/authors/status (+ cover peek if present)
+- Commands: open/ensure `atomics/hobbies/Reading/Spine Shelf.md`
+
+- [ ] Failing tests for `spineColorFor` (explicit color wins; hash stable)
+- [ ] Implement view + commands + CSS
 - [ ] Commit
 
-### Task C6: Phase C verify
+### Task C6: Hobby heatmap + library + dashboard section
 
-- [ ] Full npm scripts + Cloud E2E skip note (Bases GUI only when Obsidian available)
+- [ ] Heatmap series from `minutesByDate`
+- [ ] Optional `Library.md` embeds for Bases and/or spine shelf
+- [ ] Dashboard hobby section
+- [ ] Docs: Bases + spine shelf commands; Canvas; `related_canvas`
+- [ ] Security tests: folder safety + log injection + bookshelf/spine host path safety
+- [ ] Commit
+
+### Task C7: Phase C verify
+
+- [ ] Full npm scripts + Cloud E2E skip note (Bases + spine shelf GUI when Obsidian available)
 
 ---
 
@@ -447,6 +488,6 @@ After A merges, B and C may run as parallel agents with file ownership:
 
 ## Self-review
 
-1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Bases bookshelf commands, Canvas wikilinks, legacy aliases — mapped to tasks.
+1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Bases bookshelf + spine shelf, Canvas wikilinks, legacy aliases — mapped to tasks.
 2. No Simplified Chinese / i18n details — deferred to i18n plan.
 3. Types/names consistent: `planFitnessMigration`, `rewriteFitnessFences`, `ActivityType`, `atomics/exercise|hobbies`.

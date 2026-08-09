@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Stripe Press–style spine shelf mockup</title>
+  <style>
+    :root {
+      --bg: #1a1714;
+      --shelf: #2a231c;
+      --edge: #3d342a;
+      --ink: #f3ebe1;
+      --muted: #b9a994;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      background:
+        radial-gradient(ellipse at top, #2b241c 0%, transparent 55%),
+        var(--bg);
+      color: var(--ink);
+    }
+    h1 { margin: 0 0 6px; font-size: 1.35rem; }
+    .lead { color: var(--muted); max-width: 62ch; margin: 0 0 18px; }
+    .note {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 10px;
+      border: 1px solid var(--edge);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .board {
+      max-width: 980px;
+      padding: 28px 22px 18px;
+      background: linear-gradient(180deg, #3a3127, #241e18);
+      border: 1px solid var(--edge);
+    }
+    .shelf {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      min-height: 180px;
+      padding: 0 8px 14px;
+      margin-bottom: 22px;
+      border-bottom: 10px solid #4a3f33;
+      box-shadow: inset 0 -18px 24px rgba(0,0,0,0.25);
+    }
+    .spine {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      text-orientation: mixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 150px;
+      padding: 12px 8px;
+      border-radius: 2px 2px 0 0;
+      color: #f7f0e6;
+      text-decoration: none;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-bottom: none;
+      cursor: pointer;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+    .spine:hover, .spine:focus {
+      transform: translateY(-8px) rotate(180deg);
+      filter: brightness(1.08);
+      outline: none;
+    }
+    .spine small {
+      display: block;
+      margin-top: 10px;
+      opacity: 0.75;
+      font-size: 0.7rem;
+    }
+    .w1 { width: 34px; background: #7a2f28; }
+    .w2 { width: 28px; background: #1f4d3a; }
+    .w3 { width: 40px; background: #2c3e6b; }
+    .w4 { width: 30px; background: #6b4a1f; }
+    .w5 { width: 36px; background: #4a2c57; }
+    .w6 { width: 26px; background: #25565c; }
+    .w7 { width: 32px; background: #5c2b3d; }
+    .hint { color: var(--muted); font-size: 0.9rem; max-width: 980px; }
+    code { color: #e7d3b0; }
+  </style>
+</head>
+<body>
+  <h1>Reading spine shelf</h1>
+  <p class="lead">Stripe Press–inspired picker. Each spine is a book item note. Click opens that note in Obsidian. Lives beside the Bases bookshelf, not instead of it.</p>
+  <div class="note">Command: <strong>Atomic: Open reading spine shelf</strong> → <code>atomics/hobbies/Reading/Spine Shelf.md</code> with <code>atomic-spine-shelf</code></div>
+
+  <div class="board" aria-label="Spine shelf mock">
+    <div class="shelf">
+      <a class="spine w1" href="#Atomic-Habits.md" title="Open Atomic Habits">Atomic Habits<small>Clear</small></a>
+      <a class="spine w2" href="#Thinking-Fast-and-Slow.md" title="Open Thinking Fast and Slow">Thinking, Fast and Slow<small>Kahneman</small></a>
+      <a class="spine w3" href="#Building-a-Second-Brain.md" title="Open Building a Second Brain">Building a Second Brain<small>Forte</small></a>
+      <a class="spine w4" href="#Make-Time.md" title="Open Make Time">Make Time<small>Knapp</small></a>
+      <a class="spine w5" href="#Steal-Like-An-Artist.md" title="Open Steal Like An Artist">Steal Like An Artist<small>Kleon</small></a>
+      <a class="spine w6" href="#Blink.md" title="Open Blink">Blink<small>Gladwell</small></a>
+      <a class="spine w7" href="#Show-Your-Work.md" title="Open Show Your Work">Show Your Work!<small>Kleon</small></a>
+    </div>
+    <div class="shelf">
+      <a class="spine w3" href="#Find-Your-Why.md">Find Your Why<small>Sinek</small></a>
+      <a class="spine w1" href="#Deep-Work.md">Deep Work<small>Newport</small></a>
+      <a class="spine w5" href="#Range.md">Range<small>Epstein</small></a>
+    </div>
+  </div>
+
+  <p class="hint">Interaction: hover lifts the spine; activate opens <code>atomics/hobbies/Reading/Items/&lt;Book&gt;.md</code>. Optional <code>spine_color</code> in frontmatter overrides the hashed default.</p>
+</body>
+</html>

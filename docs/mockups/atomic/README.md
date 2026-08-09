@@ -9,6 +9,7 @@ Open these HTML files in a browser (design references for the proposed Atomic tr
 | [03-hobby-item-note.html](./03-hobby-item-note.html) | Reading item note with Start/Stop timer and remarks |
 | [04-canvas.html](./04-canvas.html) | Obsidian Canvas linking via normal wikilinks |
 | [05-reading-bookshelf-base.html](./05-reading-bookshelf-base.html) | Reading bookshelf via Obsidian Bases (command-triggered Cards + Table) |
+| [06-reading-spine-shelf.html](./06-reading-spine-shelf.html) | Stripe Press–style spine shelf; click spine → book note |
 
 Specs:
 

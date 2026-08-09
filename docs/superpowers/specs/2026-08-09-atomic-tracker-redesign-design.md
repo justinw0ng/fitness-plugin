@@ -33,11 +33,13 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | Hobby cues | None |
 | Hobby heatmaps | Minutes from **timer-log entries** (not pages/chapters) |
 | Default hobbies v1 | Reading only (no other built-in hobbies for now) |
-| Reading bookshelf UI | **Obsidian Bases** (core plugin), not a custom gallery renderer |
-| Bookshelf trigger | Plugin commands create/open the `.base` file **on demand** |
-| Bookshelf default path | `atomics/hobbies/Reading/Bookshelf.base` |
-| Bookshelf views | **Cards** (gallery/cover grid, default) + **Table** |
-| Bases dependency | Soft-require: bookshelf commands Notice if Bases core plugin is off; rest of Atomic still works |
+| Reading bookshelf (Bases) | Obsidian Bases Cards + Table for property/cover gallery |
+| Bases trigger | Commands create/open `.base` **on demand** |
+| Bases default path | `atomics/hobbies/Reading/Bookshelf.base` |
+| Bases dependency | Soft-require Bases core plugin for those commands only |
+| Reading spine shelf | Custom **Stripe Press–inspired** spine shelf (plugin-rendered); click spine → open book note |
+| Spine shelf surface | `atomic-spine-shelf` codeblock + command to open/ensure host note |
+| Spine shelf default path | `atomics/hobbies/Reading/Spine Shelf.md` (embeds the codeblock) |
 | Canvas | Ordinary vault notes + wikilinks; no custom canvas format |
 | Legacy codeblocks | `fitness-*` aliases until migrate turns them off |
 
@@ -72,8 +74,9 @@ atomics/
 │       └── YYYY/YYYY-MM-DD.md
 └── hobbies/
     └── Reading/
-        ├── Bookshelf.base          # created on demand by plugin command (Bases)
-        ├── Library.md              # optional; may embed ![[Bookshelf.base]]
+        ├── Bookshelf.base          # on-demand Bases (Cards + Table)
+        ├── Spine Shelf.md          # on-demand host for atomic-spine-shelf
+        ├── Library.md              # optional embeds
         ├── Covers/                 # optional local cover attachments
         └── Items/
             └── Atomic Habits.md    # book item note + timer + properties
@@ -140,7 +143,7 @@ Fails book/timer/remarks model. Rejected.
 - Custom exercise daily notes under `atomics/exercise/<Name>/YYYY/YYYY-MM-DD.md` by default
 - Gym keeps set table via `supportsSetTable`; others get a simpler session template + Reminders when cues enabled
 
-### Hobby tracker (mockups: `docs/mockups/atomic/03-hobby-item-note.html`, `04-canvas.html`, `05-reading-bookshelf-base.html`)
+### Hobby tracker (mockups: `docs/mockups/atomic/03-hobby-item-note.html`, `04-canvas.html`, `05-reading-bookshelf-base.html`, `06-reading-spine-shelf.html`)
 
 Default Reading under `atomics/hobbies/Reading/`.
 
@@ -160,6 +163,7 @@ authors:
 description: Short blurb
 pages: 320
 cover: "[[atomics/hobbies/Reading/Covers/title.jpg]]"   # local attachment wikilink (or URL)
+spine_color: "#8B3A2A"   # optional; spine shelf uses hash if omitted
 tags:
   - books
 total_min: 0
@@ -210,6 +214,64 @@ Optional later: embed `![[Bookshelf.base]]` / `![[Bookshelf.base#Cards]]` into `
 
 **Reference UX:** gallery of book covers with title, authors, description, pages, status, tags (as in the attached Books gallery screenshot). Bases Cards is the supported mechanism.
 
+#### Stripe Press–style spine shelf (custom, on demand)
+
+Second Reading surface, inspired by [Stripe Press](https://press.stripe.com): books stand as **spines on a shelf**; selecting a spine opens that book’s item note in Obsidian.
+
+This is **plugin-rendered** (not Bases). Bases remains the property/cover database; the spine shelf is the atmospheric picker.
+
+**Commands**
+
+| Command id | Name | Behavior |
+|------------|------|----------|
+| `atomic-open-reading-spine-shelf` | Atomic: Open reading spine shelf | Ensure host note exists with `atomic-spine-shelf` block, then open it |
+| `atomic-ensure-reading-spine-shelf` | Atomic: Ensure reading spine shelf | Create host note if missing |
+
+**Default host note:** `atomics/hobbies/Reading/Spine Shelf.md`
+
+```md
+# Spine shelf / 書脊書架
+
+```atomic-spine-shelf
+activity: reading
+```
+```
+
+**Renderer behavior**
+
+1. Resolve Reading activity folder → scan `Items/**/*.md` with `type: atomic-item` / `activity: reading`.
+2. Lay out spines in one or more horizontal shelf rows (wrap by width).
+3. Each spine:
+   - Vertical strip; title text rotated along the spine (author optional subtitle)
+   - Color from frontmatter `spine_color` (hex) or deterministic hash of title/path
+   - Optional thin edge highlight; status can tint (e.g. muted for `to-read`, richer for `reading`)
+4. **Click / keyboard activate** → `openLinkText` / open the item note path (same vault navigation as a wikilink).
+5. Hover (desktop): tooltip with title, authors, status; if `cover` is set, small cover peek.
+6. Live refresh with other Atomic blocks when vault files change.
+7. Empty state: short message + tip to create a book item.
+
+**Book frontmatter addition**
+
+```yaml
+spine_color: "#8B3A2A"   # optional; else hashed default
+```
+
+**Approaches considered**
+
+| Approach | Notes |
+|----------|--------|
+| A. `atomic-spine-shelf` codeblock (recommended) | Matches existing heatmap/dashboard pattern; embeddable; testable DOM builder with fake item list |
+| B. Bases-only Cards | Good for covers/fields; cannot deliver Stripe Press spine UX |
+| C. External webview of Stripe Press | Out of scope; not vault-native |
+
+Keep **A + Bases** together: command palette offers both “Open reading bookshelf” (Bases) and “Open reading spine shelf” (custom).
+
+**Visual direction (plugin CSS)**
+
+- Dark or light shelf board using theme vars (`--background-primary`, subtle wood-like gradient — avoid purple glow / generic AI aesthetics)
+- Spines: varied widths by title length (clamped); serif-friendly title type on spine
+- No emoji on spines; real book titles from notes
+
 ### Codeblocks
 
 | New language | Role | Legacy alias |
@@ -221,6 +283,7 @@ Optional later: embed `![[Bookshelf.base]]` / `![[Bookshelf.base#Cards]]` into `
 | `atomic-golf-cues` / `atomic-gym-cues` | Dedicated cue rollups | `fitness-golf-cues` / `fitness-gym-cues` / `fitness-cues` |
 | `atomic-cues` | Generic cues with `activity:` arg | — |
 | `atomic-timer` | Item Start/Stop | — |
+| `atomic-spine-shelf` | Stripe Press–style spine shelf; click → book note | — |
 | `atomic-hobby-library` | Hobby item list | — |
 
 ## One-click migration from Fitness
@@ -307,8 +370,9 @@ Idempotent: second click reports zero moves / zero rewrites when already migrate
 5. Add Running under exercise; note lands in `atomics/exercise/Running/`
 6. Reading item + timer + remarks; Canvas drag works
 7. **Open reading bookshelf** → Bases Cards gallery (cover/authors/status/tags); Table view works
-8. With Bases core plugin disabled, bookshelf command shows a clear Notice
-9. Legacy `fitness-*` no longer required after migrate
+8. With Bases core plugin disabled, Bases bookshelf command shows a clear Notice
+9. **Open reading spine shelf** → spines render; click a spine opens that book note
+10. Legacy `fitness-*` no longer required after migrate
 
 ## Docs updates
 
@@ -341,9 +405,10 @@ Idempotent: second click reports zero moves / zero rewrites when already migrate
 2. Book item notes with Bases-friendly properties (`cover`, `authors`, `description`, `pages`, `status`, `tags`)
 3. Item notes + timer (TDD)
 4. Commands to ensure/open `Bookshelf.base` (Cards + Table) under `atomics/hobbies/Reading/`
-5. Hobby heatmap/dashboard; optional Library note embedding the base
-6. Canvas docs + optional `related_canvas`
-7. Security tests
+5. `atomic-spine-shelf` + commands for Stripe Press–style shelf; click spine → book note
+6. Hobby heatmap/dashboard; optional Library embeds
+7. Canvas docs + optional `related_canvas`
+8. Security tests
 
 ### Phase D — Verification & docs
 
@@ -362,6 +427,9 @@ Product questions closed by approver:
 3. No additional default hobbies beyond Reading for now.
 4. Migrate skips when destination exists (no merge).
 
-### Follow-up (same day): Reading bookshelf
+### Follow-up (same day): Reading bookshelf surfaces
 
-Approver wants a bookshelf dashboard **on demand via plugin commands**, implemented with **Obsidian Bases** (Cards gallery + Table), matching the attached gallery-style book cards (cover, authors, description, pages, status, tags). Locked into this spec; Phase C plan updated.
+1. **Bases bookshelf** on demand (Cards + Table) for cover/property gallery.
+2. **Spine shelf** on demand (Stripe Press–inspired): `atomic-spine-shelf` codeblock; click spine redirects to the book note.
+
+Both locked into this spec; Phase C plan updated.
