@@ -3,7 +3,7 @@
   "version": "1.0.3",
   "private": true,
   "type": "module",
-  "description": "Obsidian plugin: gym + golf heatmaps, dashboard, cue rollup, and session creation",
+  "description": "Obsidian Atomic plugin: habit heatmaps, cues, timers, and dashboards under atomics/",
   "main": "main.js",
   "scripts": {
     "build": "node esbuild.config.mjs production",
