@@ -11,17 +11,6 @@ on:
       - ".github/workflows/ci.yml"
       - ".github/workflows/codeql.yml"
   workflow_dispatch:
-    inputs:
-      bump:
-        description: Semver bump level (none = release the version already in the repo)
-        required: true
-        default: patch
-        type: choice
-        options:
-          - none
-          - patch
-          - minor
-          - major
 
 permissions:
   contents: write
@@ -35,16 +24,13 @@ concurrency:
 
 jobs:
   release:
-    name: Build, version, and publish GitHub Release
+    name: Build and publish GitHub Release
     runs-on: ubuntu-latest
-    # Avoid recursive releases when this workflow pushes the version bump commit.
-    if: github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -55,30 +41,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Decide bump level
-        id: decide
-        run: |
-          set -euo pipefail
-          CURRENT="$(node scripts/bump-version.mjs)"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            BUMP="${{ inputs.bump }}"
-          elif git rev-parse "refs/tags/${CURRENT}" >/dev/null 2>&1; then
-            BUMP="patch"
-          else
-            # First cut of the version declared in the repo (starts at 1.0.0).
-            BUMP="none"
-          fi
-          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
-          echo "current=${CURRENT}" >> "$GITHUB_OUTPUT"
-          echo "Using bump=${BUMP} (current=${CURRENT})"
-
-      - name: Bump version files
+      - name: Read release version
         id: version
         run: |
           set -euo pipefail
-          NEXT="$(node scripts/bump-version.mjs "${{ steps.decide.outputs.bump }}")"
-          echo "version=${NEXT}" >> "$GITHUB_OUTPUT"
-          echo "Releasing ${NEXT}"
+          VERSION="$(node scripts/bump-version.mjs)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Releasing ${VERSION} (version is set on the PR via CI)"
 
       - name: Typecheck
         run: npm run typecheck
@@ -95,24 +64,9 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           if git rev-parse "refs/tags/${VERSION}" >/dev/null 2>&1; then
             echo "Tag ${VERSION} already exists; refusing to overwrite."
+            echo "This usually means main was updated without bumping the plugin version above the last release."
             exit 1
           fi
-
-      - name: Commit version bump and built assets
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json manifest.json versions.json main.js
-          if git diff --cached --quiet; then
-            echo "No version/build changes to commit (release will still be created)."
-          else
-            git commit -m "chore(release): ${VERSION}"
-          fi
-          git tag "${VERSION}"
-          git push origin HEAD:main
-          git push origin "refs/tags/${VERSION}"
 
       - name: Package plugin zip
         id: package
