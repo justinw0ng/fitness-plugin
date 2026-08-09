@@ -69,9 +69,10 @@ export function shouldCreateReadingBookshelf(existing: boolean): boolean {
   return !existing;
 }
 
-/** True when a prior seed used invalid Bases keys (`fields` / `columns` instead of `order`). */
 export function needsReadingBookshelfUpgrade(content: string): boolean {
-  return /^\s+fields:\s*$/m.test(content) || /^\s+columns:\s*$/m.test(content);
+  const legacyCards = /^\s+-\s+type:\s*cards[\s\S]*?\n\s+fields:\s*$/m.test(content);
+  const legacyTable = /^\s+-\s+type:\s*table[\s\S]*?\n\s+columns:\s*$/m.test(content);
+  return legacyCards || legacyTable;
 }
 
 export function isBasesCorePluginEnabled(app: App): boolean {
