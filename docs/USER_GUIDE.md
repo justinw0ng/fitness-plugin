@@ -287,7 +287,7 @@ Gym notes store sets in a markdown table and reminders under a **Reminders** hea
 
 ## 9. Track Reading and other general habits
 
-Reading is the default general habit (item notes + timer). You can disable or delete it in settings, and add other general habits the same way (for example Chess under `atomics/hobbies/Chess`).
+**Reading / 睇書** is the default general habit (item notes + timer). You can disable or delete it in settings, and add other general habits the same way (for example Chess under `atomics/hobbies/Chess`).
 
 ### Create a book or hobby item
 
