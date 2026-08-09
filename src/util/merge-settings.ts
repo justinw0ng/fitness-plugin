@@ -5,6 +5,15 @@ import { DEFAULT_LANGUAGE, isLanguage } from "../i18n/index.ts";
 import { DEFAULT_SETTINGS } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isSafeVaultFolder } from "./vault-path.ts";
+
+function safeVaultPath(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  return isSafeVaultFolder(trimmed) ? trimmed : fallback;
+}
 
 type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
   activityTypes?: unknown;
@@ -66,10 +75,12 @@ export function mergeSettings(
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
   };
   if (!raw) return base;
-  const golfCuesPath =
+  const golfCuesPath = safeVaultPath(
     (raw.golfCuesPath && raw.golfCuesPath.trim()) ||
-    (raw.cuesPath && raw.cuesPath.trim()) ||
-    base.golfCuesPath;
+      (raw.cuesPath && raw.cuesPath.trim()) ||
+      "",
+    base.golfCuesPath,
+  );
   const activityTypes =
     appendNewBuiltInActivities(
       normalizeActivities(raw.activityTypes, base.activityTypes) ||
@@ -81,10 +92,9 @@ export function mergeSettings(
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
-    dashboardPath: raw.dashboardPath || base.dashboardPath,
+    dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
-    gymCuesPath:
-      (raw.gymCuesPath && raw.gymCuesPath.trim()) || base.gymCuesPath,
+    gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
     deprecatedFitnessBlocksEnabled:
       raw.deprecatedFitnessBlocksEnabled === false ||
       raw.deprecatedFitnessCuesEnabled === false

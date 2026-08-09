@@ -2715,6 +2715,12 @@ function rewriteFitnessFences(markdown) {
 }
 
 // src/util/merge-settings.ts
+function safeVaultPath(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  return isSafeVaultFolder(trimmed) ? trimmed : fallback;
+}
 function cloneActivities(activityTypes) {
   return activityTypes.map((activity) => ({
     ...activity,
@@ -2749,7 +2755,10 @@ function mergeSettings(raw) {
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes)
   };
   if (!raw) return base;
-  const golfCuesPath = raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || base.golfCuesPath;
+  const golfCuesPath = safeVaultPath(
+    raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || "",
+    base.golfCuesPath
+  );
   const activityTypes = appendNewBuiltInActivities(
     normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes),
     DEFAULT_SETTINGS.activityTypes
@@ -2757,9 +2766,9 @@ function mergeSettings(raw) {
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
-    dashboardPath: raw.dashboardPath || base.dashboardPath,
+    dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
-    gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
+    gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
     deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
     activityTypes
   };
@@ -2796,7 +2805,12 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     );
     new import_obsidian4.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
-        this.plugin.settings.dashboardPath = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+        const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+        if (!isSafeVaultFolder(next)) {
+          new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          return;
+        }
+        this.plugin.settings.dashboardPath = next;
         await this.plugin.saveSettings();
       })
     );

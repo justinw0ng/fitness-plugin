@@ -75,8 +75,12 @@ export class FitnessSettingTab extends PluginSettingTab {
           .setPlaceholder(DEFAULT_SETTINGS.dashboardPath)
           .setValue(this.plugin.settings.dashboardPath)
           .onChange(async (value) => {
-            this.plugin.settings.dashboardPath =
-              value.trim() || DEFAULT_SETTINGS.dashboardPath;
+            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+            if (!isSafeVaultFolder(next)) {
+              new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+              return;
+            }
+            this.plugin.settings.dashboardPath = next;
             await this.plugin.saveSettings();
           }),
       );
