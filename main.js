@@ -259,6 +259,8 @@ var en = {
   "settings.timezoneDesc": "IANA timezone for today and session dates (e.g. Asia/Hong_Kong).",
   "settings.dashboardPath": "Dashboard path",
   "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard.",
+  "settings.readingNotesBasePath": "Reading notes base path",
+  "settings.readingNotesBasePathDesc": "Vault-relative path for the Obsidian Bases file created by reading notes commands.",
   "settings.legacyBlocks": "Allow legacy `fitness-*` blocks",
   "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate.",
   "settings.migrateFitness": "Migrate from Fitness to Atomic",
@@ -361,7 +363,7 @@ var en = {
   "template.golfFeltHint": "felt: good, ok, bad",
   "template.readingRemarks": "Remarks",
   "template.readingTimeLog": "Time log",
-  "template.readingBookshelfTitle": "Reading bookshelf v2",
+  "template.readingBookshelfTitle": "Reading Notes v2",
   "template.base.title": "Title",
   "template.base.authors": "Authors",
   "template.base.description": "Description",
@@ -386,7 +388,7 @@ var en = {
   "view.dashboard.hobbies": "Hobbies",
   "view.dashboard.items": "{activity} items: ",
   "view.dashboard.hobbyMinutesSuffix": ", {minutes} min",
-  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.readingBookshelf": "Reading Notes",
   "view.dashboard.bookShelf": "Book shelf",
   "view.dashboard.monthly": "Monthly",
   "view.dashboard.month": "Month",
@@ -441,6 +443,8 @@ var zhHantEn = {
   "settings.timezoneDesc": "IANA timezone for today and session dates / \u7528\u65BC\u300C\u4ECA\u65E5\u300D\u548C\u8A13\u7DF4\u65E5\u671F\u7684 IANA \u6642\u5340 (e.g. Asia/Hong_Kong)\u3002",
   "settings.dashboardPath": "Dashboard path / \u5100\u8868\u677F\u8DEF\u5F91",
   "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard / Open dashboard \u6703\u958B\u555F\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "settings.readingNotesBasePath": "Reading notes base path / \u95B1\u8B80\u7B46\u8A18 Bases \u8DEF\u5F91",
+  "settings.readingNotesBasePathDesc": "Vault-relative path for the Obsidian Bases file created by reading notes commands / \u95B1\u8B80\u7B46\u8A18\u547D\u4EE4\u6703\u5EFA\u7ACB\u7684 Obsidian Bases \u6A94\u6848\u8DEF\u5F91\u3002",
   "settings.legacyBlocks": "Allow legacy `fitness-*` blocks / \u5141\u8A31\u820A\u7248 `fitness-*` \u5340\u584A",
   "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate / \u4FDD\u7559\u820A Fitness codeblock \u540D\u7A31\u652F\u63F4\uFF1B\u9077\u79FB\u7B46\u8A18\u5F8C\u53EF\u95DC\u9589\u3002",
   "settings.migrateFitness": "Migrate from Fitness to Atomic / \u5F9E Fitness \u9077\u79FB\u81F3 Atomic",
@@ -543,7 +547,7 @@ var zhHantEn = {
   "template.golfFeltHint": "felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE",
   "template.readingRemarks": "Remarks / \u5099\u8A3B",
   "template.readingTimeLog": "Time log / \u6642\u9593\u8A18\u9304",
-  "template.readingBookshelfTitle": "Reading bookshelf v2",
+  "template.readingBookshelfTitle": "Reading Notes v2",
   "template.base.title": "Title / \u66F8\u540D",
   "template.base.authors": "Authors / \u4F5C\u8005",
   "template.base.description": "Description / \u63CF\u8FF0",
@@ -568,7 +572,7 @@ var zhHantEn = {
   "view.dashboard.hobbies": "Hobbies / \u8208\u8DA3",
   "view.dashboard.items": "{activity} items / \u9805\u76EE: ",
   "view.dashboard.hobbyMinutesSuffix": ", {minutes} min / \u5206\u9418",
-  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.readingBookshelf": "Reading Notes",
   "view.dashboard.bookShelf": "Book shelf / \u66F8\u67B6",
   "view.dashboard.monthly": "Monthly / \u6BCF\u6708",
   "view.dashboard.month": "Month / \u6708",
@@ -1109,6 +1113,7 @@ var DEFAULT_SETTINGS = {
   language: "zh-Hant-en",
   timezone: "Asia/Hong_Kong",
   dashboardPath: "atomics/Dashboard.md",
+  readingNotesBasePath: "atomics/hobbies/Reading/Reading Notes.base",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
   deprecatedFitnessBlocksEnabled: true,
@@ -1771,7 +1776,7 @@ async function openBookShelfHostCommand(data, language) {
 }
 
 // src/hobbies/reading-bookshelf.ts
-var READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
+var DEFAULT_READING_NOTES_BASE_PATH = "atomics/hobbies/Reading/Reading Notes.base";
 var READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
 function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1862,20 +1867,20 @@ function isBasesCorePluginEnabled(app) {
   }
   return false;
 }
-async function createReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER, language = "en") {
+async function createReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER, language = "en", basePath = DEFAULT_READING_NOTES_BASE_PATH) {
   const yaml = readingBookshelfBaseYaml(itemsFolder, language);
-  if (!data.exists(READING_BOOKSHELF_REL)) {
-    await data.createNote(READING_BOOKSHELF_REL, yaml);
-    return { path: READING_BOOKSHELF_REL, created: true, updated: false };
+  if (!data.exists(basePath)) {
+    await data.createNote(basePath, yaml);
+    return { path: basePath, created: true, updated: false };
   }
-  const existing = await data.readBody(READING_BOOKSHELF_REL);
+  const existing = await data.readBody(basePath);
   if (needsReadingBookshelfUpgrade(existing)) {
-    await data.writeNote(READING_BOOKSHELF_REL, yaml);
-    return { path: READING_BOOKSHELF_REL, created: false, updated: true };
+    await data.writeNote(basePath, yaml);
+    return { path: basePath, created: false, updated: true };
   }
-  return { path: READING_BOOKSHELF_REL, created: false, updated: false };
+  return { path: basePath, created: false, updated: false };
 }
-async function createReadingBookshelfCommand(app, data, language) {
+async function createReadingBookshelfCommand(app, data, language, basePath = DEFAULT_READING_NOTES_BASE_PATH) {
   if (!isBasesCorePluginEnabled(app)) {
     showNotice(t("notice.enableBases", language));
     return;
@@ -1884,7 +1889,8 @@ async function createReadingBookshelfCommand(app, data, language) {
     const result = await createReadingBookshelfFile(
       data,
       READING_ITEMS_FOLDER,
-      language
+      language,
+      basePath
     );
     if (result.created) {
       showNotice(t("notice.createdReadingBookshelf", language, { path: result.path }));
@@ -1900,7 +1906,7 @@ async function createReadingBookshelfCommand(app, data, language) {
     showNotice(t("notice.readingBookshelfFailed", language, { message }));
   }
 }
-async function openReadingBookshelfCommand(app, data, language) {
+async function openReadingBookshelfCommand(app, data, language, basePath = DEFAULT_READING_NOTES_BASE_PATH) {
   if (!isBasesCorePluginEnabled(app)) {
     showNotice(t("notice.enableBases", language));
     return;
@@ -1909,7 +1915,8 @@ async function openReadingBookshelfCommand(app, data, language) {
     const result = await createReadingBookshelfFile(
       data,
       READING_ITEMS_FOLDER,
-      language
+      language,
+      basePath
     );
     await data.openPath(result.path);
   } catch (error) {
@@ -1958,7 +1965,7 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderDashboard(el, data, activityTypes, year, language) {
+async function renderDashboard(el, data, activityTypes, year, language, readingNotesBasePath = DEFAULT_READING_NOTES_BASE_PATH) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const activities = exerciseActivities(activityTypes);
@@ -2088,7 +2095,7 @@ async function renderDashboard(el, data, activityTypes, year, language) {
       });
       baseLink.addEventListener("click", (event) => {
         event.preventDefault();
-        void data.openPath(READING_BOOKSHELF_REL);
+        void data.openPath(readingNotesBasePath);
       });
       links.appendText(" \xB7 ");
       const shelfLink = links.createEl("a", {
@@ -2867,7 +2874,8 @@ async function renderBlock(plugin, kind, source, el, ctx) {
           data,
           activityTypes,
           year,
-          language
+          language,
+          settings.readingNotesBasePath
         );
         break;
       }
@@ -3335,6 +3343,10 @@ function mergeSettings(raw) {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
+    readingNotesBasePath: safeVaultPath(
+      raw.readingNotesBasePath,
+      base.readingNotesBasePath
+    ),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
     deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
@@ -3401,6 +3413,17 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
           return;
         }
         this.plugin.settings.dashboardPath = next;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian5.Setting(containerEl).setName(t("settings.readingNotesBasePath", language)).setDesc(t("settings.readingNotesBasePathDesc", language)).addText(
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.readingNotesBasePath).setValue(this.plugin.settings.readingNotesBasePath).onChange(async (value) => {
+        const next = value.trim() || DEFAULT_SETTINGS.readingNotesBasePath;
+        if (!isSafeVaultFolder(next)) {
+          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          return;
+        }
+        this.plugin.settings.readingNotesBasePath = next;
         await this.plugin.saveSettings();
       })
     );
@@ -3701,7 +3724,12 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
           new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void createReadingBookshelfCommand(
+          this.app,
+          this.data,
+          this.settings.language,
+          this.settings.readingNotesBasePath
+        );
       }
     });
     this.addCommand({
@@ -3712,7 +3740,12 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
           new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void openReadingBookshelfCommand(
+          this.app,
+          this.data,
+          this.settings.language,
+          this.settings.readingNotesBasePath
+        );
       }
     });
     this.addCommand({

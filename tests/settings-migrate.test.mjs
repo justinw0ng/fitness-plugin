@@ -6,6 +6,10 @@ import { rewriteFitnessCuesFences } from "../src/util/migrate-cues.ts";
 test("mergeSettings defaults include golf/gym paths and legacy on", () => {
   const s = mergeSettings(null);
   assert.equal(s.dashboardPath, "atomics/Dashboard.md");
+  assert.equal(
+    s.readingNotesBasePath,
+    "atomics/hobbies/Reading/Reading Notes.base",
+  );
   assert.equal(s.golfCuesPath, "atomics/exercise/Golf/Cues.md");
   assert.equal(s.gymCuesPath, "atomics/exercise/Gym/Cues.md");
   assert.equal(
@@ -294,13 +298,18 @@ test("rewriteFitnessCuesFences rewrites indented top-level fences", () => {
   assert.match(markdown, /^ {2}```fitness-golf-cues\n/);
 });
 
-test("mergeSettings rejects unsafe dashboard and cue paths", () => {
+test("mergeSettings rejects unsafe dashboard, reading notes base, and cue paths", () => {
   const s = mergeSettings({
     dashboardPath: "../outside.md",
+    readingNotesBasePath: "/abs/Reading Notes.base",
     golfCuesPath: "/abs/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
   });
   assert.equal(s.dashboardPath, "atomics/Dashboard.md");
+  assert.equal(
+    s.readingNotesBasePath,
+    "atomics/hobbies/Reading/Reading Notes.base",
+  );
   assert.equal(s.golfCuesPath, "atomics/exercise/Golf/Cues.md");
   assert.equal(s.gymCuesPath, "atomics/exercise/Gym/Cues.md");
 });

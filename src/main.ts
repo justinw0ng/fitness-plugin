@@ -83,7 +83,12 @@ export default class FitnessPlugin extends Plugin {
           new Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void createReadingBookshelfCommand(
+          this.app,
+          this.data,
+          this.settings.language,
+          this.settings.readingNotesBasePath,
+        );
       },
     });
 
@@ -95,7 +100,12 @@ export default class FitnessPlugin extends Plugin {
           new Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void openReadingBookshelfCommand(
+          this.app,
+          this.data,
+          this.settings.language,
+          this.settings.readingNotesBasePath,
+        );
       },
     });
 

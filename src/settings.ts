@@ -133,6 +133,24 @@ export class FitnessSettingTab extends PluginSettingTab {
           }),
       );
 
+    new Setting(containerEl)
+      .setName(t("settings.readingNotesBasePath", language))
+      .setDesc(t("settings.readingNotesBasePathDesc", language))
+      .addText((text) =>
+        text
+          .setPlaceholder(DEFAULT_SETTINGS.readingNotesBasePath)
+          .setValue(this.plugin.settings.readingNotesBasePath)
+          .onChange(async (value) => {
+            const next = value.trim() || DEFAULT_SETTINGS.readingNotesBasePath;
+            if (!isSafeVaultFolder(next)) {
+              new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+              return;
+            }
+            this.plugin.settings.readingNotesBasePath = next;
+            await this.plugin.saveSettings();
+          }),
+      );
+
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
 

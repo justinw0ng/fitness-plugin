@@ -92,6 +92,7 @@ export async function renderBlock(
           activityTypes,
           year,
           language,
+          settings.readingNotesBasePath,
         );
         break;
       }

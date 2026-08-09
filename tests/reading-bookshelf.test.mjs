@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  READING_BOOKSHELF_REL,
+  DEFAULT_READING_NOTES_BASE_PATH,
   READING_ITEMS_FOLDER,
   isBasesCorePluginEnabled,
   needsReadingBookshelfUpgrade,
@@ -12,7 +12,10 @@ import {
 test("readingBookshelfBaseYaml seeds Cards and Table views for Reading items", () => {
   const yaml = readingBookshelfBaseYaml(READING_ITEMS_FOLDER);
 
-  assert.equal(READING_BOOKSHELF_REL, "atomics/hobbies/Reading/Bookshelf.base");
+  assert.equal(
+    DEFAULT_READING_NOTES_BASE_PATH,
+    "atomics/hobbies/Reading/Reading Notes.base",
+  );
   assert.match(yaml, /type: cards/);
   assert.match(yaml, /type: table/);
   assert.match(yaml, /atomics\/hobbies\/Reading\/Items/);

@@ -3,7 +3,7 @@ import { parseSetTable, rowVolumeKg } from "../core";
 import { sumMinutesForYear } from "../core/hobby";
 import { monthShortForLanguage, nowYear } from "../dates";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
-import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
+import { DEFAULT_READING_NOTES_BASE_PATH } from "../hobbies/reading-bookshelf";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
@@ -77,6 +77,7 @@ export async function renderDashboard(
   activityTypes: ActivityType[],
   year: number,
   language: Language,
+  readingNotesBasePath = DEFAULT_READING_NOTES_BASE_PATH,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
@@ -220,7 +221,7 @@ export async function renderDashboard(
       });
       baseLink.addEventListener("click", (event) => {
         event.preventDefault();
-        void data.openPath(READING_BOOKSHELF_REL);
+        void data.openPath(readingNotesBasePath);
       });
       links.appendText(" · ");
       const shelfLink = links.createEl("a", {

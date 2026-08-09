@@ -54,6 +54,7 @@ export interface FitnessSettings {
   timezone: string;
   activityTypes: ActivityType[];
   dashboardPath: string;
+  readingNotesBasePath: string;
   golfCuesPath: string;
   gymCuesPath: string;
   deprecatedFitnessBlocksEnabled: boolean;
@@ -128,6 +129,7 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   language: "zh-Hant-en",
   timezone: "Asia/Hong_Kong",
   dashboardPath: "atomics/Dashboard.md",
+  readingNotesBasePath: "atomics/hobbies/Reading/Reading Notes.base",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
   deprecatedFitnessBlocksEnabled: true,

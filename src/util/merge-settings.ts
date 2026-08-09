@@ -108,6 +108,10 @@ export function mergeSettings(
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
+    readingNotesBasePath: safeVaultPath(
+      raw.readingNotesBasePath,
+      base.readingNotesBasePath,
+    ),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
     deprecatedFitnessBlocksEnabled:

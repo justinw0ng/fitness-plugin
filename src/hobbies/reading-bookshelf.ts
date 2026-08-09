@@ -7,7 +7,11 @@ import { showNotice } from "../util/notice.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
-export const READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
+export const DEFAULT_READING_NOTES_BASE_PATH =
+  "atomics/hobbies/Reading/Reading Notes.base";
+
+/** @deprecated Use {@link DEFAULT_READING_NOTES_BASE_PATH} or settings.readingNotesBasePath */
+export const READING_BOOKSHELF_REL = DEFAULT_READING_NOTES_BASE_PATH;
 export const READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -120,27 +124,29 @@ export async function createReadingBookshelfFile(
   data: VaultDataSource,
   itemsFolder = READING_ITEMS_FOLDER,
   language: Language = "en",
+  basePath = DEFAULT_READING_NOTES_BASE_PATH,
 ): Promise<{ path: string; created: boolean; updated: boolean }> {
   const yaml = readingBookshelfBaseYaml(itemsFolder, language);
 
-  if (!data.exists(READING_BOOKSHELF_REL)) {
-    await data.createNote(READING_BOOKSHELF_REL, yaml);
-    return { path: READING_BOOKSHELF_REL, created: true, updated: false };
+  if (!data.exists(basePath)) {
+    await data.createNote(basePath, yaml);
+    return { path: basePath, created: true, updated: false };
   }
 
-  const existing = await data.readBody(READING_BOOKSHELF_REL);
+  const existing = await data.readBody(basePath);
   if (needsReadingBookshelfUpgrade(existing)) {
-    await data.writeNote(READING_BOOKSHELF_REL, yaml);
-    return { path: READING_BOOKSHELF_REL, created: false, updated: true };
+    await data.writeNote(basePath, yaml);
+    return { path: basePath, created: false, updated: true };
   }
 
-  return { path: READING_BOOKSHELF_REL, created: false, updated: false };
+  return { path: basePath, created: false, updated: false };
 }
 
 export async function createReadingBookshelfCommand(
   app: App,
   data: VaultDataSource,
   language: Language,
+  basePath = DEFAULT_READING_NOTES_BASE_PATH,
 ): Promise<void> {
   if (!isBasesCorePluginEnabled(app)) {
     showNotice(t("notice.enableBases", language));
@@ -152,6 +158,7 @@ export async function createReadingBookshelfCommand(
       data,
       READING_ITEMS_FOLDER,
       language,
+      basePath,
     );
     if (result.created) {
       showNotice(t("notice.createdReadingBookshelf", language, { path: result.path }));
@@ -172,6 +179,7 @@ export async function openReadingBookshelfCommand(
   app: App,
   data: VaultDataSource,
   language: Language,
+  basePath = DEFAULT_READING_NOTES_BASE_PATH,
 ): Promise<void> {
   if (!isBasesCorePluginEnabled(app)) {
     showNotice(t("notice.enableBases", language));
@@ -183,6 +191,7 @@ export async function openReadingBookshelfCommand(
       data,
       READING_ITEMS_FOLDER,
       language,
+      basePath,
     );
     await data.openPath(result.path);
   } catch (error) {
