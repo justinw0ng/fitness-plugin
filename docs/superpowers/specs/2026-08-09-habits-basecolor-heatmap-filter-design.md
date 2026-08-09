@@ -1,7 +1,7 @@
 # Design: Base colors, general habits CRUD, heatmap activity filter
 
 Date: 2026-08-09  
-Status: approved (pending user review of this written spec)  
+Status: draft (written for user review before implementation plan)  
 Related: `2026-08-09-atomic-tracker-redesign-design.md`
 
 ## Goal
@@ -17,7 +17,7 @@ Related: `2026-08-09-atomic-tracker-redesign-design.md`
 | Habit model for general trackers | Same as Reading: item notes + timer minutes |
 | Disable behavior | Hide from heatmaps, dashboard, and commands (Notice if invoked while disabled) |
 | Enable/disable scope | All activity types (exercise + hobby) |
-| Delete | Per-row Delete with confirm; does not delete vault notes |
+| Delete | Per-row Delete with Obsidian `Modal` confirm; does not delete vault notes |
 | Built-in Reading seed | Seed missing Reading only when migrating from empty/legacy lists; do **not** resurrect Reading if the user deleted it from a stored `activityTypes` array |
 | Color UI | Obsidian `addColorPicker` only (no hex text fields) |
 | Color storage | Persist `baseColor` + derived `colors[4]` |
@@ -126,7 +126,7 @@ Existing `year:` resolution unchanged. Parse/filter in the heatmap path (same id
 |------|----------|
 | Heatmap unknown or disabled id | Inline message in the codeblock |
 | Command for disabled/missing activity | Notice; do not create notes |
-| Delete activity | Confirm; remove from `activityTypes` only; leave vault files |
+| Delete activity | Obsidian confirm modal; on confirm remove from `activityTypes` only; leave vault files |
 
 ## Testing
 
