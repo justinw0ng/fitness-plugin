@@ -70,7 +70,7 @@ function statusRank(status: string): number {
   return STATUS_ORDER.get(status) ?? 99;
 }
 
-export function buildBookShelfItems(files: HobbyItemMeta[]): BookShelfItem[] {
+export function buildBookShelfItems(files: HobbyItemMeta[], activityId = "reading"): BookShelfItem[] {
   return files
     .filter(
       (file) =>
