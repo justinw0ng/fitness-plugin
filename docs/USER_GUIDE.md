@@ -354,6 +354,20 @@ activity: reading
 
 The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks; editor width decides how many books sit on each plank (rows reflow on resize). Hover/focus rolls the cover open on a spine hinge (local CSS 3D). Click opens the book note. No Framer runtime.
 
+#### Set a custom book cover
+
+By default an empty `cover` field shows a colored spine with the title. To use your own art on the Atomic book shelf (and in Bases Cards when the view uses `cover`):
+
+1. Add an image to the vault. Recommended folder: `atomics/hobbies/Reading/Covers/` (create it if missing). Example: `atomics/hobbies/Reading/Covers/atomic-habits.jpg`.
+2. Open the book item note (for example `atomics/hobbies/Reading/Items/Atomic Habits.md`).
+3. In Properties / frontmatter, set `cover` to one of:
+   - Vault wikilink: `[[atomics/hobbies/Reading/Covers/atomic-habits.jpg]]`
+   - Vault-relative path: `atomics/hobbies/Reading/Covers/atomic-habits.jpg`
+   - Remote or app URL: `https://…` or `app://…`
+4. Save the note, then reopen or refresh **Book Shelf** (`atomic-bookshelf`) so the cover image loads on the book face.
+
+Optional: set `spine_color` to a hex color (for example `#7c3aed`) when you want a custom spine without a cover image. If both are set, `cover` wins for the book face.
+
 `related_canvas` is a plain frontmatter field. Drag Reading notes onto Obsidian Canvas or link them with normal wikilinks.
 
 ---
