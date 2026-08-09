@@ -469,13 +469,14 @@ function resolveCuesYear(opts, frontmatterYear2, timezone) {
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderCues(el, data, seriesList, year, timezone, kind) {
+async function renderCues(el, data, seriesList, year, timezone, activity) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const series = seriesList.find((s) => s.kind === kind) || seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
+  const legacyFolder = CUE_SERIES_FOLDERS[activity];
+  const series = seriesList.find((s) => s.id === activity || s.kind === activity) || (legacyFolder ? seriesList.find((s) => s.folder === legacyFolder) : void 0);
   if (!series) {
     root.createEl("p", {
-      text: `No ${kind} series configured.`,
+      text: `No ${activity} series configured.`,
       cls: "fitness-muted"
     });
     return;
@@ -547,22 +548,22 @@ var ORANGE = [
 var EMPTY_CELL = "#ebedf0";
 var DEFAULT_SETTINGS = {
   timezone: "Asia/Hong_Kong",
-  dashboardPath: "Fitness/Dashboard.md",
-  golfCuesPath: "Golf/Cues.md",
-  gymCuesPath: "Gym/Cues.md",
-  deprecatedFitnessCuesEnabled: true,
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
+  deprecatedFitnessBlocksEnabled: true,
   series: [
     {
       id: "gym",
       label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
-      folder: "Gym",
+      folder: "atomics/exercise/Gym",
       colors: GREEN,
       kind: "gym"
     },
     {
       id: "golf",
       label: "\u26F3 Golf / \u9AD8\u723E\u592B",
-      folder: "Golf",
+      folder: "atomics/exercise/Golf",
       colors: ORANGE,
       kind: "golf"
     }
@@ -982,6 +983,49 @@ function renderTodaySessions(el, data, seriesList, dateStr) {
   }
 }
 
+// src/util/codeblock-languages.ts
+var ATOMIC_CODEBLOCK_LANGUAGES = [
+  "atomic-heatmap",
+  "atomic-today",
+  "atomic-dashboard",
+  "atomic-actions",
+  "atomic-golf-cues",
+  "atomic-gym-cues",
+  "atomic-cues"
+];
+var FITNESS_CODEBLOCK_ALIASES = [
+  "fitness-heatmap",
+  "fitness-today",
+  "fitness-dashboard",
+  "fitness-actions",
+  "fitness-golf-cues",
+  "fitness-gym-cues",
+  "fitness-cues"
+];
+var FITNESS_TO_ATOMIC = {
+  "fitness-heatmap": "atomic-heatmap",
+  "fitness-today": "atomic-today",
+  "fitness-dashboard": "atomic-dashboard",
+  "fitness-actions": "atomic-actions",
+  "fitness-golf-cues": "atomic-golf-cues",
+  "fitness-gym-cues": "atomic-gym-cues",
+  "fitness-cues": "atomic-golf-cues"
+};
+function codeblockLanguages(deprecatedFitnessBlocksEnabled) {
+  return deprecatedFitnessBlocksEnabled ? [...ATOMIC_CODEBLOCK_LANGUAGES, ...FITNESS_CODEBLOCK_ALIASES] : [...ATOMIC_CODEBLOCK_LANGUAGES];
+}
+function resolveCodeblockKind(kind) {
+  return FITNESS_TO_ATOMIC[kind] ?? kind;
+}
+function resolveCueActivity(kind, options) {
+  const resolvedKind = resolveCodeblockKind(kind);
+  if (resolvedKind === "atomic-golf-cues") return "golf";
+  if (resolvedKind === "atomic-gym-cues") return "gym";
+  if (resolvedKind !== "atomic-cues") return null;
+  const activity = options.activity?.trim();
+  return activity || null;
+}
+
 // src/codeblocks.ts
 function frontmatterYear(plugin, sourcePath) {
   const cache = plugin.app.metadataCache.getCache(sourcePath);
@@ -994,19 +1038,29 @@ async function renderBlock(plugin, kind, source, el, ctx) {
   const settings = plugin.settings;
   const series = settings.series;
   const tz = settings.timezone;
+  const resolvedKind = resolveCodeblockKind(kind);
   try {
-    switch (kind) {
-      case "fitness-heatmap": {
+    if (kind.startsWith("fitness-") && !settings.deprecatedFitnessBlocksEnabled) {
+      el.empty();
+      const root = el.createDiv({ cls: "fitness-plugin" });
+      root.createEl("p", {
+        text: "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
+        cls: "fitness-muted"
+      });
+      return;
+    }
+    switch (resolvedKind) {
+      case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
         renderHeatmaps(el, data, series, year, tz);
         break;
       }
-      case "fitness-today": {
+      case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
         renderTodaySessions(el, data, series, dateStr);
         break;
       }
-      case "fitness-dashboard": {
+      case "atomic-dashboard": {
         const year = resolveDashboardYear(
           opts,
           frontmatterYear(plugin, sourcePath),
@@ -1022,14 +1076,15 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         );
         break;
       }
-      case "fitness-golf-cues":
-      case "fitness-gym-cues":
-      case "fitness-cues": {
-        if (kind === "fitness-cues" && !settings.deprecatedFitnessCuesEnabled) {
+      case "atomic-golf-cues":
+      case "atomic-gym-cues":
+      case "atomic-cues": {
+        const activity = resolveCueActivity(resolvedKind, opts);
+        if (!activity) {
           el.empty();
           const root = el.createDiv({ cls: "fitness-plugin" });
           root.createEl("p", {
-            text: "Legacy fitness-cues block is disabled. Use fitness-golf-cues.",
+            text: "atomic-cues requires an activity option, for example activity: golf.",
             cls: "fitness-muted"
           });
           break;
@@ -1045,38 +1100,28 @@ async function renderBlock(plugin, kind, source, el, ctx) {
           series,
           year,
           tz,
-          kind === "fitness-gym-cues" ? "gym" : "golf"
+          activity
         );
         break;
       }
-      case "fitness-actions": {
+      case "atomic-actions": {
         renderActions(el, plugin);
         break;
       }
       default:
-        el.createEl("p", { text: `Unknown fitness block: ${kind}` });
+        el.createEl("p", { text: `Unknown Atomic block: ${kind}` });
     }
   } catch (err) {
-    console.error("Fitness block error", kind, err);
+    console.error("Atomic block error", kind, err);
     el.empty();
     el.createEl("p", {
-      text: `Fitness error: ${err instanceof Error ? err.message : String(err)}`,
+      text: `Atomic error: ${err instanceof Error ? err.message : String(err)}`,
       cls: "mod-warning"
     });
   }
 }
 function registerCodeblocks(plugin) {
-  const kinds = [
-    "fitness-heatmap",
-    "fitness-today",
-    "fitness-dashboard",
-    "fitness-golf-cues",
-    "fitness-gym-cues",
-    "fitness-actions"
-  ];
-  if (plugin.settings.deprecatedFitnessCuesEnabled) {
-    kinds.push("fitness-cues");
-  }
+  const kinds = codeblockLanguages(plugin.settings.deprecatedFitnessBlocksEnabled);
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(
       kind,
@@ -1216,13 +1261,91 @@ var VaultDataSource = class {
 // src/settings.ts
 var import_obsidian3 = require("obsidian");
 
-// src/util/migrate-cues.ts
+// src/util/migrate-fitness.ts
+var MOVE_DEFINITIONS = [
+  {
+    kind: "dashboard",
+    from: "Fitness/Dashboard.md",
+    to: "atomics/Dashboard.md"
+  },
+  { kind: "gym", from: "Gym", to: "atomics/exercise/Gym" },
+  { kind: "golf", from: "Golf", to: "atomics/exercise/Golf" }
+];
+var FENCE_REWRITES = {
+  "fitness-heatmap": "atomic-heatmap",
+  "fitness-today": "atomic-today",
+  "fitness-dashboard": "atomic-dashboard",
+  "fitness-actions": "atomic-actions",
+  "fitness-golf-cues": "atomic-golf-cues",
+  "fitness-cues": "atomic-golf-cues",
+  "fitness-gym-cues": "atomic-gym-cues"
+};
 var OPEN_RE = /^( {0,3})(```+|~~~+)([^\n]*)$/;
 var CLOSE_RE = /^( {0,3})(```+|~~~+)[ \t]*$/;
+function normalizePath2(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "").trim();
+}
+function pathExists(existingPaths, path) {
+  const normalized = normalizePath2(path);
+  for (const existingPath of existingPaths) {
+    const existing = normalizePath2(existingPath);
+    if (existing === normalized || existing.startsWith(`${normalized}/`)) {
+      return true;
+    }
+  }
+  return false;
+}
+function moveWasPlanned(moves, from) {
+  return moves.some((move) => move.from === from);
+}
+function patchSeriesFolders(settings, moves) {
+  let changed = false;
+  const next = settings.series.map((series) => {
+    if (moveWasPlanned(moves, "Gym") && series.folder === "Gym") {
+      changed = true;
+      return { ...series, folder: "atomics/exercise/Gym" };
+    }
+    if (moveWasPlanned(moves, "Golf") && series.folder === "Golf") {
+      changed = true;
+      return { ...series, folder: "atomics/exercise/Golf" };
+    }
+    return series;
+  });
+  return changed ? next : void 0;
+}
+function planFitnessMigration(input) {
+  const moves = [];
+  const skippedMoves = [];
+  for (const definition of MOVE_DEFINITIONS) {
+    if (!isSafeVaultFolder(definition.from) || !isSafeVaultFolder(definition.to)) {
+      continue;
+    }
+    if (!pathExists(input.existingPaths, definition.from)) continue;
+    const move = { from: definition.from, to: definition.to };
+    if (pathExists(input.existingPaths, definition.to)) {
+      skippedMoves.push(move);
+    } else {
+      moves.push(move);
+    }
+  }
+  const settingsPatch = {};
+  if (moveWasPlanned(moves, "Fitness/Dashboard.md") && input.settings.dashboardPath === "Fitness/Dashboard.md") {
+    settingsPatch.dashboardPath = "atomics/Dashboard.md";
+  }
+  if (moveWasPlanned(moves, "Golf") && input.settings.golfCuesPath === "Golf/Cues.md") {
+    settingsPatch.golfCuesPath = "atomics/exercise/Golf/Cues.md";
+  }
+  if (moveWasPlanned(moves, "Gym") && input.settings.gymCuesPath === "Gym/Cues.md") {
+    settingsPatch.gymCuesPath = "atomics/exercise/Gym/Cues.md";
+  }
+  const series = patchSeriesFolders(input.settings, moves);
+  if (series) settingsPatch.series = series;
+  return { moves, skippedMoves, settingsPatch };
+}
 function parseInfoLanguage(info) {
   return info.trim().split(/\s+/, 1)[0] || "";
 }
-function rewriteFitnessCuesFences(markdown) {
+function rewriteFitnessFences(markdown) {
   const lines = String(markdown).split(/\r?\n/);
   let open = null;
   let replacements = 0;
@@ -1234,22 +1357,20 @@ function rewriteFitnessCuesFences(markdown) {
       }
       return line;
     }
-    const m = line.match(OPEN_RE);
-    if (!m) return line;
-    const indent = m[1];
-    const fence = m[2];
-    const info = m[3] ?? "";
-    const marker = fence[0];
+    const match = line.match(OPEN_RE);
+    if (!match) return line;
+    const indent = match[1];
+    const fence = match[2];
+    const info = match[3] ?? "";
+    const marker = fence[0] === "~" ? "~" : "`";
     const length = fence.length;
     const lang = parseInfoLanguage(info);
-    if (lang === "fitness-cues") {
-      replacements += 1;
-      const rest = info.replace(/^\s*fitness-cues\b/, "fitness-golf-cues");
-      open = { marker, length };
-      return `${indent}${fence}${rest}`;
-    }
+    const replacement = FENCE_REWRITES[lang];
     open = { marker, length };
-    return line;
+    if (!replacement) return line;
+    replacements += 1;
+    const rest = info.replace(new RegExp(`^\\s*${lang}\\b`), replacement);
+    return `${indent}${fence}${rest}`;
   });
   return {
     markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
@@ -1274,7 +1395,7 @@ function mergeSettings(raw) {
     dashboardPath: raw.dashboardPath || base.dashboardPath,
     golfCuesPath,
     gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
-    deprecatedFitnessCuesEnabled: raw.deprecatedFitnessCuesEnabled === false ? false : true,
+    deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
     series: [...sanitizeSeries(raw.series, base.series)]
   };
 }
@@ -1288,7 +1409,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Fitness" });
+    containerEl.createEl("h2", { text: "Atomic" });
     new import_obsidian3.Setting(containerEl).setName("Timezone").setDesc("IANA timezone for \u201Ctoday\u201D and session dates (e.g. Asia/Hong_Kong).").addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
@@ -1297,68 +1418,99 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
       })
     );
     new import_obsidian3.Setting(containerEl).setName("Dashboard path").setDesc("Vault-relative path opened by \u201COpen dashboard\u201D.").addText(
-      (text) => text.setPlaceholder("Fitness/Dashboard.md").setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         this.plugin.settings.dashboardPath = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         await this.plugin.saveSettings();
       })
     );
     new import_obsidian3.Setting(containerEl).setName("Golf cues path").setDesc("Vault-relative path for golf cue rollup note.").addText(
-      (text) => text.setPlaceholder("Golf/Cues.md").setValue(this.plugin.settings.golfCuesPath).onChange(async (value) => {
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.golfCuesPath).setValue(this.plugin.settings.golfCuesPath).onChange(async (value) => {
         this.plugin.settings.golfCuesPath = value.trim() || DEFAULT_SETTINGS.golfCuesPath;
         await this.plugin.saveSettings();
       })
     );
     new import_obsidian3.Setting(containerEl).setName("Gym cues path").setDesc("Vault-relative path for gym cue rollup note.").addText(
-      (text) => text.setPlaceholder("Gym/Cues.md").setValue(this.plugin.settings.gymCuesPath).onChange(async (value) => {
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.gymCuesPath).setValue(this.plugin.settings.gymCuesPath).onChange(async (value) => {
         this.plugin.settings.gymCuesPath = value.trim() || DEFAULT_SETTINGS.gymCuesPath;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-cues` block").setDesc(
-      "Keep supporting the old golf cue codeblock name. Turn off after migrating notes (or use Migrate)."
+    new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-*` blocks").setDesc(
+      "Keep supporting old Fitness codeblock names. Turn off after migrating notes (or use Migrate)."
     ).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessCuesEnabled).onChange(async (value) => {
-        this.plugin.settings.deprecatedFitnessCuesEnabled = value;
+      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
+        this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
         new import_obsidian3.Notice(
-          "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration."
+          "Legacy fitness-* setting saved. Reload the plugin (or Obsidian) to apply registration."
         );
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Migrate legacy cue blocks").setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.").addButton(
-      (button) => button.setButtonText("Migrate `fitness-cues` \u2192 `fitness-golf-cues`").setCta().onClick(() => {
-        void this.migrateFitnessCuesFences();
+    new import_obsidian3.Setting(containerEl).setName("Migrate from Fitness \u2192 Atomic").setDesc(
+      "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases."
+    ).addButton(
+      (button) => button.setButtonText("Migrate from Fitness \u2192 Atomic").setCta().onClick(() => {
+        void this.migrateFromFitnessToAtomic();
       })
     );
     containerEl.createEl("p", {
-      text: "Series (folders, labels, colors) use defaults: Gym + Golf. Edit plugin data.json advanced series later if needed.",
+      text: "Series (folders, labels, colors) use Atomic defaults under atomics/exercise/Gym and atomics/exercise/Golf. Edit plugin data.json advanced series later if needed.",
       cls: "setting-item-description"
     });
   }
-  async migrateFitnessCuesFences() {
+  async ensureParentFolder(path) {
+    const normalized = (0, import_obsidian3.normalizePath)(path);
+    const slash = normalized.lastIndexOf("/");
+    if (slash <= 0) return;
+    await this.plugin.data.ensureFolder(normalized.slice(0, slash));
+  }
+  async migrateFromFitnessToAtomic() {
+    const existingPaths = new Set(
+      this.app.vault.getAllLoadedFiles().map((file) => file.path)
+    );
+    const plan = planFitnessMigration({
+      existingPaths,
+      settings: this.plugin.settings
+    });
+    let movedPaths = 0;
+    let skippedPaths = plan.skippedMoves.length;
     let changedFiles = 0;
     let replacements = 0;
     try {
+      for (const move of plan.moves) {
+        const from = (0, import_obsidian3.normalizePath)(move.from);
+        const to = (0, import_obsidian3.normalizePath)(move.to);
+        const source = this.app.vault.getAbstractFileByPath(from);
+        const destination = this.app.vault.getAbstractFileByPath(to);
+        if (!source || destination) {
+          skippedPaths += 1;
+          continue;
+        }
+        await this.ensureParentFolder(to);
+        await this.app.vault.rename(source, to);
+        movedPaths += 1;
+      }
       for (const file of this.app.vault.getMarkdownFiles()) {
         const original = await this.app.vault.read(file);
-        const result = rewriteFitnessCuesFences(original);
+        const result = rewriteFitnessFences(original);
         if (result.replacements === 0) continue;
         await this.app.vault.modify(file, result.markdown);
         changedFiles += 1;
         replacements += result.replacements;
       }
-      this.plugin.settings.deprecatedFitnessCuesEnabled = false;
+      Object.assign(this.plugin.settings, plan.settingsPatch);
+      this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
       new import_obsidian3.Notice(
-        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`
+        `Migrated Fitness \u2192 Atomic: moved ${movedPaths} path${movedPaths === 1 ? "" : "s"}, skipped ${skippedPaths} existing destination${skippedPaths === 1 ? "" : "s"}, rewrote ${replacements} block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-* aliases disabled; reload the plugin (or Obsidian) to drop registered legacy processors.`
       );
     } catch (err) {
-      console.error("Fitness cues migration failed", err);
+      console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian3.Notice(`Failed to migrate fitness-cues blocks: ${message}`);
+      new import_obsidian3.Notice(`Failed to migrate from Fitness to Atomic: ${message}`);
     }
   }
 };
