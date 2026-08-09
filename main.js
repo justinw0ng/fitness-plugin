@@ -2216,7 +2216,7 @@ var STATUS_ORDER = /* @__PURE__ */ new Map([
 ]);
 var BOOK_WIDTH_PX = 86;
 var BOOK_GAP_PX = 8;
-var ROW_PADDING_PX = 16;
+var ROW_PADDING_PX = 56;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";

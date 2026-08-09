@@ -162,9 +162,10 @@ test("titleLengthClass shrinks type for long book titles", () => {
 test("booksPerRow and chunkItems wrap to multiple shelf rows by width", () => {
   assert.equal(booksPerRow(0), 1);
   assert.equal(booksPerRow(100), 1);
-  // 16px padding + one 86px book = 102; two books need 16 + 86*2 + 8 = 196
-  assert.equal(booksPerRow(102), 1);
-  assert.equal(booksPerRow(196), 2);
+  // 56px padding + one 86px book = 142; two books need 56 + 86*2 + 8 = 236
+  assert.equal(booksPerRow(142), 1);
+  assert.equal(booksPerRow(236), 2);
+  // 56 + 8*86 + 7*8 = 800 → eight books
   assert.equal(booksPerRow(800), 8);
 
   assert.deepEqual(chunkItems([], 3), [[]]);

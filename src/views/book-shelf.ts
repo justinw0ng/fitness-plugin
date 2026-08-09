@@ -29,7 +29,8 @@ const STATUS_ORDER = new Map([
 
 const BOOK_WIDTH_PX = 86;
 const BOOK_GAP_PX = 8;
-const ROW_PADDING_PX = 16;
+/** Horizontal inset of the book row: frame 16*2 + row 4*2 + books 8*2. */
+const ROW_PADDING_PX = 56;
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
