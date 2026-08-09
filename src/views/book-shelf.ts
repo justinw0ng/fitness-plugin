@@ -29,7 +29,8 @@ const STATUS_ORDER = new Map([
 
 const BOOK_WIDTH_PX = 86;
 const BOOK_GAP_PX = 8;
-const ROW_PADDING_PX = 16;
+/** Horizontal inset of the book row: frame 16*2 + row 4*2 + books 8*2. */
+const ROW_PADDING_PX = 56;
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
@@ -213,7 +214,6 @@ function createBook(
   }
   cover.createDiv({ cls: "atomic-book-cover-inside" });
   cover.createDiv({ cls: "atomic-book-cover-sleeve" });
-  face.createDiv({ cls: "atomic-book-cover-shine" });
 
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
   spine.createDiv({
@@ -269,6 +269,10 @@ export function renderBookShelf(
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
   el.empty();
+  // Keep hover title bubbles visible above books (preview codeblocks often clip).
+  el.style.overflow = "visible";
+  const host = el.parentElement;
+  if (host instanceof HTMLElement) host.style.overflow = "visible";
 
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";
@@ -285,10 +289,12 @@ export function renderBookShelf(
 
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-
   let lastPerRow = -1;
+
   const layout = (): void => {
-    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
+    const perRow = booksPerRow(
+      frame.clientWidth || frame.getBoundingClientRect().width,
+    );
     if (perRow === lastPerRow && frame.childElementCount > 0) return;
     lastPerRow = perRow;
     paintRows(frame, items, perRow, data, language);
