@@ -1,10 +1,11 @@
 import type { ActivityType, Domain, NoteModel } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { GREEN } from "../types.ts";
+import { BLUE, GREEN } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
 
 const FALLBACK_EXERCISE_NAME = "Exercise";
+const FALLBACK_HOBBY_NAME = "Hobby";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -24,7 +25,7 @@ export function activityIdFromLabel(label: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return id || "exercise";
+  return id || "activity";
 }
 
 export function defaultExerciseFolder(label: string): string {
@@ -32,6 +33,14 @@ export function defaultExerciseFolder(label: string): string {
   return isSafeVaultFolder(folder)
     ? folder
     : `atomics/exercise/${FALLBACK_EXERCISE_NAME}`;
+}
+
+export function defaultHobbyFolder(label: string): string {
+  const cleaned = cleanFolderSegment(label);
+  const folder = `atomics/hobbies/${cleaned === FALLBACK_EXERCISE_NAME ? FALLBACK_HOBBY_NAME : cleaned}`;
+  return isSafeVaultFolder(folder)
+    ? folder
+    : `atomics/hobbies/${FALLBACK_HOBBY_NAME}`;
 }
 
 export function createExerciseActivityType(label: string): ActivityType {
@@ -45,6 +54,23 @@ export function createExerciseActivityType(label: string): ActivityType {
     noteModel: "dailySession",
     supportsCues: true,
     supportsTimer: false,
+    supportsSetTable: false,
+  };
+}
+
+export function createHobbyActivityType(label: string): ActivityType {
+  const cleanedLabel = cleanFolderSegment(label);
+  const labelForHobby =
+    cleanedLabel === FALLBACK_EXERCISE_NAME ? FALLBACK_HOBBY_NAME : cleanedLabel;
+  return {
+    id: activityIdFromLabel(labelForHobby),
+    domain: "hobby",
+    label: labelForHobby,
+    folder: defaultHobbyFolder(labelForHobby),
+    colors: BLUE,
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
     supportsSetTable: false,
   };
 }
@@ -138,6 +164,15 @@ export function exerciseActivities(activityTypes: ActivityType[]): ActivityType[
   return activityTypes.filter(
     (activity) =>
       activity.domain === "exercise" && activity.noteModel === "dailySession",
+  );
+}
+
+export function hobbyActivities(activityTypes: ActivityType[]): ActivityType[] {
+  return activityTypes.filter(
+    (activity) =>
+      activity.domain === "hobby" &&
+      activity.noteModel === "item" &&
+      activity.supportsTimer,
   );
 }
 

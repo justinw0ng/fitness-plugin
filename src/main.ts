@@ -4,12 +4,21 @@ import {
   createGolfSession,
   createGymSession,
 } from "./commands/create-session";
+import { createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
+import {
+  ensureBookShelfHostCommand,
+  openBookShelfHostCommand,
+} from "./hobbies/book-shelf-host";
+import {
+  ensureReadingBookshelfCommand,
+  openReadingBookshelfCommand,
+} from "./hobbies/reading-bookshelf";
 import { FitnessSettingTab, mergeSettings } from "./settings";
 import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
-import { exerciseActivities } from "./util/activity-types";
+import { exerciseActivities, hobbyActivities } from "./util/activity-types";
 
 export default class FitnessPlugin extends Plugin {
   settings: FitnessSettings = DEFAULT_SETTINGS;
@@ -45,6 +54,46 @@ export default class FitnessPlugin extends Plugin {
       name: "New exercise session",
       callback: () => {
         void this.createExerciseSession();
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-new-reading-item",
+      name: "New reading item",
+      callback: () => {
+        void this.createReadingItem();
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-ensure-reading-bookshelf",
+      name: "Ensure reading bookshelf",
+      callback: () => {
+        void ensureReadingBookshelfCommand(this.app, this.data);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-open-reading-bookshelf",
+      name: "Open reading bookshelf",
+      callback: () => {
+        void openReadingBookshelfCommand(this.app, this.data);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-ensure-book-shelf",
+      name: "Ensure book shelf",
+      callback: () => {
+        void ensureBookShelfHostCommand(this.data);
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-open-book-shelf",
+      name: "Open book shelf",
+      callback: () => {
+        void openBookShelfHostCommand(this.data);
       },
     });
 
@@ -108,6 +157,12 @@ export default class FitnessPlugin extends Plugin {
 
   exerciseActivityById(id: string): ActivityType | undefined {
     return exerciseActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id,
+    );
+  }
+
+  hobbyActivityById(id: string): ActivityType | undefined {
+    return hobbyActivities(this.settings.activityTypes).find(
       (activity) => activity.id === id,
     );
   }
@@ -183,6 +238,15 @@ export default class FitnessPlugin extends Plugin {
       activity,
       this.settings.timezone,
     );
+  }
+
+  async createReadingItem() {
+    const activity = this.hobbyActivityById("reading");
+    if (!activity) {
+      new Notice("No Reading hobby configured");
+      return;
+    }
+    await createReadingItem(this.app, this.data, activity);
   }
 
   async openDashboard() {

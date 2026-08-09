@@ -42,11 +42,73 @@ test("mergeSettings defaults include golf/gym paths and legacy on", () => {
         supportsTimer: false,
         supportsSetTable: false,
       },
+      {
+        id: "reading",
+        domain: "hobby",
+        noteModel: "item",
+        supportsCues: false,
+        supportsTimer: true,
+        supportsSetTable: false,
+      },
     ],
+  );
+  assert.equal(
+    s.activityTypes.find((activity) => activity.id === "reading")?.folder,
+    "atomics/hobbies/Reading",
   );
   assert.equal(s.deprecatedFitnessBlocksEnabled, true);
   assert.equal("cuesPath" in s, false);
   assert.equal("series" in s, false);
+});
+
+test("mergeSettings adds the built-in Reading hobby to pre-Phase-C activityTypes", () => {
+  const s = mergeSettings({
+    activityTypes: [
+      {
+        id: "gym",
+        domain: "exercise",
+        label: "Gym",
+        folder: "atomics/exercise/Gym",
+        colors: ["#1", "#2", "#3", "#4"],
+        noteModel: "dailySession",
+        supportsCues: true,
+        supportsTimer: false,
+        supportsSetTable: true,
+      },
+      {
+        id: "golf",
+        domain: "exercise",
+        label: "Golf",
+        folder: "atomics/exercise/Golf",
+        colors: ["#1", "#2", "#3", "#4"],
+        noteModel: "dailySession",
+        supportsCues: true,
+        supportsTimer: false,
+        supportsSetTable: false,
+      },
+    ],
+  });
+
+  assert.equal(s.activityTypes.map((activity) => activity.id).join(","), "gym,golf,reading");
+  const reading = s.activityTypes.find((activity) => activity.id === "reading");
+  assert.deepEqual(
+    {
+      domain: reading?.domain,
+      folder: reading?.folder,
+      noteModel: reading?.noteModel,
+      supportsCues: reading?.supportsCues,
+      supportsTimer: reading?.supportsTimer,
+      supportsSetTable: reading?.supportsSetTable,
+    },
+    {
+      domain: "hobby",
+      folder: "atomics/hobbies/Reading",
+      noteModel: "item",
+      supportsCues: false,
+      supportsTimer: true,
+      supportsSetTable: false,
+    },
+  );
 });
 
 test("mergeSettings maps legacy series to activityTypes and preserves folders until migration", () => {
@@ -75,6 +137,7 @@ test("mergeSettings maps legacy series to activityTypes and preserves folders un
   assert.equal(s.dashboardPath, "Fitness/Dashboard.md");
   assert.equal(s.golfCuesPath, "Golf/Cues.md");
   assert.equal(s.gymCuesPath, "Gym/Cues.md");
+  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["gym", "golf", "reading"]);
   assert.equal(s.activityTypes.find((activity) => activity.id === "gym")?.folder, "Gym");
   assert.equal(
     s.activityTypes.find((activity) => activity.id === "gym")?.supportsSetTable,
@@ -128,7 +191,7 @@ test("mergeSettings prefers stored activityTypes over legacy series", () => {
     ],
   });
 
-  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["running"]);
+  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["running", "reading"]);
   assert.equal(s.activityTypes[0].folder, "atomics/exercise/Running");
 });
 
@@ -149,7 +212,7 @@ test("mergeSettings rejects unsafe activity folders and falls back to defaults",
     ],
   });
 
-  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["gym", "golf"]);
+  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["gym", "golf", "reading"]);
 });
 
 test("rewriteFitnessCuesFences rewrites fence language only", () => {

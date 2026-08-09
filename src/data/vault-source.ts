@@ -1,6 +1,7 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
-import type { SessionMeta } from "../types";
+import type { ActivityType, HobbyItemMeta, SessionMeta } from "../types";
 import {
+  hobbyItemsScanPrefix,
   isSafeVaultFolder,
   sessionScanPrefix,
 } from "../util/vault-path";
@@ -50,6 +51,33 @@ export class VaultDataSource {
         weight_unit: fm.weight_unit === "lb" ? "lb" : "kg",
         focus: asList(fm.focus),
         felt: String(fm.felt || ""),
+      });
+    }
+    return out;
+  }
+
+  listHobbyItems(activity: ActivityType): HobbyItemMeta[] {
+    if (
+      activity.domain !== "hobby" ||
+      activity.noteModel !== "item" ||
+      !activity.supportsTimer
+    ) {
+      return [];
+    }
+    const prefix = hobbyItemsScanPrefix(activity.folder);
+    if (!prefix) return [];
+    const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
+    const out: HobbyItemMeta[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(scanPrefix)) continue;
+      if (!file.path.endsWith(".md")) continue;
+      const cache = this.app.metadataCache.getFileCache(file);
+      const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
+      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
+      out.push({
+        path: file.path,
+        basename: file.basename,
+        frontmatter: fm,
       });
     }
     return out;

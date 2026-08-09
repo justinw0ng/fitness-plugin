@@ -34,6 +34,17 @@ function normalizeActivities(
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 
+function appendNewBuiltInActivities(
+  activityTypes: ActivityType[],
+  builtIns: ActivityType[],
+): ActivityType[] {
+  const existingIds = new Set(activityTypes.map((activity) => activity.id));
+  const addedBuiltIns = builtIns.filter(
+    (activity) => activity.domain === "hobby" && !existingIds.has(activity.id),
+  );
+  return [...activityTypes, ...cloneActivities(addedBuiltIns)];
+}
+
 function legacySeriesActivities(
   values: unknown,
   fallback: ActivityType[],
@@ -58,9 +69,12 @@ export function mergeSettings(
     (raw.cuesPath && raw.cuesPath.trim()) ||
     base.golfCuesPath;
   const activityTypes =
-    normalizeActivities(raw.activityTypes, base.activityTypes) ||
-    legacySeriesActivities(raw.series, base.activityTypes) ||
-    cloneActivities(base.activityTypes);
+    appendNewBuiltInActivities(
+      normalizeActivities(raw.activityTypes, base.activityTypes) ||
+        legacySeriesActivities(raw.series, base.activityTypes) ||
+        cloneActivities(base.activityTypes),
+      DEFAULT_SETTINGS.activityTypes,
+    );
 
   return {
     timezone: raw.timezone || base.timezone,

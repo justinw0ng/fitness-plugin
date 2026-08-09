@@ -34,6 +34,12 @@ export interface SessionMeta {
   basename: string;
 }
 
+export interface HobbyItemMeta {
+  path: string;
+  basename: string;
+  frontmatter: Record<string, unknown>;
+}
+
 export interface DayActivity {
   minutes: number;
   path: string | null;
@@ -62,6 +68,13 @@ export const ORANGE: [string, string, string, string] = [
   "#d9480f",
 ];
 
+export const BLUE: [string, string, string, string] = [
+  "#bfdbfe",
+  "#60a5fa",
+  "#2563eb",
+  "#1e3a8a",
+];
+
 export const EMPTY_CELL = "#ebedf0";
 
 export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
@@ -85,6 +98,17 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
     noteModel: "dailySession",
     supportsCues: true,
     supportsTimer: false,
+    supportsSetTable: false,
+  },
+  {
+    id: "reading",
+    domain: "hobby",
+    label: "Reading",
+    folder: "atomics/hobbies/Reading",
+    colors: BLUE,
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
     supportsSetTable: false,
   },
 ];

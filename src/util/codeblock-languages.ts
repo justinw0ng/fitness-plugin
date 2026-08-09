@@ -6,6 +6,8 @@ export const ATOMIC_CODEBLOCK_LANGUAGES: readonly string[] = [
   "atomic-golf-cues",
   "atomic-gym-cues",
   "atomic-cues",
+  "atomic-timer",
+  "atomic-bookshelf",
 ];
 
 export const FITNESS_CODEBLOCK_ALIASES: readonly string[] = [

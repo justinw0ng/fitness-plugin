@@ -15,6 +15,8 @@ test("codeblockLanguages always includes atomic languages", () => {
     "atomic-golf-cues",
     "atomic-gym-cues",
     "atomic-cues",
+    "atomic-timer",
+    "atomic-bookshelf",
   ]);
 });
 
@@ -27,6 +29,8 @@ test("codeblockLanguages includes fitness aliases while legacy blocks are enable
     "atomic-golf-cues",
     "atomic-gym-cues",
     "atomic-cues",
+    "atomic-timer",
+    "atomic-bookshelf",
     "fitness-heatmap",
     "fitness-today",
     "fitness-dashboard",

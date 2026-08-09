@@ -2,7 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   createExerciseActivityType,
+  createHobbyActivityType,
   defaultExerciseFolder,
+  defaultHobbyFolder,
+  hobbyActivities,
   resolveCueActivityType,
 } from "../src/util/activity-types.ts";
 
@@ -40,6 +43,49 @@ test("createExerciseActivityType creates a daily exercise with cues enabled", ()
       supportsSetTable: false,
     },
   );
+});
+
+test("defaultHobbyFolder builds safe folders under atomics/hobbies", () => {
+  assert.equal(defaultHobbyFolder("Reading"), "atomics/hobbies/Reading");
+  assert.equal(defaultHobbyFolder("Model trains"), "atomics/hobbies/Model trains");
+  assert.equal(defaultHobbyFolder("../Reading"), "atomics/hobbies/Reading");
+  assert.equal(defaultHobbyFolder(""), "atomics/hobbies/Hobby");
+});
+
+test("createHobbyActivityType creates an item hobby with timer enabled and cues disabled", () => {
+  const activity = createHobbyActivityType("Model trains");
+
+  assert.deepEqual(
+    {
+      id: activity.id,
+      domain: activity.domain,
+      label: activity.label,
+      folder: activity.folder,
+      noteModel: activity.noteModel,
+      supportsCues: activity.supportsCues,
+      supportsTimer: activity.supportsTimer,
+      supportsSetTable: activity.supportsSetTable,
+    },
+    {
+      id: "model-trains",
+      domain: "hobby",
+      label: "Model trains",
+      folder: "atomics/hobbies/Model trains",
+      noteModel: "item",
+      supportsCues: false,
+      supportsTimer: true,
+      supportsSetTable: false,
+    },
+  );
+});
+
+test("hobbyActivities returns timer item hobbies", () => {
+  const activities = [
+    createExerciseActivityType("Running"),
+    createHobbyActivityType("Reading"),
+  ];
+
+  assert.deepEqual(hobbyActivities(activities).map((activity) => activity.id), ["reading"]);
 });
 
 test("resolveCueActivityType only returns cue-capable exercise activities", () => {

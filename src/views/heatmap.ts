@@ -1,5 +1,6 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { durationToLevel } from "../core";
+import { minutesByDate, parseTimeLog } from "../core/hobby";
 import {
   addDays,
   formatYmd,
@@ -10,7 +11,7 @@ import {
   ymdInZone,
 } from "../dates";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
-import { exerciseActivities } from "../util/activity-types";
+import { exerciseActivities, hobbyActivities } from "../util/activity-types";
 
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
 
@@ -19,12 +20,30 @@ function colorFor(activity: ActivityType, level: number): string {
   return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
 }
 
-function durationMap(
+async function durationMap(
   data: VaultDataSource,
   activity: ActivityType,
   year: number,
-): Map<string, DayActivity> {
+): Promise<Map<string, DayActivity>> {
   const map = new Map<string, DayActivity>();
+  if (activity.domain === "hobby") {
+    for (const item of data.listHobbyItems(activity)) {
+      const markdown = await data.readBody(item.path);
+      const totals = minutesByDate(
+        parseTimeLog(markdown).filter((entry) =>
+          entry.date.startsWith(`${year}-`),
+        ),
+      );
+      for (const [date, minutes] of totals) {
+        const entry = map.get(date) || { minutes: 0, path: item.path };
+        entry.minutes += minutes;
+        if (!entry.path) entry.path = item.path;
+        map.set(date, entry);
+      }
+    }
+    return map;
+  }
+
   for (const s of data.listSessions(activity.folder, year)) {
     if (!s.date) continue;
     const entry = map.get(s.date) || { minutes: 0, path: null };
@@ -35,13 +54,13 @@ function durationMap(
   return map;
 }
 
-function renderOneHeatmap(
+async function renderOneHeatmap(
   root: HTMLElement,
   data: VaultDataSource,
   activity: ActivityType,
   year: number,
   timezone: string,
-): void {
+): Promise<void> {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
 
@@ -59,7 +78,7 @@ function renderOneHeatmap(
     attr: { style: "margin-left:8px" },
   });
 
-  const activityMap = durationMap(data, activity, year);
+  const activityMap = await durationMap(data, activity, year);
   const todayStr = ymdInZone(new Date(), timezone);
   const start = { y: year, m: 1, d: 1 };
   const end = { y: year, m: 12, d: 31 };
@@ -162,17 +181,20 @@ function renderOneHeatmap(
   }
 }
 
-export function renderHeatmaps(
+export async function renderHeatmaps(
   el: HTMLElement,
   data: VaultDataSource,
   activityTypes: ActivityType[],
   year: number,
   timezone: string,
-): void {
+): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const activity of exerciseActivities(activityTypes)) {
-    renderOneHeatmap(root, data, activity, year, timezone);
+  for (const activity of [
+    ...exerciseActivities(activityTypes),
+    ...hobbyActivities(activityTypes),
+  ]) {
+    await renderOneHeatmap(root, data, activity, year, timezone);
   }
 }
 

@@ -1,8 +1,15 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { parseSetTable, rowVolumeKg } from "../core";
+import { parseTimeLog } from "../core/hobby";
 import { nowYear } from "../dates";
+import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
+import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 import type { ActivityType, SessionMeta } from "../types";
-import { cuePathForActivity, exerciseActivities } from "../util/activity-types";
+import {
+  cuePathForActivity,
+  exerciseActivities,
+  hobbyActivities,
+} from "../util/activity-types";
 
 function monthIndexFromDate(dateStr: string | null): number {
   const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
@@ -196,6 +203,56 @@ export async function renderDashboard(
     ul.createEl("li").setText(
       `Golf felt / 高爾夫感覺 — good / 好: ${feltCounts.good}, ok / 一般: ${feltCounts.ok}, bad / 差: ${feltCounts.bad}`,
     );
+  }
+
+  const hobbyStats: Array<{
+    activity: ActivityType;
+    itemCount: number;
+    minutes: number;
+  }> = [];
+  for (const activity of hobbyActivities(activityTypes)) {
+    const items = data.listHobbyItems(activity);
+    let minutes = 0;
+    for (const item of items) {
+      const markdown = await data.readBody(item.path);
+      for (const entry of parseTimeLog(markdown)) {
+        if (entry.date.startsWith(`${year}-`)) {
+          minutes += entry.minutes;
+        }
+      }
+    }
+    hobbyStats.push({ activity, itemCount: items.length, minutes });
+  }
+
+  if (hobbyStats.length) {
+    root.createEl("h3", { text: "Hobbies / 興趣" });
+    const hobbyUl = root.createEl("ul");
+    for (const stat of hobbyStats) {
+      const li = hobbyUl.createEl("li");
+      li.appendText(`${stat.activity.label} items / 項目: `);
+      li.createEl("strong", { text: String(stat.itemCount) });
+      li.appendText(`, ${stat.minutes} min / 分鐘`);
+    }
+    if (hobbyStats.some((stat) => stat.activity.id === "reading")) {
+      const links = root.createEl("p");
+      const baseLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: "Reading bookshelf",
+      });
+      baseLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(READING_BOOKSHELF_REL);
+      });
+      links.appendText(" · ");
+      const shelfLink = links.createEl("a", {
+        cls: "fitness-link",
+        text: "Atomic book shelf",
+      });
+      shelfLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        void data.openPath(BOOK_SHELF_HOST_REL);
+      });
+    }
   }
 
   root.createEl("h3", { text: "Monthly / 每月" });

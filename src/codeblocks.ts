@@ -7,7 +7,9 @@ import {
   renderDashboard,
   resolveDashboardYear,
 } from "./views/dashboard";
+import { renderBookShelf } from "./views/book-shelf";
 import { renderHeatmaps, resolveHeatmapYear } from "./views/heatmap";
+import { renderAtomicTimer } from "./views/timer";
 import { renderTodaySessions, resolveTodayDate } from "./views/today";
 import {
   codeblockLanguages,
@@ -59,7 +61,7 @@ export async function renderBlock(
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        renderHeatmaps(el, data, activityTypes, year, tz);
+        await renderHeatmaps(el, data, activityTypes, year, tz);
         break;
       }
       case "atomic-today": {
@@ -111,6 +113,14 @@ export async function renderBlock(
       }
       case "atomic-actions": {
         renderActions(el, plugin);
+        break;
+      }
+      case "atomic-timer": {
+        await renderAtomicTimer(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-bookshelf": {
+        renderBookShelf(el, data, activityTypes, opts);
         break;
       }
       default:

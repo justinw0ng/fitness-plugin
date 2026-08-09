@@ -225,7 +225,7 @@ function normalizeEntry(entry: TimeLogEntry): TimeLogEntry {
   return {
     date: entry.date,
     minutes: normalizeMinutes(entry.minutes),
-    note: String(entry.note || "").trim(),
+    note: sanitizeLogNote(entry.note),
     ...(entry.startIso ? { startIso: entry.startIso } : {}),
     ...(entry.endIso ? { endIso: entry.endIso } : {}),
   };
@@ -313,6 +313,13 @@ function sumMinutes(entries: TimeLogEntry[]): number {
 
 function normalizeMinutes(minutes: number): number {
   return Math.max(0, Math.round(minutes));
+}
+
+function sanitizeLogNote(note: unknown): string {
+  return String(note || "")
+    .replace(/[\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function trimTrailingBlankLines(lines: string[]): string[] {
