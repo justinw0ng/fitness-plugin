@@ -497,7 +497,7 @@ var zhHantEn = {
   "notice.noExerciseActivities": "No exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
   "notice.noGymActivity": "No gym activity configured / \u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
   "notice.noGolfActivity": "No golf activity configured / \u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
-  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u95B1\u8B80\u8208\u8DA3",
+  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u7747\u66F8\u8208\u8DA3",
   "notice.dashboardNotFound": "Dashboard not found / \u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
   "notice.openedExistingSession": "Opened existing {activity} session / \u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
   "notice.createdSession": "Created {activity} session / \u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
@@ -1044,7 +1044,7 @@ var DEFAULT_ACTIVITY_TYPES = [
   {
     id: "reading",
     domain: "hobby",
-    label: "Reading",
+    label: "Reading / \u7747\u66F8",
     folder: "atomics/hobbies/Reading",
     enabled: true,
     baseColor: BLUE[2],

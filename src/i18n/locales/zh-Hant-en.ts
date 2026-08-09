@@ -63,7 +63,7 @@ export const zhHantEn = {
   "notice.noExerciseActivities": "No exercise activities configured / 尚未設定運動活動",
   "notice.noGymActivity": "No gym activity configured / 尚未設定健身活動",
   "notice.noGolfActivity": "No golf activity configured / 尚未設定高爾夫活動",
-  "notice.noReadingHobby": "No Reading hobby configured / 尚未設定閱讀興趣",
+  "notice.noReadingHobby": "No Reading hobby configured / 尚未設定睇書興趣",
   "notice.dashboardNotFound": "Dashboard not found / 找不到儀表板: {path}",
   "notice.openedExistingSession": "Opened existing {activity} session / 已開啟現有 {activity} 訓練: {path}",
   "notice.createdSession": "Created {activity} session / 已建立 {activity} 訓練: {path}",

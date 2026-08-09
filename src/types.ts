@@ -112,7 +112,7 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
   {
     id: "reading",
     domain: "hobby",
-    label: "Reading",
+    label: "Reading / 睇書",
     folder: "atomics/hobbies/Reading",
     enabled: true,
     baseColor: BLUE[2],
