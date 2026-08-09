@@ -86,7 +86,9 @@ export class FitnessSettingTab extends PluginSettingTab {
             this.plugin.settings.deprecatedFitnessCuesEnabled = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAll();
-            new Notice("Legacy fitness-cues setting saved.");
+            new Notice(
+              "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration.",
+            );
           }),
       );
 
@@ -128,7 +130,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       this.plugin.refreshAll();
       this.display();
       new Notice(
-        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled.`,
+        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`,
       );
     } catch (err) {
       console.error("Fitness cues migration failed", err);

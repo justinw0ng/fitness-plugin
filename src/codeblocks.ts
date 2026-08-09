@@ -118,9 +118,13 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
     "fitness-dashboard",
     "fitness-golf-cues",
     "fitness-gym-cues",
-    "fitness-cues",
     "fitness-actions",
   ];
+  // Obsidian cannot unregister a single processor later; legacy is registered
+  // only at load when enabled. Toggle/migrate ask the user to reload.
+  if (plugin.settings.deprecatedFitnessCuesEnabled) {
+    kinds.push("fitness-cues");
+  }
 
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(

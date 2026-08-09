@@ -1072,9 +1072,11 @@ function registerCodeblocks(plugin) {
     "fitness-dashboard",
     "fitness-golf-cues",
     "fitness-gym-cues",
-    "fitness-cues",
     "fitness-actions"
   ];
+  if (plugin.settings.deprecatedFitnessCuesEnabled) {
+    kinds.push("fitness-cues");
+  }
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(
       kind,
@@ -1215,16 +1217,41 @@ var VaultDataSource = class {
 var import_obsidian3 = require("obsidian");
 
 // src/util/migrate-cues.ts
+var OPEN_RE = /^( {0,3})(```+|~~~+)([^\n]*)$/;
+var CLOSE_RE = /^( {0,3})(```+|~~~+)[ \t]*$/;
+function parseInfoLanguage(info) {
+  return info.trim().split(/\s+/, 1)[0] || "";
+}
 function rewriteFitnessCuesFences(markdown) {
+  const lines = String(markdown).split(/\r?\n/);
+  let open = null;
   let replacements = 0;
-  const markdownOut = String(markdown).replace(
-    /(^|\n)(```|~~~)(fitness-cues)(\b[^\n]*)/g,
-    (_m, pre, fence, _lang, rest) => {
-      replacements += 1;
-      return `${pre}${fence}fitness-golf-cues${rest}`;
+  const out = lines.map((line) => {
+    if (open) {
+      const close = line.match(CLOSE_RE);
+      if (close && close[2][0] === open.marker && close[2].length >= open.length) {
+        open = null;
+      }
+      return line;
     }
-  );
-  return { markdown: markdownOut, replacements };
+    const m = line.match(OPEN_RE);
+    if (!m) return line;
+    const indent = m[1];
+    const fence = m[2];
+    const info = m[3] ?? "";
+    const marker = fence[0];
+    const length = fence.length;
+    const lang = parseInfoLanguage(info);
+    if (lang === "fitness-cues") {
+      replacements += 1;
+      const rest = info.replace(/^\s*fitness-cues\b/, "fitness-golf-cues");
+      open = { marker, length };
+      return `${indent}${fence}${rest}`;
+    }
+    open = { marker, length };
+    return line;
+  });
+  return { markdown: out.join("\n"), replacements };
 }
 
 // src/util/merge-settings.ts
@@ -1291,7 +1318,9 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
         this.plugin.settings.deprecatedFitnessCuesEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian3.Notice("Legacy fitness-cues setting saved.");
+        new import_obsidian3.Notice(
+          "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration."
+        );
       })
     );
     new import_obsidian3.Setting(containerEl).setName("Migrate legacy cue blocks").setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.").addButton(
@@ -1321,7 +1350,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
       this.plugin.refreshAll();
       this.display();
       new import_obsidian3.Notice(
-        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled.`
+        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`
       );
     } catch (err) {
       console.error("Fitness cues migration failed", err);

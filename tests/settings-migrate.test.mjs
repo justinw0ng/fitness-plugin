@@ -52,3 +52,30 @@ test("rewriteFitnessCuesFences handles tildes and info strings", () => {
   assert.equal(replacements, 1);
   assert.match(markdown, /~~~fitness-golf-cues extra\n/);
 });
+
+test("rewriteFitnessCuesFences ignores nested fences inside docs samples", () => {
+  const input = [
+    "Example:",
+    "````markdown",
+    "```fitness-cues",
+    "year: 2026",
+    "```",
+    "````",
+    "",
+    "```fitness-cues",
+    "year: 2026",
+    "```",
+    "",
+  ].join("\n");
+  const { markdown, replacements } = rewriteFitnessCuesFences(input);
+  assert.equal(replacements, 1);
+  assert.match(markdown, /````markdown\n```fitness-cues\n/);
+  assert.match(markdown, /\n```fitness-golf-cues\n/);
+});
+
+test("rewriteFitnessCuesFences rewrites indented top-level fences", () => {
+  const input = "  ```fitness-cues\nyear: 1\n  ```\n";
+  const { markdown, replacements } = rewriteFitnessCuesFences(input);
+  assert.equal(replacements, 1);
+  assert.match(markdown, /^ {2}```fitness-golf-cues\n/);
+});
