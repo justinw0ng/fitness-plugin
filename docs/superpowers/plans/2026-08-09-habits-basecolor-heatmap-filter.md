@@ -29,23 +29,23 @@
 - Create: `src/util/colors.ts`, `tests/colors.test.mjs`
 - Modify: `src/types.ts`, `src/util/activity-types.ts`, `tests/activity-types.test.mjs`
 
-- [ ] Add `shadesFromBaseColor` with seeded exact maps for GREEN[2]/ORANGE[2]/BLUE[2]
-- [ ] Add `enabled` + `baseColor` to `ActivityType` and defaults
-- [ ] `createExerciseActivityType` / `createHobbyActivityType` set `enabled: true`, `baseColor`, derived `colors`
-- [ ] `normalizeActivityType` migrates missing fields and regenerates colors
-- [ ] `exerciseActivities` / `hobbyActivities` filter `enabled === true`
-- [ ] Tests for shades, normalize, enabled filter
-- [ ] Commit
+- [x] Add `shadesFromBaseColor` with seeded exact maps for GREEN[2]/ORANGE[2]/BLUE[2]
+- [x] Add `enabled` + `baseColor` to `ActivityType` and defaults
+- [x] `createExerciseActivityType` / `createHobbyActivityType` set `enabled: true`, `baseColor`, derived `colors`
+- [x] `normalizeActivityType` migrates missing fields and regenerates colors
+- [x] `exerciseActivities` / `hobbyActivities` filter `enabled === true`
+- [x] Tests for shades, normalize, enabled filter
+- [x] Commit
 
 ## Task 2: mergeSettings Reading seed policy
 
 **Files:**
 - Modify: `src/util/merge-settings.ts`, `tests/settings-migrate.test.mjs`
 
-- [ ] Only append missing built-in hobbies when list is empty or from legacy `series`
-- [ ] Do not re-add Reading if modern `activityTypes` omits it
-- [ ] Preserve `enabled: false` when stored
-- [ ] Commit
+- [x] Only append missing built-in hobbies when list is empty or from legacy `series`
+- [x] Do not re-add Reading if modern `activityTypes` omits it
+- [x] Preserve `enabled: false` when stored
+- [x] Commit
 
 ## Task 3: Heatmap activity filter (pure + wire)
 
@@ -53,29 +53,29 @@
 - Create or extend: helper in `src/views/heatmap.ts` or `src/util/heatmap-activities.ts` + tests
 - Modify: `src/codeblocks.ts`, `src/views/heatmap.ts`, i18n locales
 
-- [ ] `resolveHeatmapActivities(activityTypes, activityOption)` → `{ activities, invalidIds }`
-- [ ] Wire `opts.activity` from codeblock
-- [ ] Inline message for invalid/disabled ids; render valid heatmaps
-- [ ] Commit
+- [x] `resolveHeatmapActivities(activityTypes, activityOption)` → `{ activities, invalidIds }`
+- [x] Wire `opts.activity` from codeblock
+- [x] Inline message for invalid/disabled ids; render valid heatmaps
+- [x] Commit
 
 ## Task 4: Settings UI — color picker, enable, delete, hobbies
 
 **Files:**
 - Modify: `src/settings.ts`, `styles.css`, `src/i18n/locales/en.ts`, `zh-Hant-en.ts`
 
-- [ ] Replace 4 color texts with `addColorPicker` + swatch preview
-- [ ] Enable toggle + Delete (Modal confirm) on exercise rows
-- [ ] General habits section: list hobbies, add, enable, color, delete
-- [ ] Commit
+- [x] Replace 4 color texts with `addColorPicker` + swatch preview
+- [x] Enable toggle + Delete (Modal confirm) on exercise rows
+- [x] General habits section: list hobbies, add, enable, color, delete
+- [x] Commit
 
 ## Task 5: Commands respect enabled + New hobby item
 
 **Files:**
 - Modify: `src/main.ts`, `src/commands/create-reading-item.ts` (or generalize), i18n
 
-- [ ] Gate Reading/Gym/Golf/exercise pickers on enabled
-- [ ] Add New hobby item command over enabled hobbies
-- [ ] Commit
+- [x] Gate Reading/Gym/Golf/exercise pickers on enabled
+- [x] Add New hobby item command over enabled hobbies
+- [x] Commit
 
 ## Task 6: Dashboard/other consumers + verify
 
@@ -83,9 +83,9 @@
 - Modify: `src/views/dashboard.ts` (and any other direct activity loops) as needed
 - Run: `npm test`, `npm run typecheck`, `npm run build`
 
-- [ ] Ensure dashboard/today/cues use enabled filters
-- [ ] Full verify; ship `main.js` if settings/runtime changed
-- [ ] Update PR
+- [x] Ensure dashboard/today/cues use enabled filters
+- [x] Full verify; ship `main.js` if settings/runtime changed
+- [x] Update PR
 
 ---
 
