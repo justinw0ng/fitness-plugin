@@ -31,6 +31,10 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | Hobby cues | None |
 | Canvas | Ordinary vault notes + wikilinks; no custom canvas format |
 | Legacy codeblocks | `fitness-*` aliases until migrate turns them off |
+| Cue blocks | Dedicated `atomic-golf-cues` / `atomic-gym-cues`, plus generic `atomic-cues` with `activity:` arg |
+| Hobby heatmap source | Timer-log minutes (not pages/chapters) |
+| Default hobbies (v1) | Reading only (no extra defaults for now) |
+| Migrate destination conflict | Skip only when destination exists; no merge of leftover source files |
 
 ## Decomposition (multiple PRs after approval)
 
