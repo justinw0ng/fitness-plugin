@@ -50,22 +50,22 @@ export const EMPTY_CELL = "#ebedf0";
 
 export const DEFAULT_SETTINGS: FitnessSettings = {
   timezone: "Asia/Hong_Kong",
-  dashboardPath: "Fitness/Dashboard.md",
-  golfCuesPath: "Golf/Cues.md",
-  gymCuesPath: "Gym/Cues.md",
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
   deprecatedFitnessCuesEnabled: true,
   series: [
     {
       id: "gym",
       label: "🏋️ Gym / 健身",
-      folder: "Gym",
+      folder: "atomics/exercise/Gym",
       colors: GREEN,
       kind: "gym",
     },
     {
       id: "golf",
       label: "⛳ Golf / 高爾夫",
-      folder: "Golf",
+      folder: "atomics/exercise/Golf",
       colors: ORANGE,
       kind: "golf",
     },

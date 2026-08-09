@@ -5,10 +5,49 @@ import { rewriteFitnessCuesFences } from "../src/util/migrate-cues.ts";
 
 test("mergeSettings defaults include golf/gym paths and legacy on", () => {
   const s = mergeSettings(null);
-  assert.equal(s.golfCuesPath, "Golf/Cues.md");
-  assert.equal(s.gymCuesPath, "Gym/Cues.md");
+  assert.equal(s.dashboardPath, "atomics/Dashboard.md");
+  assert.equal(s.golfCuesPath, "atomics/exercise/Golf/Cues.md");
+  assert.equal(s.gymCuesPath, "atomics/exercise/Gym/Cues.md");
+  assert.equal(
+    s.series.find((series) => series.id === "gym")?.folder,
+    "atomics/exercise/Gym",
+  );
+  assert.equal(
+    s.series.find((series) => series.id === "golf")?.folder,
+    "atomics/exercise/Golf",
+  );
   assert.equal(s.deprecatedFitnessCuesEnabled, true);
   assert.equal("cuesPath" in s, false);
+});
+
+test("mergeSettings preserves legacy stored folders until migration", () => {
+  const s = mergeSettings({
+    dashboardPath: "Fitness/Dashboard.md",
+    golfCuesPath: "Golf/Cues.md",
+    gymCuesPath: "Gym/Cues.md",
+    series: [
+      {
+        id: "gym",
+        label: "Gym",
+        folder: "Gym",
+        colors: ["#1", "#2", "#3", "#4"],
+        kind: "gym",
+      },
+      {
+        id: "golf",
+        label: "Golf",
+        folder: "Golf",
+        colors: ["#1", "#2", "#3", "#4"],
+        kind: "golf",
+      },
+    ],
+  });
+
+  assert.equal(s.dashboardPath, "Fitness/Dashboard.md");
+  assert.equal(s.golfCuesPath, "Golf/Cues.md");
+  assert.equal(s.gymCuesPath, "Gym/Cues.md");
+  assert.equal(s.series.find((series) => series.id === "gym")?.folder, "Gym");
+  assert.equal(s.series.find((series) => series.id === "golf")?.folder, "Golf");
 });
 
 test("mergeSettings maps legacy cuesPath to golfCuesPath", () => {
