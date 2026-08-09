@@ -25,6 +25,8 @@ type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
 function cloneActivities(activityTypes: ActivityType[]): ActivityType[] {
   return activityTypes.map((activity) => ({
     ...activity,
+    enabled: activity.enabled !== false,
+    baseColor: activity.baseColor,
     colors: [
       activity.colors[0],
       activity.colors[1],

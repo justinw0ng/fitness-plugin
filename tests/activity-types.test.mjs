@@ -1,11 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { BLUE, GREEN } from "../src/types.ts";
 import {
   createExerciseActivityType,
   createHobbyActivityType,
   defaultExerciseFolder,
   defaultHobbyFolder,
+  exerciseActivities,
   hobbyActivities,
+  normalizeActivityType,
   resolveCueActivityType,
 } from "../src/util/activity-types.ts";
 
@@ -27,6 +30,9 @@ test("createExerciseActivityType creates a daily exercise with cues enabled", ()
       domain: activity.domain,
       label: activity.label,
       folder: activity.folder,
+      enabled: activity.enabled,
+      baseColor: activity.baseColor,
+      colors: activity.colors,
       noteModel: activity.noteModel,
       supportsCues: activity.supportsCues,
       supportsTimer: activity.supportsTimer,
@@ -37,6 +43,9 @@ test("createExerciseActivityType creates a daily exercise with cues enabled", ()
       domain: "exercise",
       label: "Badminton doubles",
       folder: "atomics/exercise/Badminton doubles",
+      enabled: true,
+      baseColor: GREEN[2],
+      colors: GREEN,
       noteModel: "dailySession",
       supportsCues: true,
       supportsTimer: false,
@@ -61,6 +70,9 @@ test("createHobbyActivityType creates an item hobby with timer enabled and cues 
       domain: activity.domain,
       label: activity.label,
       folder: activity.folder,
+      enabled: activity.enabled,
+      baseColor: activity.baseColor,
+      colors: activity.colors,
       noteModel: activity.noteModel,
       supportsCues: activity.supportsCues,
       supportsTimer: activity.supportsTimer,
@@ -71,6 +83,9 @@ test("createHobbyActivityType creates an item hobby with timer enabled and cues 
       domain: "hobby",
       label: "Model trains",
       folder: "atomics/hobbies/Model trains",
+      enabled: true,
+      baseColor: BLUE[2],
+      colors: BLUE,
       noteModel: "item",
       supportsCues: false,
       supportsTimer: true,
@@ -79,13 +94,58 @@ test("createHobbyActivityType creates an item hobby with timer enabled and cues 
   );
 });
 
-test("hobbyActivities returns timer item hobbies", () => {
-  const activities = [
-    createExerciseActivityType("Running"),
-    createHobbyActivityType("Reading"),
-  ];
+test("hobbyActivities and exerciseActivities skip disabled activities", () => {
+  const reading = createHobbyActivityType("Reading");
+  reading.enabled = false;
+  const running = createExerciseActivityType("Running");
+  running.enabled = false;
+  const golf = createExerciseActivityType("Golf");
 
-  assert.deepEqual(hobbyActivities(activities).map((activity) => activity.id), ["reading"]);
+  const activities = [running, golf, reading, createHobbyActivityType("Chess")];
+
+  assert.deepEqual(hobbyActivities(activities).map((activity) => activity.id), ["chess"]);
+  assert.deepEqual(exerciseActivities(activities).map((activity) => activity.id), ["golf"]);
+});
+
+test("normalizeActivityType migrates missing enabled/baseColor and regenerates shades", () => {
+  const normalized = normalizeActivityType(
+    {
+      id: "gym",
+      domain: "exercise",
+      label: "Gym",
+      folder: "atomics/exercise/Gym",
+      colors: GREEN,
+      noteModel: "dailySession",
+      supportsCues: true,
+      supportsSetTable: true,
+    },
+    GREEN,
+  );
+
+  assert.ok(normalized);
+  assert.equal(normalized.enabled, true);
+  assert.equal(normalized.baseColor, GREEN[2]);
+  assert.deepEqual(normalized.colors, GREEN);
+});
+
+test("normalizeActivityType preserves enabled false and regenerates from baseColor", () => {
+  const normalized = normalizeActivityType(
+    {
+      id: "reading",
+      domain: "hobby",
+      label: "Reading",
+      folder: "atomics/hobbies/Reading",
+      enabled: false,
+      baseColor: BLUE[2],
+      noteModel: "item",
+      supportsTimer: true,
+    },
+    BLUE,
+  );
+
+  assert.ok(normalized);
+  assert.equal(normalized.enabled, false);
+  assert.deepEqual(normalized.colors, BLUE);
 });
 
 test("resolveCueActivityType only returns cue-capable exercise activities", () => {
