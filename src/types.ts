@@ -29,7 +29,7 @@ export interface FitnessSettings {
   dashboardPath: string;
   golfCuesPath: string;
   gymCuesPath: string;
-  deprecatedFitnessCuesEnabled: boolean;
+  deprecatedFitnessBlocksEnabled: boolean;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -53,7 +53,7 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
-  deprecatedFitnessCuesEnabled: true,
+  deprecatedFitnessBlocksEnabled: true,
   series: [
     {
       id: "gym",

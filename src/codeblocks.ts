@@ -9,6 +9,11 @@ import {
 } from "./views/dashboard";
 import { renderHeatmaps, resolveHeatmapYear } from "./views/heatmap";
 import { renderTodaySessions, resolveTodayDate } from "./views/today";
+import {
+  codeblockLanguages,
+  resolveCodeblockKind,
+  resolveCueActivity,
+} from "./util/codeblock-languages";
 
 export type LiveBlock = {
   kind: string;
@@ -38,20 +43,31 @@ export async function renderBlock(
   const settings = plugin.settings;
   const series = settings.series;
   const tz = settings.timezone;
+  const resolvedKind = resolveCodeblockKind(kind);
 
   try {
-    switch (kind) {
-      case "fitness-heatmap": {
+    if (kind.startsWith("fitness-") && !settings.deprecatedFitnessBlocksEnabled) {
+      el.empty();
+      const root = el.createDiv({ cls: "fitness-plugin" });
+      root.createEl("p", {
+        text: "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
+        cls: "fitness-muted",
+      });
+      return;
+    }
+
+    switch (resolvedKind) {
+      case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
         renderHeatmaps(el, data, series, year, tz);
         break;
       }
-      case "fitness-today": {
+      case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
         renderTodaySessions(el, data, series, dateStr);
         break;
       }
-      case "fitness-dashboard": {
+      case "atomic-dashboard": {
         const year = resolveDashboardYear(
           opts,
           frontmatterYear(plugin, sourcePath),
@@ -67,14 +83,15 @@ export async function renderBlock(
         );
         break;
       }
-      case "fitness-golf-cues":
-      case "fitness-gym-cues":
-      case "fitness-cues": {
-        if (kind === "fitness-cues" && !settings.deprecatedFitnessCuesEnabled) {
+      case "atomic-golf-cues":
+      case "atomic-gym-cues":
+      case "atomic-cues": {
+        const activity = resolveCueActivity(resolvedKind, opts);
+        if (!activity) {
           el.empty();
           const root = el.createDiv({ cls: "fitness-plugin" });
           root.createEl("p", {
-            text: "Legacy fitness-cues block is disabled. Use fitness-golf-cues.",
+            text: "atomic-cues requires an activity option, for example activity: golf.",
             cls: "fitness-muted",
           });
           break;
@@ -90,41 +107,29 @@ export async function renderBlock(
           series,
           year,
           tz,
-          kind === "fitness-gym-cues" ? "gym" : "golf",
+          activity,
         );
         break;
       }
-      case "fitness-actions": {
+      case "atomic-actions": {
         renderActions(el, plugin);
         break;
       }
       default:
-        el.createEl("p", { text: `Unknown fitness block: ${kind}` });
+        el.createEl("p", { text: `Unknown Atomic block: ${kind}` });
     }
   } catch (err) {
-    console.error("Fitness block error", kind, err);
+    console.error("Atomic block error", kind, err);
     el.empty();
     el.createEl("p", {
-      text: `Fitness error: ${err instanceof Error ? err.message : String(err)}`,
+      text: `Atomic error: ${err instanceof Error ? err.message : String(err)}`,
       cls: "mod-warning",
     });
   }
 }
 
 export function registerCodeblocks(plugin: FitnessPlugin): void {
-  const kinds = [
-    "fitness-heatmap",
-    "fitness-today",
-    "fitness-dashboard",
-    "fitness-golf-cues",
-    "fitness-gym-cues",
-    "fitness-actions",
-  ];
-  // Obsidian cannot unregister a single processor later; legacy is registered
-  // only at load when enabled. Toggle/migrate ask the user to reload.
-  if (plugin.settings.deprecatedFitnessCuesEnabled) {
-    kinds.push("fitness-cues");
-  }
+  const kinds = codeblockLanguages(plugin.settings.deprecatedFitnessBlocksEnabled);
 
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(

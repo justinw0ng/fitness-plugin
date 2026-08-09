@@ -4,7 +4,10 @@ import { DEFAULT_SETTINGS } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
 
-type RawSettings = Partial<FitnessSettings> & { cuesPath?: string };
+type RawSettings = Partial<FitnessSettings> & {
+  cuesPath?: string;
+  deprecatedFitnessCuesEnabled?: boolean;
+};
 
 function sanitizeSeries(
   series: SeriesConfig[] | undefined,
@@ -35,8 +38,11 @@ export function mergeSettings(
     golfCuesPath,
     gymCuesPath:
       (raw.gymCuesPath && raw.gymCuesPath.trim()) || base.gymCuesPath,
-    deprecatedFitnessCuesEnabled:
-      raw.deprecatedFitnessCuesEnabled === false ? false : true,
+    deprecatedFitnessBlocksEnabled:
+      raw.deprecatedFitnessBlocksEnabled === false ||
+      raw.deprecatedFitnessCuesEnabled === false
+        ? false
+        : true,
     series: [...sanitizeSeries(raw.series, base.series)],
   };
 }

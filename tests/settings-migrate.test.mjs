@@ -16,7 +16,7 @@ test("mergeSettings defaults include golf/gym paths and legacy on", () => {
     s.series.find((series) => series.id === "golf")?.folder,
     "atomics/exercise/Golf",
   );
-  assert.equal(s.deprecatedFitnessCuesEnabled, true);
+  assert.equal(s.deprecatedFitnessBlocksEnabled, true);
   assert.equal("cuesPath" in s, false);
 });
 
@@ -63,9 +63,14 @@ test("mergeSettings prefers golfCuesPath over cuesPath", () => {
   assert.equal(s.golfCuesPath, "New.md");
 });
 
-test("mergeSettings respects deprecatedFitnessCuesEnabled false", () => {
+test("mergeSettings respects deprecatedFitnessBlocksEnabled false", () => {
+  const s = mergeSettings({ deprecatedFitnessBlocksEnabled: false });
+  assert.equal(s.deprecatedFitnessBlocksEnabled, false);
+});
+
+test("mergeSettings maps legacy cue flag false to fitness block aliases off", () => {
   const s = mergeSettings({ deprecatedFitnessCuesEnabled: false });
-  assert.equal(s.deprecatedFitnessCuesEnabled, false);
+  assert.equal(s.deprecatedFitnessBlocksEnabled, false);
 });
 
 test("rewriteFitnessCuesFences rewrites fence language only", () => {

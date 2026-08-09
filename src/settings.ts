@@ -75,19 +75,19 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Allow legacy `fitness-cues` block")
+      .setName("Allow legacy `fitness-*` blocks")
       .setDesc(
-        "Keep supporting the old golf cue codeblock name. Turn off after migrating notes (or use Migrate).",
+        "Keep supporting old Fitness codeblock names. Turn off after migrating notes (or use Migrate).",
       )
       .addToggle((toggle) =>
         toggle
-          .setValue(this.plugin.settings.deprecatedFitnessCuesEnabled)
+          .setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled)
           .onChange(async (value) => {
-            this.plugin.settings.deprecatedFitnessCuesEnabled = value;
+            this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAll();
             new Notice(
-              "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration.",
+              "Legacy fitness-* setting saved. Reload the plugin (or Obsidian) to apply registration.",
             );
           }),
       );
@@ -125,7 +125,7 @@ export class FitnessSettingTab extends PluginSettingTab {
         replacements += result.replacements;
       }
 
-      this.plugin.settings.deprecatedFitnessCuesEnabled = false;
+      this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();

@@ -13,9 +13,7 @@ import {
 } from "../dates";
 import type { SeriesConfig } from "../types";
 
-type CueKind = "golf" | "gym";
-
-const CUE_SERIES_FOLDERS: Record<CueKind, string> = {
+const CUE_SERIES_FOLDERS: Record<string, string> = {
   golf: "Golf",
   gym: "Gym",
 };
@@ -37,17 +35,18 @@ export async function renderCues(
   seriesList: SeriesConfig[],
   year: number,
   timezone: string,
-  kind: CueKind,
+  activity: string,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
+  const legacyFolder = CUE_SERIES_FOLDERS[activity];
 
   const series =
-    seriesList.find((s) => s.kind === kind) ||
-    seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
+    seriesList.find((s) => s.id === activity || s.kind === activity) ||
+    (legacyFolder ? seriesList.find((s) => s.folder === legacyFolder) : undefined);
   if (!series) {
     root.createEl("p", {
-      text: `No ${kind} series configured.`,
+      text: `No ${activity} series configured.`,
       cls: "fitness-muted",
     });
     return;
