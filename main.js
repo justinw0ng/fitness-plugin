@@ -1935,7 +1935,7 @@ ${item.path}`;
 function statusRank(status) {
   return STATUS_ORDER.get(status) ?? 99;
 }
-function buildBookShelfItems(files) {
+function buildBookShelfItems(files, activityId = "reading") {
   return files.filter(
     (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
   ).map((file) => {
@@ -3029,7 +3029,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
   }
   renderExerciseType(containerEl, activity) {
     const language = this.plugin.settings.language;
-    new import_obsidian4.Setting(containerEl).setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addText(
+    new import_obsidian4.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addText(
       (text) => text.setPlaceholder(t("settings.labelPlaceholder", language)).setValue(activity.label).onChange(async (value) => {
         const label = value.trim();
         if (!label) return;
@@ -3052,7 +3052,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
         await this.saveAndRefresh();
       })
     );
-    new import_obsidian4.Setting(containerEl).setName(t("settings.colors", language, { label: activity.label })).setDesc(t("settings.colorsDesc", language)).addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
+    new import_obsidian4.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.colors", language, { label: activity.label })).setDesc(t("settings.colorsDesc", language)).addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
   }
   bindColorText(text, activity, index) {
     const language = this.plugin.settings.language;
