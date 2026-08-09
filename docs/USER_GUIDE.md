@@ -277,7 +277,7 @@ Legacy names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, `fitness-a
 
 ### From the actions codeblock
 
-Put `atomic-actions` on a note and use the buttons.
+Put `atomic-actions` on a note and use the buttons. Every **enabled** habit appears there: exercise types create a daily session; general habits (Reading, Chess, …) create an item note.
 
 ![Quick actions, heatmap, and today](./images/atomic-actions.png)
 
