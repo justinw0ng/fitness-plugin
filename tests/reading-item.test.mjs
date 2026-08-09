@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   buildHobbyItemPath,
   buildReadingItemPath,
   readingItemMarkdown,
 } from "../src/commands/create-reading-item.ts";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("buildHobbyItemPath creates safe hobby item paths", () => {
   assert.equal(
@@ -60,4 +65,16 @@ test("readingItemMarkdown includes Bases fields, timer fields, and atomic-timer 
 test("readingItemMarkdown parameterizes activity id for general hobbies", () => {
   const markdown = readingItemMarkdown("Sicilian Defense", "en", "chess");
   assert.match(markdown, /activity: chess\n/);
+});
+
+test("create reading/hobby item and timer stop use Obsidian promptText, not window.prompt", () => {
+  const reading = readFileSync(
+    join(root, "src/commands/create-reading-item.ts"),
+    "utf8",
+  );
+  const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
+  assert.match(reading, /promptText/);
+  assert.doesNotMatch(reading, /window\.prompt/);
+  assert.match(timer, /promptText/);
+  assert.doesNotMatch(timer, /window\.prompt/);
 });

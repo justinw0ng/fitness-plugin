@@ -75,9 +75,13 @@ export async function createHobbyItem(
   hobbyActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  const title = window.prompt(
+  // Dynamic import keeps pure helpers testable without loading the Obsidian runtime stub.
+  const { promptText } = await import("../util/prompt-text");
+  const title = await promptText(
+    app,
     t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
     "",
+    language,
   );
   if (title === null) return;
   const path = buildHobbyItemPath(hobbyActivity.folder, title);
@@ -105,7 +109,6 @@ export async function createHobbyItem(
       path,
     }),
   );
-  void app;
 }
 
 export async function createReadingItem(
@@ -114,5 +117,36 @@ export async function createReadingItem(
   readingActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  await createHobbyItem(app, data, readingActivity, language);
+  // Dynamic import keeps pure helpers testable without loading the Obsidian runtime stub.
+  const { promptText } = await import("../util/prompt-text");
+  const title = await promptText(
+    app,
+    t("modal.readingItemTitle", language),
+    "",
+    language,
+  );
+  if (title === null) return;
+  const path = buildReadingItemPath(readingActivity.folder, title);
+  const { Notice } = await import("obsidian");
+
+  if (data.exists(path)) {
+    await data.openPath(path);
+    new Notice(
+      t("notice.openedExistingReadingItem", language, {
+        path,
+      }),
+    );
+    return;
+  }
+
+  await data.createNote(
+    path,
+    readingItemMarkdown(title, language, readingActivity.id),
+  );
+  await data.openPath(path);
+  new Notice(
+    t("notice.createdReadingItem", language, {
+      path,
+    }),
+  );
 }
