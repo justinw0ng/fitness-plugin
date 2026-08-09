@@ -4,10 +4,8 @@ import { t, type Language } from "../i18n/index.ts";
 
 export const BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
 
-export function bookShelfHostMarkdown(language: Language = "en"): string {
-  return `# ${t("template.bookShelfTitle", language)}
-
-\`\`\`atomic-bookshelf
+export function bookShelfHostMarkdown(_language: Language = "en"): string {
+  return `\`\`\`atomic-bookshelf
 activity: reading
 \`\`\`
 `;

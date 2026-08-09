@@ -1,8 +1,8 @@
 # Atomic plugin — user guide
 
-Step-by-step setup for the Obsidian **Atomic** plugin: gym and golf session notes, Reading item timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
+Step-by-step setup for the Obsidian Atomic plugin: gym and golf sessions, Reading timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
 
-Screenshots live in [`docs/images/`](./images/). They were captured on Linux with Obsidian; macOS and Windows look the same aside from window chrome.
+Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian in Light mode; macOS and Windows look the same aside from window chrome.
 
 ---
 
@@ -13,24 +13,45 @@ Screenshots live in [`docs/images/`](./images/). They were captured on Linux wit
 | Year heatmaps | `atomic-heatmap` codeblock |
 | Today’s sessions | `atomic-today` codeblock |
 | Yearly dashboard | `atomic-dashboard` codeblock |
-| Golf cue rollup | `atomic-golf-cues` codeblock (legacy aliases: `fitness-golf-cues`, `fitness-cues`) |
-| Gym cue rollup | `atomic-gym-cues` codeblock (legacy alias: `fitness-gym-cues`) |
-| Generic cue rollup | `atomic-cues` codeblock with `activity: golf` or `activity: gym` |
-| Quick actions | `atomic-actions` codeblock, or command palette |
-| New gym / golf notes | Commands **Atomic: New gym session** / **New golf session** |
-| Reading items | Command **Atomic: New reading item** |
-| Reading timer | `atomic-timer` codeblock in a Reading item note |
-| Reading Bases bookshelf | Command **Atomic: Open reading bookshelf** |
-| Atomic book shelf | `atomic-bookshelf` codeblock, or command **Atomic: Open book shelf** |
+| Golf cue rollup | `atomic-golf-cues` (legacy: `fitness-golf-cues`, `fitness-cues`) |
+| Gym cue rollup | `atomic-gym-cues` (legacy: `fitness-gym-cues`) |
+| Generic cue rollup | `atomic-cues` with `activity: golf` or `activity: gym` |
+| Quick actions | `atomic-actions`, or the command palette |
+| New gym / golf notes | **Atomic: New gym session** / **New golf session** |
+| Reading items | **Atomic: New reading item** |
+| Reading timer | `atomic-timer` in a Reading item note |
+| Reading Bases bookshelf | **Atomic: Open reading bookshelf** |
+| Book shelf | `atomic-bookshelf`, or **Atomic: Open book shelf** |
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
+
+Rendered views (heatmap, dashboard, book shelf, timer, cues) do not show an “Atomic …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
+
+---
+
+## Upgrade from Fitness
+
+If you already use an older Fitness install, upgrade like this:
+
+1. Install Atomic into `<vault>/.obsidian/plugins/obsidian-atomic/` (see [Install](#4-install-this-plugin-into-the-vault)). You can keep the old `obsidian-fitness` folder until migration finishes, then remove it.
+2. Enable **Atomic** under Community plugins. Disable the old Fitness plugin if both are listed.
+3. Open **Settings → Atomic**.
+4. Leave **Allow legacy `fitness-*` blocks** on until you migrate.
+5. Click **Migrate from Fitness to Atomic**. That will:
+   - move `Fitness/Dashboard.md`, `Gym/`, and `Golf/` into `atomics/**` when the destination is empty (skip if the destination already exists; no merge)
+   - rewrite top-level `fitness-*` code fences to `atomic-*`
+   - update settings paths and turn legacy aliases off
+6. Reload the plugin or Obsidian so registered processors match the new settings.
+7. Open your dashboard and cue notes once to confirm the new fences render.
+
+Fresh installs can skip this section and start under `atomics/**`.
 
 ---
 
 ## 1. Install Obsidian
 
 1. Download Obsidian from [obsidian.md/download](https://obsidian.md/download).
-2. Install for your OS (Installer on macOS/Windows, AppImage or deb on Linux).
+2. Install for your OS.
 3. Launch Obsidian.
 
 ![Obsidian welcome screen](./images/01-obsidian-welcome.png)
@@ -51,11 +72,9 @@ Session data is plain markdown in your vault. Nothing is sent over the network.
 
 ## 3. Turn on community plugins
 
-Local plugins load through the Community plugins system.
-
 1. Open **Settings** (gear icon, or `Ctrl/Cmd + ,`).
 2. Go to **Community plugins**.
-3. If you see **Restricted mode**, turn it **off** / click **Turn on community plugins**.
+3. If you see **Restricted mode**, turn it off.
 4. Confirm any trust prompt for your vault.
 
 ![Community plugins settings](./images/04-settings-community-plugins.png)
@@ -64,13 +83,13 @@ Local plugins load through the Community plugins system.
 
 ## 4. Install this plugin into the vault
 
-This plugin is installed from GitHub Releases (not yet from the Community Plugin browser).
+Installed from GitHub Releases (not yet from the Community Plugin browser).
 
 ### Option A — Download a release (recommended)
 
 1. Open the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases).
 2. Download `obsidian-atomic-<version>.zip`.
-3. Unzip it into your vault’s plugins folder:
+3. Unzip into your vault’s plugins folder:
 
 ```text
 <vault>/.obsidian/plugins/
@@ -103,17 +122,17 @@ npm run build
 
 ![Plugin folder layout](./images/05-install-plugin-folder.png)
 
-The screenshot shows a demo vault under `/tmp/...`. On your machine the folder is `<your-vault>/.obsidian/plugins/obsidian-atomic/` with the same three files: `main.js`, `manifest.json`, and `styles.css`.
+The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/obsidian-atomic/` with the same three files.
 
 ---
 
 ## 5. Enable Atomic
 
-1. In Obsidian: **Settings → Community plugins**.
+1. **Settings → Community plugins**.
 2. Click **Reload plugins** if the list is stale.
-3. Find **Atomic** and toggle it **on**.
+3. Find **Atomic** and toggle it on.
 
-![Enable Fitness plugin](./images/06-enable-fitness-plugin.png)
+![Enable Atomic plugin](./images/06-enable-atomic-plugin.png)
 
 ---
 
@@ -123,28 +142,24 @@ The screenshot shows a demo vault under `/tmp/...`. On your machine the folder i
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| Language | Traditional Chinese & English (`zh-Hant-en`) | Plugin UI language. Options are Traditional Chinese & English or English; existing notes and frontmatter are not rewritten |
+| Language | Traditional Chinese & English (`zh-Hant-en`) | Plugin UI language. Options are Traditional Chinese & English or English; existing notes are not rewritten |
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
 | Golf cues path | `atomics/exercise/Golf/Cues.md` | Golf cue rollup note |
 | Gym cues path | `atomics/exercise/Gym/Cues.md` | Gym cue rollup note |
-| Reading hobby | `atomics/hobbies/Reading` | Built-in timer-backed hobby activity |
-| Allow legacy `fitness-*` blocks | On | Keep supporting old Fitness codeblock names until migration |
-| Migrate from Fitness → Atomic | (button) | Move legacy dashboard/Gym/Golf paths when safe, rewrite fenced `fitness-*` blocks to `atomic-*`, update settings, then turn off legacy aliases |
+| Reading hobby | `atomics/hobbies/Reading` | Built-in timer-backed hobby |
+| Allow legacy `fitness-*` blocks | On | Keep old Fitness codeblock names until migration |
+| Migrate from Fitness to Atomic | (button) | One-click vault + fence migrate (see [Upgrade from Fitness](#upgrade-from-fitness)) |
 
-![Fitness plugin settings](./images/07-settings-fitness.png)
+![Atomic settings](./images/07-settings-atomic.png)
 
 Exercise folders default to `atomics/exercise/Gym` and `atomics/exercise/Golf`. Reading defaults to `atomics/hobbies/Reading` with item notes under `Items/`.
 
-Language only changes plugin chrome, prompts, notices, command names after plugin reload, and templates created after the setting changes. Atomic does not provide Simplified Chinese or Chinese-only modes.
-
-If you still have notes using old `fitness-*` block names or the old `Fitness/`, `Gym/`, and `Golf/` layout, leave **Allow legacy `fitness-*` blocks** on until you are ready to migrate. Use **Migrate from Fitness → Atomic** to move paths where the Atomic destination is empty, rewrite codeblock fences across the vault, update settings, and turn off the legacy aliases.
+Language only changes plugin chrome, prompts, notices, command names after reload, and templates created after the change. There is no Simplified Chinese or Chinese-only mode.
 
 ---
 
 ## 7. Recommended vault layout
-
-Create folders and notes like this (the plugin also creates session notes via commands):
 
 ```text
 Vault/
@@ -163,6 +178,8 @@ Vault/
 │       └── Reading/
 │           ├── Bookshelf.base
 │           ├── Book Shelf.md
+│           ├── Covers/
+│           │   └── title.jpg
 │           └── Items/
 │               └── Atomic Habits.md
 └── .obsidian/plugins/obsidian-atomic/
@@ -225,7 +242,7 @@ year: 2026
 ```
 ````
 
-The legacy block names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, `fitness-actions`, `fitness-golf-cues`, `fitness-gym-cues`, and `fitness-cues` still work while **Allow legacy `fitness-*` blocks** is enabled in settings.
+Legacy names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, `fitness-actions`, `fitness-golf-cues`, `fitness-gym-cues`, and `fitness-cues` still work while **Allow legacy `fitness-*` blocks** is on.
 
 ---
 
@@ -241,9 +258,9 @@ The legacy block names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, 
 
 Put `atomic-actions` on a note and use the buttons.
 
-![fitness-actions](./images/fitness-actions.png)
+![Quick actions, heatmap, and today](./images/atomic-actions.png)
 
-Gym notes store sets in a markdown table and reminders under a **Reminders** heading; those feed the gym cue rollup. Golf notes store reminders under a **Reminders** heading; those feed the golf cue rollup.
+Gym notes store sets in a markdown table and reminders under a **Reminders** heading. Golf notes store reminders under **Reminders**. Those feed the cue rollups.
 
 ---
 
@@ -255,7 +272,7 @@ Gym notes store sets in a markdown table and reminders under a **Reminders** hea
 2. Enter the book title.
 3. Atomic creates or opens `atomics/hobbies/Reading/Items/<Title>.md`.
 
-The note frontmatter is ready for Bases:
+Frontmatter is ready for Bases:
 
 ```yaml
 type: atomic-item
@@ -275,9 +292,9 @@ timer_started_at:
 related_canvas:
 ```
 
-`cover` accepts a vault wikilink, vault-relative path, or `http(s):` / `app://` image URL. Put local art under `atomics/hobbies/Reading/Covers/` (or any vault path). If `cover` is empty, the shelf paints a solid `spine_color` / hashed color face with the title.
+`cover` accepts a vault wikilink, vault-relative path, or `http(s):` / `app://` image URL. Put local art under `atomics/hobbies/Reading/Covers/` (or any vault path). Empty `cover` uses `spine_color` / a hashed color with the title (long titles wrap and shrink on the shelf).
 
-Use the **Remarks** section for notes. The **Time log** section is managed by the timer.
+Use **Remarks** for notes. **Time log** is managed by the timer.
 
 ### Use the timer
 
@@ -288,43 +305,47 @@ Reading item notes include:
 ```
 ````
 
-In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Reading timer-log minutes feed `atomic-heatmap` and the dashboard hobby section.
+![Reading timer](./images/atomic-reading-timer.png)
 
-### Open the Reading bookshelf
+In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Timer-log minutes feed `atomic-heatmap` and the dashboard hobby section.
 
-Run **Atomic: Open reading bookshelf**. Atomic creates `atomics/hobbies/Reading/Bookshelf.base` if it is missing, then opens it. The file seeds Bases Cards and Table views filtered to Reading item notes.
+### Open the Reading bookshelf (Bases)
 
-This command soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
+Run **Atomic: Open reading bookshelf**. Atomic creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
 
-### Open the Atomic book shelf
+Soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
 
-Run **Atomic: Open book shelf**. Atomic creates `atomics/hobbies/Reading/Book Shelf.md` if it is missing:
+### Open the book shelf
+
+Run **Atomic: Open book shelf**. Atomic creates `atomics/hobbies/Reading/Book Shelf.md` if missing:
 
 ````markdown
-# Atomic book shelf
-
 ```atomic-bookshelf
 activity: reading
 ```
 ````
 
-The shelf is a plugin-rendered bookshelf scene. Books stand on planks; the editor width decides how many books sit on each plank (rows reflow on resize). Hover/focus rolls the cover open on a spine hinge (local CSS 3D — sleeve edge + inside face), and click opens the book note. There is no Framer runtime or remote script.
+![Book shelf](./images/atomic-book-shelf.png)
 
-`related_canvas` is a plain frontmatter field. You can drag Reading item notes onto Obsidian Canvas or link Canvas notes with normal wikilinks.
+![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
+
+The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks; editor width decides how many books sit on each plank (rows reflow on resize). Hover/focus rolls the cover open on a spine hinge (local CSS 3D). Click opens the book note. No Framer runtime.
+
+`related_canvas` is a plain frontmatter field. Drag Reading notes onto Obsidian Canvas or link them with normal wikilinks.
 
 ---
 
 ## 10. Use the views
 
-Open your dashboard or heatmap note. Codeblocks render inside the note reading view.
+Open your dashboard or heatmap note. Codeblocks render in Reading view.
 
 ### `atomic-dashboard`
 
-![fitness-dashboard](./images/fitness-dashboard.png)
+![Dashboard](./images/atomic-dashboard.png)
 
 ### `atomic-heatmap`
 
-![fitness-heatmap](./images/fitness-heatmap.png)
+![Heatmap](./images/atomic-heatmap.png)
 
 Optional YAML inside a codeblock body:
 
@@ -361,10 +382,11 @@ date: 2026-08-08
 |---------|-----|
 | Plugin not listed | Confirm files are under `.obsidian/plugins/obsidian-atomic/` and reload plugins |
 | Restricted mode | Turn on community plugins in Settings |
-| Empty heatmap / dashboard | Add exercise session notes with `date` / duration frontmatter, or stop a Reading timer so the item note has Time log entries |
-| Reading bookshelf does not open | Enable Obsidian’s Bases core plugin, then rerun **Atomic: Open reading bookshelf** |
+| Empty heatmap / dashboard | Add exercise sessions with `date` / duration, or stop a Reading timer so the item has Time log entries |
+| Reading bookshelf does not open | Enable Bases, then rerun **Atomic: Open reading bookshelf** |
 | Wrong “today” | Set **Timezone** in Atomic settings to your IANA zone |
-| Codeblock shows raw text | Ensure the plugin is enabled and you are in Reading view (or Live Preview after reload) |
+| Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
+| Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |
 
 ---
 

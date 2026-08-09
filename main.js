@@ -315,9 +315,9 @@ var en = {
   "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",
-  "notice.createdBookShelf": "Created Atomic book shelf: {path}",
-  "notice.bookShelfExists": "Atomic book shelf already exists: {path}",
-  "notice.timerNeedsSavedNote": "Atomic timer can only update a saved note.",
+  "notice.createdBookShelf": "Created book shelf: {path}",
+  "notice.bookShelfExists": "Book shelf already exists: {path}",
+  "notice.timerNeedsSavedNote": "Timer can only update a saved note.",
   "notice.timerNotRunning": "Timer is not running.",
   "notice.timerAlreadyRunning": "Timer is already running.",
   "notice.timerLogged": "Logged {minutes} min.",
@@ -347,8 +347,7 @@ var en = {
   "template.golfFeltHint": "felt: good, ok, bad",
   "template.readingRemarks": "Remarks",
   "template.readingTimeLog": "Time log",
-  "template.bookShelfTitle": "Atomic book shelf",
-  "template.readingBookshelfTitle": "Atomic reading bookshelf v1",
+  "template.readingBookshelfTitle": "Reading bookshelf v1",
   "template.base.title": "Title",
   "template.base.authors": "Authors",
   "template.base.description": "Description",
@@ -360,8 +359,8 @@ var en = {
   "template.base.table": "Table",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
-  "view.unknownAtomicBlock": "Unknown Atomic block: {kind}",
-  "view.atomicError": "Atomic error: {message}",
+  "view.unknownAtomicBlock": "Unknown block: {kind}",
+  "view.atomicError": "Error: {message}",
   "view.dashboard.overview": "\u{1F4CA} {year} overview",
   "view.dashboard.cues": "\u{1F4A1} {activity} cues",
   "view.dashboard.sessions": "{activity} sessions: ",
@@ -374,7 +373,7 @@ var en = {
   "view.dashboard.items": "{activity} items: ",
   "view.dashboard.hobbyMinutesSuffix": ", {minutes} min",
   "view.dashboard.readingBookshelf": "Reading bookshelf",
-  "view.dashboard.bookShelf": "Atomic book shelf",
+  "view.dashboard.bookShelf": "Book shelf",
   "view.dashboard.monthly": "Monthly",
   "view.dashboard.month": "Month",
   "view.dashboard.sparkSessions": "{activity} sessions ",
@@ -405,9 +404,8 @@ var en = {
   "view.cues.lastSeen": " (x{count}, last {lastSeen}{focus})",
   "view.bookShelf.open": "Open {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
-  "view.bookShelf.title": "Atomic book shelf",
-  "view.bookShelf.empty": "No Reading items yet. Run Atomic: New reading item.",
-  "view.timer.needsReadingItem": "Atomic timer can only run from a saved Reading item note.",
+  "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
+  "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note.",
   "view.timer.total": "Total: {minutes} min",
   "view.timer.runningSince": "Timer running since {time}",
   "view.timer.stop": "Stop",
@@ -450,8 +448,8 @@ var zhHantEn = {
   "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
   "command.ensureReadingBookshelf": "Ensure reading bookshelf / \u5EFA\u7ACB\u95B1\u8B80 Bookshelf",
   "command.openReadingBookshelf": "Open reading bookshelf / \u958B\u555F\u95B1\u8B80 Bookshelf",
-  "command.ensureBookShelf": "Ensure book shelf / \u5EFA\u7ACB Atomic book shelf",
-  "command.openBookShelf": "Open book shelf / \u958B\u555F Atomic book shelf",
+  "command.ensureBookShelf": "Ensure book shelf / \u5EFA\u7ACB\u66F8\u67B6",
+  "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
   "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
   "notice.created": "Created / \u5DF2\u5EFA\u7ACB: {path}",
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names / \u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
@@ -473,9 +471,9 @@ var zhHantEn = {
   "notice.createdReadingBookshelf": "Created Reading bookshelf / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists / \u95B1\u8B80 Bookshelf \u5DF2\u5B58\u5728: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bookshelf\u3002",
-  "notice.createdBookShelf": "Created Atomic book shelf / \u5DF2\u5EFA\u7ACB Atomic book shelf: {path}",
-  "notice.bookShelfExists": "Atomic book shelf already exists / Atomic book shelf \u5DF2\u5B58\u5728: {path}",
-  "notice.timerNeedsSavedNote": "Atomic timer can only update a saved note / Atomic timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
+  "notice.createdBookShelf": "Created book shelf / \u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
+  "notice.bookShelfExists": "Book shelf already exists / \u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
+  "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
   "notice.timerNotRunning": "Timer is not running / Timer \u5C1A\u672A\u958B\u59CB\u3002",
   "notice.timerAlreadyRunning": "Timer is already running / Timer \u5DF2\u5728\u904B\u884C\u3002",
   "notice.timerLogged": "Logged {minutes} min / \u5DF2\u8A18\u9304 {minutes} \u5206\u9418\u3002",
@@ -505,8 +503,7 @@ var zhHantEn = {
   "template.golfFeltHint": "felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE",
   "template.readingRemarks": "Remarks / \u5099\u8A3B",
   "template.readingTimeLog": "Time log / \u6642\u9593\u8A18\u9304",
-  "template.bookShelfTitle": "Atomic book shelf",
-  "template.readingBookshelfTitle": "Atomic reading bookshelf v1",
+  "template.readingBookshelfTitle": "Reading bookshelf v1",
   "template.base.title": "Title / \u66F8\u540D",
   "template.base.authors": "Authors / \u4F5C\u8005",
   "template.base.description": "Description / \u63CF\u8FF0",
@@ -518,8 +515,8 @@ var zhHantEn = {
   "template.base.table": "Table / \u8868\u683C",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
-  "view.unknownAtomicBlock": "Unknown Atomic block / \u672A\u77E5 Atomic \u5340\u584A: {kind}",
-  "view.atomicError": "Atomic error / Atomic \u932F\u8AA4: {message}",
+  "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
+  "view.atomicError": "Error / \u932F\u8AA4: {message}",
   "view.dashboard.overview": "\u{1F4CA} {year} overview / \u7E3D\u89BD",
   "view.dashboard.cues": "\u{1F4A1} {activity} cues / \u63D0\u9192\u5F59\u6574",
   "view.dashboard.sessions": "{activity} sessions / \u6B21\u6578: ",
@@ -532,7 +529,7 @@ var zhHantEn = {
   "view.dashboard.items": "{activity} items / \u9805\u76EE: ",
   "view.dashboard.hobbyMinutesSuffix": ", {minutes} min / \u5206\u9418",
   "view.dashboard.readingBookshelf": "Reading bookshelf",
-  "view.dashboard.bookShelf": "Atomic book shelf",
+  "view.dashboard.bookShelf": "Book shelf / \u66F8\u67B6",
   "view.dashboard.monthly": "Monthly / \u6BCF\u6708",
   "view.dashboard.month": "Month / \u6708",
   "view.dashboard.sparkSessions": "{activity} sessions / \u6B21\u6578 ",
@@ -563,9 +560,8 @@ var zhHantEn = {
   "view.cues.lastSeen": " (x{count}, last / \u6700\u8FD1 {lastSeen}{focus})",
   "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
-  "view.bookShelf.title": "Atomic book shelf",
-  "view.bookShelf.empty": "No Reading items yet. Run Atomic: New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C Atomic: New reading item\u3002",
-  "view.timer.needsReadingItem": "Atomic timer can only run from a saved Reading item note / Atomic timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u95B1\u8B80\u9805\u76EE\u7B46\u8A18\u57F7\u884C\u3002",
+  "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
+  "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u95B1\u8B80\u9805\u76EE\u7B46\u8A18\u57F7\u884C\u3002",
   "view.timer.total": "Total / \u7E3D\u8A08: {minutes} min / \u5206\u9418",
   "view.timer.runningSince": "Timer running since / Timer \u958B\u59CB\u65BC {time}",
   "view.timer.stop": "Stop / \u505C\u6B62",
@@ -1471,10 +1467,8 @@ function unescapeHtmlAttribute(value) {
 
 // src/hobbies/book-shelf-host.ts
 var BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
-function bookShelfHostMarkdown(language = "en") {
-  return `# ${t("template.bookShelfTitle", language)}
-
-\`\`\`atomic-bookshelf
+function bookShelfHostMarkdown(_language = "en") {
+  return `\`\`\`atomic-bookshelf
 activity: reading
 \`\`\`
 `;
@@ -2089,7 +2083,6 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     return;
   }
   const items = buildBookShelfItems(data.listHobbyItems(activity));
-  root.createEl("h3", { text: t("view.bookShelf.title", language) });
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
   let lastPerRow = -1;
   const layout = () => {

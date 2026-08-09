@@ -284,7 +284,6 @@ export function renderBookShelf(
   }
 
   const items = buildBookShelfItems(data.listHobbyItems(activity));
-  root.createEl("h3", { text: t("view.bookShelf.title", language) });
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
 
   let lastPerRow = -1;
