@@ -37,7 +37,7 @@ test("planFitnessMigration moves legacy Fitness paths when destinations are miss
   assert.equal(plan.settingsPatch.golfCuesPath, "atomics/exercise/Golf/Cues.md");
   assert.equal(plan.settingsPatch.gymCuesPath, "atomics/exercise/Gym/Cues.md");
   assert.equal(
-    plan.settingsPatch.series?.find((series) => series.id === "gym")?.folder,
+    plan.settingsPatch.activityTypes?.find((activity) => activity.id === "gym")?.folder,
     "atomics/exercise/Gym",
   );
 });
@@ -54,7 +54,7 @@ test("planFitnessMigration skips moves whose destination already exists", () => 
   assert.deepEqual(plan.skippedMoves, [
     { from: "Gym", to: "atomics/exercise/Gym" },
   ]);
-  assert.equal(plan.settingsPatch.series, undefined);
+  assert.equal(plan.settingsPatch.activityTypes, undefined);
 });
 
 test("planFitnessMigration is idempotent after Atomic paths exist", () => {

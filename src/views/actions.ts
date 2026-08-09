@@ -1,17 +1,15 @@
 import type FitnessPlugin from "../main";
+import { exerciseActivities } from "../util/activity-types";
 
 export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const wrap = root.createDiv({ cls: "fitness-actions" });
 
-  const gymBtn = wrap.createEl("button", { text: "🏋️ Gym / 健身" });
-  gymBtn.addEventListener("click", () => {
-    void plugin.createGymSession();
-  });
-
-  const golfBtn = wrap.createEl("button", { text: "⛳ Golf / 高爾夫" });
-  golfBtn.addEventListener("click", () => {
-    void plugin.createGolfSession();
-  });
+  for (const activity of exerciseActivities(plugin.settings.activityTypes)) {
+    const button = wrap.createEl("button", { text: activity.label });
+    button.addEventListener("click", () => {
+      void plugin.createExerciseSession(activity);
+    });
+  }
 }

@@ -8,6 +8,22 @@ export interface SeriesConfig {
   kind: SeriesKind;
 }
 
+export type Domain = "exercise" | "hobby";
+
+export type NoteModel = "dailySession" | "item";
+
+export interface ActivityType {
+  id: string;
+  domain: Domain;
+  label: string;
+  folder: string;
+  colors: [string, string, string, string];
+  noteModel: NoteModel;
+  supportsCues: boolean;
+  supportsTimer: boolean;
+  supportsSetTable: boolean;
+}
+
 export interface SessionMeta {
   path: string;
   date: string | null;
@@ -25,7 +41,7 @@ export interface DayActivity {
 
 export interface FitnessSettings {
   timezone: string;
-  series: SeriesConfig[];
+  activityTypes: ActivityType[];
   dashboardPath: string;
   golfCuesPath: string;
   gymCuesPath: string;
@@ -48,26 +64,36 @@ export const ORANGE: [string, string, string, string] = [
 
 export const EMPTY_CELL = "#ebedf0";
 
+export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
+  {
+    id: "gym",
+    domain: "exercise",
+    label: "🏋️ Gym / 健身",
+    folder: "atomics/exercise/Gym",
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: true,
+  },
+  {
+    id: "golf",
+    domain: "exercise",
+    label: "⛳ Golf / 高爾夫",
+    folder: "atomics/exercise/Golf",
+    colors: ORANGE,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false,
+  },
+];
+
 export const DEFAULT_SETTINGS: FitnessSettings = {
   timezone: "Asia/Hong_Kong",
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
   deprecatedFitnessBlocksEnabled: true,
-  series: [
-    {
-      id: "gym",
-      label: "🏋️ Gym / 健身",
-      folder: "atomics/exercise/Gym",
-      colors: GREEN,
-      kind: "gym",
-    },
-    {
-      id: "golf",
-      label: "⛳ Golf / 高爾夫",
-      folder: "atomics/exercise/Golf",
-      colors: ORANGE,
-      kind: "golf",
-    },
-  ],
+  activityTypes: DEFAULT_ACTIVITY_TYPES,
 };

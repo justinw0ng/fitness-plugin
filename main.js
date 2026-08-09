@@ -304,7 +304,7 @@ function suggestOne(app, placeholder, items, labels) {
     modal.open();
   });
 }
-function gymBody(date, location, locationDetail, weightUnit) {
+function gymBody(activity, date, location, locationDetail, weightUnit) {
   const muscleHints = [
     "Chest / \u80F8",
     "Back / \u80CC",
@@ -320,14 +320,14 @@ function gymBody(date, location, locationDetail, weightUnit) {
   return `---
 type: session
 date: ${date}
-activity: gym
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location: ${yamlScalar(location)}
 location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
-# \u{1F3CB}\uFE0F Gym / \u5065\u8EAB \u2014 ${date}
+# ${activity.label} \u2014 ${date}
 
 <!-- \u{1F4AA} Muscles / \u808C\u7FA4: ${muscleHints.join(", ")} -->
 
@@ -336,51 +336,67 @@ weight_unit: ${weightUnit}
 |  |  |  |  |  |
 |  |  |  |  |  |
 |  |  |  |  |  |
-
+${activity.supportsCues ? `
 ## \u{1F4A1} Reminders / \u63D0\u9192
 
 - 
+` : ""}
 `;
 }
-function golfBody(date) {
+function golfBody(activity, date) {
   return `---
 type: session
 date: ${date}
-activity: golf
+activity: ${yamlScalar(activity.id)}
 duration_min:
 location:
 focus: []
 club: []
+felt:
 ---
 
-# \u26F3 Golf / \u9AD8\u723E\u592B \u2014 ${date}
+# ${activity.label} \u2014 ${date}
 
 <!-- \u{1F4CD} location / \u5730\u9EDE: Home net / \u5BB6\u7528\u7DB2, Driving range / \u7DF4\u7FD2\u5834, Course / \u7403\u5834, Other / \u5176\u4ED6 -->
 <!-- \u{1F3AF} focus / \u91CD\u9EDE (multi): Grip / \u63E1\u687F, Stance / \u7AD9\u59FF, Takeaway / \u8D77\u687F, Backswing / \u4E0A\u687F, Transition / \u8F49\u63DB, Downswing / \u4E0B\u687F, Impact / \u64CA\u7403, Follow-through / \u9001\u687F, Tempo / \u7BC0\u594F, Alignment / \u7784\u6E96\u7DDA -->
 <!-- \u{1F3CC}\uFE0F club / \u7403\u687F (multi): Driver / \u4E00\u865F\u6728, 3W / \u4E09\u865F\u6728, 5W / \u4E94\u865F\u6728, Hybrid / \u6DF7\u8840\u687F, 4i\u20139i / \u9435\u687F, PW / \u5288\u8D77\u687F, GW / \u7F3A\u53E3\u687F, SW / \u6C99\u5751\u687F, LW / \u9AD8\u540A\u687F, Putter / \u63A8\u687F, Mixed / \u6DF7\u5408 -->
-
+<!-- felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE -->
+${activity.supportsCues ? `
 ## \u{1F4A1} Reminders / \u63D0\u9192
 
 - 
+` : ""}
 `;
 }
-async function createGymSession(app, data, series, timezone) {
+function genericExerciseBody(activity, date) {
+  return `---
+type: session
+date: ${date}
+activity: ${yamlScalar(activity.id)}
+duration_min:
+location:
+---
+
+# ${activity.label} \u2014 ${date}
+${activity.supportsCues ? `
+## \u{1F4A1} Reminders / \u63D0\u9192
+
+- 
+` : ""}
+`;
+}
+async function promptSessionDate(app, timezone) {
   const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
   const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
+  if (dateRaw === null) return null;
+  const date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
-    return;
+    return null;
   }
-  const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
-  const target = `${folder}/${date}.md`;
-  if (data.exists(target)) {
-    await data.openPath(target);
-    new import_obsidian.Notice(`Opened existing gym session / \u5DF2\u958B\u555F: ${target}`);
-    return;
-  }
+  return date;
+}
+async function gymSessionBody(app, activity, date) {
   const locationLabels = [
     "Home / \u5BB6\u4E2D",
     "Commercial / \u5546\u696D\u5065\u8EAB\u623F",
@@ -403,33 +419,29 @@ async function createGymSession(app, data, series, timezone) {
   ]) || "kg";
   if (weightUnit !== "lb") weightUnit = "kg";
   void MUSCLES;
-  await data.createNote(
-    target,
-    gymBody(date, location, locationDetail, weightUnit)
-  );
-  await data.openPath(target);
-  new import_obsidian.Notice(`Created gym session / \u5DF2\u5EFA\u7ACB: ${target}`);
+  return gymBody(activity, date, location, locationDetail, weightUnit);
 }
-async function createGolfSession(app, data, series, timezone) {
-  const today = ymdInZone(/* @__PURE__ */ new Date(), timezone);
-  const dateRaw = await promptText(app, "Date / \u65E5\u671F (YYYY-MM-DD)", today);
-  if (dateRaw === null) return;
-  let date = dateRaw.trim() || today;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new import_obsidian.Notice("Invalid date / \u65E5\u671F\u7121\u6548");
-    return;
-  }
+async function createActivitySession(app, data, activity, timezone) {
+  const date = await promptSessionDate(app, timezone);
+  if (!date) return;
   const year = date.slice(0, 4);
-  const folder = `${series.folder}/${year}`;
+  const folder = `${activity.folder}/${year}`;
   const target = `${folder}/${date}.md`;
   if (data.exists(target)) {
     await data.openPath(target);
-    new import_obsidian.Notice(`Opened existing golf session / \u5DF2\u958B\u555F: ${target}`);
+    new import_obsidian.Notice(`Opened existing ${activity.label} session / \u5DF2\u958B\u555F: ${target}`);
     return;
   }
-  await data.createNote(target, golfBody(date));
+  const body = activity.supportsSetTable ? await gymSessionBody(app, activity, date) : activity.id === "golf" ? golfBody(activity, date) : genericExerciseBody(activity, date);
+  await data.createNote(target, body);
   await data.openPath(target);
-  new import_obsidian.Notice(`Created golf session / \u5DF2\u5EFA\u7ACB: ${target}`);
+  new import_obsidian.Notice(`Created ${activity.label} session / \u5DF2\u5EFA\u7ACB: ${target}`);
+}
+async function createGymSession(app, data, activity, timezone) {
+  await createActivitySession(app, data, activity, timezone);
+}
+async function createGolfSession(app, data, activity, timezone) {
+  await createActivitySession(app, data, activity, timezone);
 }
 
 // src/util/parse-block.ts
@@ -443,40 +455,208 @@ function parseBlockOptions(source) {
   return out;
 }
 
+// src/types.ts
+var GREEN = [
+  "#9be9a8",
+  "#40c463",
+  "#30a14e",
+  "#216e39"
+];
+var ORANGE = [
+  "#ffd8a8",
+  "#ffa94d",
+  "#f76707",
+  "#d9480f"
+];
+var EMPTY_CELL = "#ebedf0";
+var DEFAULT_ACTIVITY_TYPES = [
+  {
+    id: "gym",
+    domain: "exercise",
+    label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
+    folder: "atomics/exercise/Gym",
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: true
+  },
+  {
+    id: "golf",
+    domain: "exercise",
+    label: "\u26F3 Golf / \u9AD8\u723E\u592B",
+    folder: "atomics/exercise/Golf",
+    colors: ORANGE,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  }
+];
+var DEFAULT_SETTINGS = {
+  timezone: "Asia/Hong_Kong",
+  dashboardPath: "atomics/Dashboard.md",
+  golfCuesPath: "atomics/exercise/Golf/Cues.md",
+  gymCuesPath: "atomics/exercise/Gym/Cues.md",
+  deprecatedFitnessBlocksEnabled: true,
+  activityTypes: DEFAULT_ACTIVITY_TYPES
+};
+
+// src/util/vault-path.ts
+function normalizeSlashes(path) {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+function isSafeVaultFolder(folder) {
+  if (typeof folder !== "string") return false;
+  const trimmed = folder.trim();
+  if (!trimmed) return false;
+  const normalized = normalizeSlashes(trimmed);
+  if (!normalized || normalized === "/") return false;
+  if (normalized.startsWith("/")) return false;
+  if (/^[a-zA-Z]:/.test(normalized)) return false;
+  const segments = normalized.replace(/\/$/, "").split("/");
+  if (segments.length === 0) return false;
+  for (const seg of segments) {
+    if (!seg || seg === "." || seg === "..") return false;
+  }
+  return true;
+}
+function sessionScanPrefix(folder, year) {
+  if (!isSafeVaultFolder(folder)) return null;
+  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
+  return `${base}/${year}/`;
+}
+
+// src/util/activity-types.ts
+var FALLBACK_EXERCISE_NAME = "Exercise";
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function cleanFolderSegment(label) {
+  const cleaned = label.replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || FALLBACK_EXERCISE_NAME;
+}
+function activityIdFromLabel(label) {
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return id || "exercise";
+}
+function defaultExerciseFolder(label) {
+  const folder = `atomics/exercise/${cleanFolderSegment(label)}`;
+  return isSafeVaultFolder(folder) ? folder : `atomics/exercise/${FALLBACK_EXERCISE_NAME}`;
+}
+function createExerciseActivityType(label) {
+  const cleanedLabel = cleanFolderSegment(label);
+  return {
+    id: activityIdFromLabel(cleanedLabel),
+    domain: "exercise",
+    label: cleanedLabel,
+    folder: defaultExerciseFolder(cleanedLabel),
+    colors: GREEN,
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  };
+}
+function colorTuple(value, fallback) {
+  if (!Array.isArray(value) || value.length !== 4) return fallback;
+  const [first, second, third, fourth] = value;
+  if (typeof first === "string" && first.trim() !== "" && typeof second === "string" && second.trim() !== "" && typeof third === "string" && third.trim() !== "" && typeof fourth === "string" && fourth.trim() !== "") {
+    return [first, second, third, fourth];
+  }
+  return fallback;
+}
+function domainFrom(value) {
+  return value === "exercise" || value === "hobby" ? value : null;
+}
+function noteModelFrom(value) {
+  return value === "dailySession" || value === "item" ? value : null;
+}
+function normalizeActivityType(value, fallbackColors) {
+  if (!isRecord(value)) return null;
+  const label = typeof value.label === "string" ? value.label.trim() : "";
+  const folder = typeof value.folder === "string" ? value.folder.trim() : "";
+  const domain = domainFrom(value.domain);
+  const noteModel = noteModelFrom(value.noteModel);
+  if (!label || !folder || !domain || !noteModel || !isSafeVaultFolder(folder)) {
+    return null;
+  }
+  const idRaw = typeof value.id === "string" ? value.id.trim() : "";
+  const id = activityIdFromLabel(idRaw || label);
+  return {
+    id,
+    domain,
+    label,
+    folder,
+    colors: colorTuple(value.colors, fallbackColors),
+    noteModel,
+    supportsCues: domain === "exercise" && value.supportsCues === true,
+    supportsTimer: domain === "hobby" && value.supportsTimer === true,
+    supportsSetTable: domain === "exercise" && noteModel === "dailySession" && value.supportsSetTable === true
+  };
+}
+function activityTypeFromSeries(value, fallbackColors) {
+  if (!isRecord(value)) return null;
+  const label = typeof value.label === "string" ? value.label.trim() : "";
+  const folder = typeof value.folder === "string" ? value.folder.trim() : "";
+  if (!label || !folder || !isSafeVaultFolder(folder)) return null;
+  const idRaw = typeof value.id === "string" ? value.id.trim() : "";
+  const kind = value.kind === "gym" || value.kind === "golf" ? value.kind : "generic";
+  const id = activityIdFromLabel(idRaw || kind || label);
+  return {
+    id,
+    domain: "exercise",
+    label,
+    folder,
+    colors: colorTuple(value.colors, fallbackColors),
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: kind === "gym"
+  };
+}
+function exerciseActivities(activityTypes) {
+  return activityTypes.filter(
+    (activity) => activity.domain === "exercise" && activity.noteModel === "dailySession"
+  );
+}
+function resolveCueActivityType(activityTypes, activityId) {
+  const normalizedId = activityId.trim().toLowerCase();
+  return exerciseActivities(activityTypes).find(
+    (activity) => activity.supportsCues && activity.id.toLowerCase() === normalizedId
+  );
+}
+function cuePathForActivity(activity) {
+  return `${activity.folder.replace(/\/$/, "")}/Cues.md`;
+}
+
 // src/views/actions.ts
 function renderActions(el, plugin) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const wrap = root.createDiv({ cls: "fitness-actions" });
-  const gymBtn = wrap.createEl("button", { text: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB" });
-  gymBtn.addEventListener("click", () => {
-    void plugin.createGymSession();
-  });
-  const golfBtn = wrap.createEl("button", { text: "\u26F3 Golf / \u9AD8\u723E\u592B" });
-  golfBtn.addEventListener("click", () => {
-    void plugin.createGolfSession();
-  });
+  for (const activity of exerciseActivities(plugin.settings.activityTypes)) {
+    const button = wrap.createEl("button", { text: activity.label });
+    button.addEventListener("click", () => {
+      void plugin.createExerciseSession(activity);
+    });
+  }
 }
 
 // src/views/cues.ts
-var CUE_SERIES_FOLDERS = {
-  golf: "Golf",
-  gym: "Gym"
-};
 function resolveCuesYear(opts, frontmatterYear2, timezone) {
   if (opts.year && Number(opts.year)) return Number(opts.year);
   const n = Number(frontmatterYear2);
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderCues(el, data, seriesList, year, timezone, activity) {
+async function renderCues(el, data, activityTypes, year, timezone, activity) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const legacyFolder = CUE_SERIES_FOLDERS[activity];
-  const series = seriesList.find((s) => s.id === activity || s.kind === activity) || (legacyFolder ? seriesList.find((s) => s.folder === legacyFolder) : void 0);
-  if (!series) {
+  const activityType = resolveCueActivityType(activityTypes, activity);
+  if (!activityType) {
     root.createEl("p", {
-      text: `No ${activity} series configured.`,
+      text: `No cue-enabled ${activity} exercise activity configured.`,
       cls: "fitness-muted"
     });
     return;
@@ -485,7 +665,7 @@ async function renderCues(el, data, seriesList, year, timezone, activity) {
   const month = year === currentYear ? nowMonth(timezone) : 12;
   const monthLabel = year === currentYear ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}` : `December ${year} / ${year}\u5E7412\u6708`;
   const cues = [];
-  for (const p of data.listSessions(series.folder, year)) {
+  for (const p of data.listSessions(activityType.folder, year)) {
     if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");
@@ -532,44 +712,6 @@ async function renderCues(el, data, seriesList, year, timezone, activity) {
   }
 }
 
-// src/types.ts
-var GREEN = [
-  "#9be9a8",
-  "#40c463",
-  "#30a14e",
-  "#216e39"
-];
-var ORANGE = [
-  "#ffd8a8",
-  "#ffa94d",
-  "#f76707",
-  "#d9480f"
-];
-var EMPTY_CELL = "#ebedf0";
-var DEFAULT_SETTINGS = {
-  timezone: "Asia/Hong_Kong",
-  dashboardPath: "atomics/Dashboard.md",
-  golfCuesPath: "atomics/exercise/Golf/Cues.md",
-  gymCuesPath: "atomics/exercise/Gym/Cues.md",
-  deprecatedFitnessBlocksEnabled: true,
-  series: [
-    {
-      id: "gym",
-      label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
-      folder: "atomics/exercise/Gym",
-      colors: GREEN,
-      kind: "gym"
-    },
-    {
-      id: "golf",
-      label: "\u26F3 Golf / \u9AD8\u723E\u592B",
-      folder: "atomics/exercise/Golf",
-      colors: ORANGE,
-      kind: "golf"
-    }
-  ]
-};
-
 // src/views/dashboard.ts
 function monthIndexFromDate(dateStr) {
   const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
@@ -582,6 +724,15 @@ function sortMapDesc(map) {
   return [...map.entries()].sort(
     (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
   );
+}
+function collectGolfStats(page, feltCounts, focusCounts) {
+  const felt = String(page.felt || "").toLowerCase();
+  if (felt === "good" || felt === "ok" || felt === "bad") {
+    feltCounts[felt] += 1;
+  }
+  for (const focus of page.focus) {
+    focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
+  }
 }
 function sparkline(parent, values, color) {
   const months = [
@@ -615,66 +766,59 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderDashboard(el, data, seriesList, year, golfCuesPath, gymCuesPath) {
+async function renderDashboard(el, data, activityTypes, year) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const gymSeries = seriesList.find((s) => s.kind === "gym") || seriesList[0];
-  const golfSeries = seriesList.find((s) => s.kind === "golf") || seriesList[1];
-  const gymPages = gymSeries ? data.listSessions(gymSeries.folder, year) : [];
-  const golfPages = golfSeries ? data.listSessions(golfSeries.folder, year) : [];
+  const activities = exerciseActivities(activityTypes);
   let totalDuration = 0;
   let totalVolumeKg = 0;
   const muscleVolume = /* @__PURE__ */ new Map();
   const muscleFreq = /* @__PURE__ */ new Map();
-  const gymSessionsByMonth = Array(12).fill(0);
-  const gymVolumeByMonth = Array(12).fill(0);
-  const golfSessionsByMonth = Array(12).fill(0);
+  const activityStats = activities.map((activity) => ({
+    activity,
+    pages: data.listSessions(activity.folder, year),
+    sessionsByMonth: Array(12).fill(0),
+    duration: 0,
+    volumeByMonth: Array(12).fill(0),
+    volumeKg: 0
+  }));
   const feltCounts = { good: 0, ok: 0, bad: 0 };
   const focusCounts = /* @__PURE__ */ new Map();
   const recent = [];
-  for (const p of gymPages) {
-    const mi = monthIndexFromDate(p.date);
-    if (mi >= 0) gymSessionsByMonth[mi] += 1;
-    totalDuration += p.duration_min;
-    if (p.date) {
-      recent.push({
-        date: p.date,
-        label: gymSeries?.label || "Gym",
-        path: p.path
-      });
-    }
-    const md = await data.readBody(p.path);
-    let sessionVol = 0;
-    for (const row of parseSetTable(md)) {
-      const vol = rowVolumeKg(row, p.weight_unit);
-      totalVolumeKg += vol;
-      sessionVol += vol;
-      if (row.muscle) {
-        muscleFreq.set(row.muscle, (muscleFreq.get(row.muscle) || 0) + 1);
+  for (const stat of activityStats) {
+    for (const page of stat.pages) {
+      const mi = monthIndexFromDate(page.date);
+      if (mi >= 0) stat.sessionsByMonth[mi] += 1;
+      stat.duration += page.duration_min;
+      totalDuration += page.duration_min;
+      if (page.date) {
+        recent.push({
+          date: page.date,
+          label: stat.activity.label,
+          path: page.path
+        });
       }
-      if (vol > 0) {
-        const m = row.muscle || "Unknown";
-        muscleVolume.set(m, (muscleVolume.get(m) || 0) + vol);
+      if (stat.activity.supportsSetTable) {
+        const md = await data.readBody(page.path);
+        let sessionVol = 0;
+        for (const row of parseSetTable(md)) {
+          const vol = rowVolumeKg(row, page.weight_unit);
+          totalVolumeKg += vol;
+          stat.volumeKg += vol;
+          sessionVol += vol;
+          if (row.muscle) {
+            muscleFreq.set(row.muscle, (muscleFreq.get(row.muscle) || 0) + 1);
+          }
+          if (vol > 0) {
+            const m = row.muscle || "Unknown";
+            muscleVolume.set(m, (muscleVolume.get(m) || 0) + vol);
+          }
+        }
+        if (mi >= 0) stat.volumeByMonth[mi] += sessionVol;
       }
-    }
-    if (mi >= 0) gymVolumeByMonth[mi] += sessionVol;
-  }
-  for (const p of golfPages) {
-    const mi = monthIndexFromDate(p.date);
-    if (mi >= 0) golfSessionsByMonth[mi] += 1;
-    if (p.date) {
-      recent.push({
-        date: p.date,
-        label: golfSeries?.label || "Golf",
-        path: p.path
-      });
-    }
-    const felt = String(p.felt || "").toLowerCase();
-    if (felt === "good" || felt === "ok" || felt === "bad") {
-      feltCounts[felt] += 1;
-    }
-    for (const focus of p.focus) {
-      focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
+      if (stat.activity.id === "golf") {
+        collectGolfStats(page, feltCounts, focusCounts);
+      }
     }
   }
   recent.sort((a, b) => b.date.localeCompare(a.date));
@@ -694,113 +838,121 @@ async function renderDashboard(el, data, seriesList, year, golfCuesPath, gymCues
     "Dec"
   ];
   root.createEl("h2", { text: `\u{1F4CA} ${year} overview / \u7E3D\u89BD` });
-  const cuesP = root.createEl("p");
-  const cuesA = cuesP.createEl("a", {
-    cls: "fitness-link",
-    text: "\u{1F4A1} Golf cue rollup / \u9AD8\u723E\u592B\u63D0\u9192\u5F59\u6574"
-  });
-  cuesA.addEventListener("click", (e) => {
-    e.preventDefault();
-    void data.openPath(golfCuesPath);
-  });
-  cuesP.appendText(" \xB7 ");
-  const gymCuesA = cuesP.createEl("a", {
-    cls: "fitness-link",
-    text: "\u{1F4A1} Gym cue rollup / \u5065\u8EAB\u63D0\u9192\u5F59\u6574"
-  });
-  gymCuesA.addEventListener("click", (e) => {
-    e.preventDefault();
-    void data.openPath(gymCuesPath);
-  });
+  const cueActivities = activities.filter((activity) => activity.supportsCues);
+  if (cueActivities.length) {
+    const cuesP = root.createEl("p");
+    cueActivities.forEach((activity, index) => {
+      if (index > 0) cuesP.appendText(" \xB7 ");
+      const cuesA = cuesP.createEl("a", {
+        cls: "fitness-link",
+        text: `\u{1F4A1} ${activity.label} cues / \u63D0\u9192\u5F59\u6574`
+      });
+      cuesA.addEventListener("click", (e) => {
+        e.preventDefault();
+        void data.openPath(cuePathForActivity(activity));
+      });
+    });
+  }
   const ul = root.createEl("ul");
-  const gymLi = ul.createEl("li");
-  gymLi.appendText("Gym sessions / \u5065\u8EAB\u6B21\u6578: ");
-  gymLi.createEl("strong", { text: String(gymPages.length) });
-  const golfLi = ul.createEl("li");
-  golfLi.appendText("Golf sessions / \u9AD8\u723E\u592B\u6B21\u6578: ");
-  golfLi.createEl("strong", { text: String(golfPages.length) });
+  for (const stat of activityStats) {
+    const li = ul.createEl("li");
+    li.appendText(`${stat.activity.label} sessions / \u6B21\u6578: `);
+    li.createEl("strong", { text: String(stat.pages.length) });
+    li.appendText(`, ${stat.duration} min / \u5206\u9418`);
+  }
   const durLi = ul.createEl("li");
-  durLi.appendText("Total gym duration / \u5065\u8EAB\u7E3D\u6642\u9577: ");
+  durLi.appendText("Total exercise duration / \u904B\u52D5\u7E3D\u6642\u9577: ");
   durLi.createEl("strong", { text: String(totalDuration) });
   durLi.appendText(" min / \u5206\u9418");
-  const volLi = ul.createEl("li");
-  volLi.appendText("Total gym volume / \u5065\u8EAB\u7E3D\u8A13\u7DF4\u91CF: ");
-  volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
-  volLi.appendText(" kg");
-  ul.createEl("li").setText(
-    `Golf felt / \u9AD8\u723E\u592B\u611F\u89BA \u2014 good / \u597D: ${feltCounts.good}, ok / \u4E00\u822C: ${feltCounts.ok}, bad / \u5DEE: ${feltCounts.bad}`
-  );
+  if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
+    const volLi = ul.createEl("li");
+    volLi.appendText("Total set-table volume / \u7E3D\u8A13\u7DF4\u91CF: ");
+    volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
+    volLi.appendText(" kg");
+  }
+  if (activities.some((activity) => activity.id === "golf")) {
+    ul.createEl("li").setText(
+      `Golf felt / \u9AD8\u723E\u592B\u611F\u89BA \u2014 good / \u597D: ${feltCounts.good}, ok / \u4E00\u822C: ${feltCounts.ok}, bad / \u5DEE: ${feltCounts.bad}`
+    );
+  }
   root.createEl("h3", { text: "Monthly / \u6BCF\u6708" });
   const sparks = root.createDiv({ cls: "fitness-monthly-sparks" });
-  const g1 = sparks.createDiv();
-  g1.appendText("Gym sessions / \u5065\u8EAB ");
-  sparkline(g1, gymSessionsByMonth, GREEN[2]);
-  const g2 = sparks.createDiv();
-  g2.appendText("Gym volume / \u8A13\u7DF4\u91CF ");
-  sparkline(g2, gymVolumeByMonth, GREEN[1]);
-  const g3 = sparks.createDiv();
-  g3.appendText("Golf sessions / \u9AD8\u723E\u592B ");
-  sparkline(g3, golfSessionsByMonth, ORANGE[2]);
+  for (const stat of activityStats) {
+    const sessions = sparks.createDiv();
+    sessions.appendText(`${stat.activity.label} sessions / \u6B21\u6578 `);
+    sparkline(sessions, stat.sessionsByMonth, stat.activity.colors[2]);
+    if (stat.activity.supportsSetTable) {
+      const volume = sparks.createDiv();
+      volume.appendText(`${stat.activity.label} volume / \u8A13\u7DF4\u91CF `);
+      sparkline(volume, stat.volumeByMonth, stat.activity.colors[1]);
+    }
+  }
   const monthTable = root.createEl("table");
   const thead = monthTable.createEl("thead");
   const hr = thead.createEl("tr");
-  for (const h of [
-    "Month / \u6708",
-    "Gym / \u5065\u8EAB",
-    "Volume / \u8A13\u7DF4\u91CF (kg)",
-    "Golf / \u9AD8\u723E\u592B"
-  ]) {
-    hr.createEl("th", { text: h });
+  hr.createEl("th", { text: "Month / \u6708" });
+  for (const stat of activityStats) {
+    hr.createEl("th", { text: stat.activity.label });
+    if (stat.activity.supportsSetTable) {
+      hr.createEl("th", { text: `${stat.activity.label} volume / \u8A13\u7DF4\u91CF (kg)` });
+    }
   }
   const tbody = monthTable.createEl("tbody");
   for (let i = 0; i < 12; i++) {
     const tr = tbody.createEl("tr");
     tr.createEl("td", { text: monthNames[i] });
-    tr.createEl("td", { text: String(gymSessionsByMonth[i]) });
-    tr.createEl("td", { text: fmtKg(gymVolumeByMonth[i]) });
-    tr.createEl("td", { text: String(golfSessionsByMonth[i]) });
-  }
-  root.createEl("h3", { text: "Muscles / \u808C\u7FA4" });
-  const mTable = root.createEl("table");
-  const mHead = mTable.createEl("thead").createEl("tr");
-  for (const h of ["Muscle / \u808C\u7FA4", "Sets / \u7D44\u6578", "Volume / \u8A13\u7DF4\u91CF (kg)"]) {
-    mHead.createEl("th", { text: h });
-  }
-  const mBody = mTable.createEl("tbody");
-  const muscles = /* @__PURE__ */ new Set([...muscleFreq.keys(), ...muscleVolume.keys()]);
-  const muscleRows = [...muscles].map((m) => ({
-    m,
-    freq: muscleFreq.get(m) || 0,
-    vol: muscleVolume.get(m) || 0
-  }));
-  muscleRows.sort(
-    (a, b) => b.vol - a.vol || b.freq - a.freq || a.m.localeCompare(b.m)
-  );
-  if (!muscleRows.length) {
-    const tr = mBody.createEl("tr");
-    tr.createEl("td", {
-      text: "No set data / \u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
-      attr: { colspan: "3" }
-    }).addClass("fitness-muted");
-  } else {
-    for (const r of muscleRows) {
-      const tr = mBody.createEl("tr");
-      tr.createEl("td", { text: r.m });
-      tr.createEl("td", { text: String(r.freq) });
-      tr.createEl("td", { text: fmtKg(r.vol) });
+    for (const stat of activityStats) {
+      tr.createEl("td", { text: String(stat.sessionsByMonth[i]) });
+      if (stat.activity.supportsSetTable) {
+        tr.createEl("td", { text: fmtKg(stat.volumeByMonth[i]) });
+      }
     }
   }
-  root.createEl("h3", { text: "Golf focus / \u9AD8\u723E\u592B\u91CD\u9EDE" });
-  const focusUl = root.createEl("ul");
-  const focuses = sortMapDesc(focusCounts);
-  if (!focuses.length) {
-    focusUl.createEl("li", {
-      text: "No focus tags / \u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
-      cls: "fitness-muted"
-    });
-  } else {
-    for (const [name, count] of focuses) {
-      focusUl.createEl("li", { text: `${name}: ${count}` });
+  if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
+    root.createEl("h3", { text: "Muscles / \u808C\u7FA4" });
+    const mTable = root.createEl("table");
+    const mHead = mTable.createEl("thead").createEl("tr");
+    for (const h of ["Muscle / \u808C\u7FA4", "Sets / \u7D44\u6578", "Volume / \u8A13\u7DF4\u91CF (kg)"]) {
+      mHead.createEl("th", { text: h });
+    }
+    const mBody = mTable.createEl("tbody");
+    const muscles = /* @__PURE__ */ new Set([...muscleFreq.keys(), ...muscleVolume.keys()]);
+    const muscleRows = [...muscles].map((m) => ({
+      m,
+      freq: muscleFreq.get(m) || 0,
+      vol: muscleVolume.get(m) || 0
+    }));
+    muscleRows.sort(
+      (a, b) => b.vol - a.vol || b.freq - a.freq || a.m.localeCompare(b.m)
+    );
+    if (!muscleRows.length) {
+      const tr = mBody.createEl("tr");
+      tr.createEl("td", {
+        text: "No set data / \u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
+        attr: { colspan: "3" }
+      }).addClass("fitness-muted");
+    } else {
+      for (const r of muscleRows) {
+        const tr = mBody.createEl("tr");
+        tr.createEl("td", { text: r.m });
+        tr.createEl("td", { text: String(r.freq) });
+        tr.createEl("td", { text: fmtKg(r.vol) });
+      }
+    }
+  }
+  if (activities.some((activity) => activity.id === "golf")) {
+    root.createEl("h3", { text: "Golf focus / \u9AD8\u723E\u592B\u91CD\u9EDE" });
+    const focusUl = root.createEl("ul");
+    const focuses = sortMapDesc(focusCounts);
+    if (!focuses.length) {
+      focusUl.createEl("li", {
+        text: "No focus tags / \u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
+        cls: "fitness-muted"
+      });
+    } else {
+      for (const [name, count] of focuses) {
+        focusUl.createEl("li", { text: `${name}: ${count}` });
+      }
     }
   }
   root.createEl("h3", { text: "Recent sessions / \u6700\u8FD1\u8A13\u7DF4" });
@@ -825,13 +977,13 @@ async function renderDashboard(el, data, seriesList, year, golfCuesPath, gymCues
 
 // src/views/heatmap.ts
 var DAY_NAMES = ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
-function colorFor(series, level) {
+function colorFor(activity, level) {
   if (!level) return EMPTY_CELL;
-  return series.colors[level - 1] || series.colors[series.colors.length - 1];
+  return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
 }
-function durationMap(data, series, year) {
+function durationMap(data, activity, year) {
   const map = /* @__PURE__ */ new Map();
-  for (const s of data.listSessions(series.folder, year)) {
+  for (const s of data.listSessions(activity.folder, year)) {
     if (!s.date) continue;
     const entry = map.get(s.date) || { minutes: 0, path: null };
     entry.minutes += s.duration_min;
@@ -840,13 +992,13 @@ function durationMap(data, series, year) {
   }
   return map;
 }
-function renderOneHeatmap(root, data, series, year, timezone) {
+function renderOneHeatmap(root, data, activity, year, timezone) {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
-  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: series.label });
+  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
   legend.createSpan({ text: "Less / \u5C11" });
   legend.createDiv({ cls: "fitness-legend-swatch" }).style.background = EMPTY_CELL;
-  for (const c of series.colors) {
+  for (const c of activity.colors) {
     const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
     sw.style.background = c;
   }
@@ -855,7 +1007,7 @@ function renderOneHeatmap(root, data, series, year, timezone) {
     text: "by duration / \u6309\u6642\u9577",
     attr: { style: "margin-left:8px" }
   });
-  const activityMap = durationMap(data, series, year);
+  const activityMap = durationMap(data, activity, year);
   const todayStr = ymdInZone(/* @__PURE__ */ new Date(), timezone);
   const start = { y: year, m: 1, d: 1 };
   const end = { y: year, m: 12, d: 31 };
@@ -914,7 +1066,7 @@ function renderOneHeatmap(root, data, series, year, timezone) {
   for (const week of weeks) {
     const col = weeksEl.createDiv({ cls: "fitness-week" });
     for (const day of week) {
-      const color = day.isCurrentYear ? colorFor(series, day.level) : EMPTY_CELL;
+      const color = day.isCurrentYear ? colorFor(activity, day.level) : EMPTY_CELL;
       const cell = col.createDiv({
         cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
       });
@@ -931,11 +1083,11 @@ function renderOneHeatmap(root, data, series, year, timezone) {
     }
   }
 }
-function renderHeatmaps(el, data, seriesList, year, timezone) {
+function renderHeatmaps(el, data, activityTypes, year, timezone) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const s of seriesList) {
-    renderOneHeatmap(root, data, s, year, timezone);
+  for (const activity of exerciseActivities(activityTypes)) {
+    renderOneHeatmap(root, data, activity, year, timezone);
   }
 }
 function resolveHeatmapYear(opts, sourcePath, timezone) {
@@ -954,17 +1106,17 @@ function resolveTodayDate(opts, sourcePath, timezone) {
   if (fromPath) return fromPath;
   return ymdInZone(/* @__PURE__ */ new Date(), timezone);
 }
-function renderTodaySessions(el, data, seriesList, dateStr) {
+function renderTodaySessions(el, data, activityTypes, dateStr) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const box = root.createDiv();
   box.createEl("strong", { text: "\u{1F5C2}\uFE0F Today\u2019s sessions / \u4ECA\u65E5\u8A13\u7DF4" });
   const ul = box.createEl("ul");
   const year = Number(dateStr.slice(0, 4));
-  for (const s of seriesList) {
-    const path = `${s.folder}/${year}/${dateStr}.md`;
+  for (const activity of exerciseActivities(activityTypes)) {
+    const path = `${activity.folder}/${year}/${dateStr}.md`;
     const li = ul.createEl("li");
-    li.appendText(`${s.label}: `);
+    li.appendText(`${activity.label}: `);
     if (data.exists(path)) {
       const a = li.createEl("a", {
         cls: "fitness-link",
@@ -1036,7 +1188,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
   const sourcePath = ctx.sourcePath || "";
   const data = plugin.data;
   const settings = plugin.settings;
-  const series = settings.series;
+  const activityTypes = settings.activityTypes;
   const tz = settings.timezone;
   const resolvedKind = resolveCodeblockKind(kind);
   try {
@@ -1052,12 +1204,12 @@ async function renderBlock(plugin, kind, source, el, ctx) {
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        renderHeatmaps(el, data, series, year, tz);
+        renderHeatmaps(el, data, activityTypes, year, tz);
         break;
       }
       case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, series, dateStr);
+        renderTodaySessions(el, data, activityTypes, dateStr);
         break;
       }
       case "atomic-dashboard": {
@@ -1069,10 +1221,8 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         await renderDashboard(
           el,
           data,
-          series,
-          year,
-          settings.golfCuesPath,
-          settings.gymCuesPath
+          activityTypes,
+          year
         );
         break;
       }
@@ -1097,7 +1247,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         await renderCues(
           el,
           data,
-          series,
+          activityTypes,
           year,
           tz,
           activity
@@ -1135,33 +1285,6 @@ function registerCodeblocks(plugin) {
 
 // src/data/vault-source.ts
 var import_obsidian2 = require("obsidian");
-
-// src/util/vault-path.ts
-function normalizeSlashes(path) {
-  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
-}
-function isSafeVaultFolder(folder) {
-  if (typeof folder !== "string") return false;
-  const trimmed = folder.trim();
-  if (!trimmed) return false;
-  const normalized = normalizeSlashes(trimmed);
-  if (!normalized || normalized === "/") return false;
-  if (normalized.startsWith("/")) return false;
-  if (/^[a-zA-Z]:/.test(normalized)) return false;
-  const segments = normalized.replace(/\/$/, "").split("/");
-  if (segments.length === 0) return false;
-  for (const seg of segments) {
-    if (!seg || seg === "." || seg === "..") return false;
-  }
-  return true;
-}
-function sessionScanPrefix(folder, year) {
-  if (!isSafeVaultFolder(folder)) return null;
-  const base = normalizeSlashes(folder.trim()).replace(/\/$/, "");
-  return `${base}/${year}/`;
-}
-
-// src/data/vault-source.ts
 function asList(value) {
   if (value == null || value === "") return [];
   if (Array.isArray(value)) {
@@ -1298,18 +1421,18 @@ function pathExists(existingPaths, path) {
 function moveWasPlanned(moves, from) {
   return moves.some((move) => move.from === from);
 }
-function patchSeriesFolders(settings, moves) {
+function patchActivityFolders(settings, moves) {
   let changed = false;
-  const next = settings.series.map((series) => {
-    if (moveWasPlanned(moves, "Gym") && series.folder === "Gym") {
+  const next = settings.activityTypes.map((activity) => {
+    if (moveWasPlanned(moves, "Gym") && activity.folder === "Gym") {
       changed = true;
-      return { ...series, folder: "atomics/exercise/Gym" };
+      return { ...activity, folder: "atomics/exercise/Gym" };
     }
-    if (moveWasPlanned(moves, "Golf") && series.folder === "Golf") {
+    if (moveWasPlanned(moves, "Golf") && activity.folder === "Golf") {
       changed = true;
-      return { ...series, folder: "atomics/exercise/Golf" };
+      return { ...activity, folder: "atomics/exercise/Golf" };
     }
-    return series;
+    return activity;
   });
   return changed ? next : void 0;
 }
@@ -1338,8 +1461,8 @@ function planFitnessMigration(input) {
   if (moveWasPlanned(moves, "Gym") && input.settings.gymCuesPath === "Gym/Cues.md") {
     settingsPatch.gymCuesPath = "atomics/exercise/Gym/Cues.md";
   }
-  const series = patchSeriesFolders(input.settings, moves);
-  if (series) settingsPatch.series = series;
+  const activityTypes = patchActivityFolders(input.settings, moves);
+  if (activityTypes) settingsPatch.activityTypes = activityTypes;
   return { moves, skippedMoves, settingsPatch };
 }
 function parseInfoLanguage(info) {
@@ -1379,24 +1502,42 @@ function rewriteFitnessFences(markdown) {
 }
 
 // src/util/merge-settings.ts
-function sanitizeSeries(series, fallback) {
-  if (!Array.isArray(series) || series.length === 0) return fallback;
-  const safe = series.filter(
-    (s) => s != null && typeof s.folder === "string" && isSafeVaultFolder(s.folder)
-  );
-  return safe.length > 0 ? safe : fallback;
+function cloneActivities(activityTypes) {
+  return activityTypes.map((activity) => ({
+    ...activity,
+    colors: [
+      activity.colors[0],
+      activity.colors[1],
+      activity.colors[2],
+      activity.colors[3]
+    ]
+  }));
+}
+function normalizeActivities(values, fallback) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values.map((value) => normalizeActivityType(value, fallback[0].colors)).filter((activity) => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
+}
+function legacySeriesActivities(values, fallback) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values.map((value) => activityTypeFromSeries(value, fallback[0].colors)).filter((activity) => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 function mergeSettings(raw) {
-  const base = { ...DEFAULT_SETTINGS, series: DEFAULT_SETTINGS.series };
-  if (!raw) return { ...base, series: [...base.series] };
+  const base = {
+    ...DEFAULT_SETTINGS,
+    activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes)
+  };
+  if (!raw) return base;
   const golfCuesPath = raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || base.golfCuesPath;
+  const activityTypes = normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes);
   return {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
     golfCuesPath,
     gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
     deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
-    series: [...sanitizeSeries(raw.series, base.series)]
+    activityTypes
   };
 }
 
@@ -1404,6 +1545,7 @@ function mergeSettings(raw) {
 var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
+    this.pendingExerciseName = "";
     this.plugin = plugin;
   }
   display() {
@@ -1423,18 +1565,7 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Golf cues path").setDesc("Vault-relative path for golf cue rollup note.").addText(
-      (text) => text.setPlaceholder(DEFAULT_SETTINGS.golfCuesPath).setValue(this.plugin.settings.golfCuesPath).onChange(async (value) => {
-        this.plugin.settings.golfCuesPath = value.trim() || DEFAULT_SETTINGS.golfCuesPath;
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian3.Setting(containerEl).setName("Gym cues path").setDesc("Vault-relative path for gym cue rollup note.").addText(
-      (text) => text.setPlaceholder(DEFAULT_SETTINGS.gymCuesPath).setValue(this.plugin.settings.gymCuesPath).onChange(async (value) => {
-        this.plugin.settings.gymCuesPath = value.trim() || DEFAULT_SETTINGS.gymCuesPath;
-        await this.plugin.saveSettings();
-      })
-    );
+    this.renderExerciseTypes(containerEl);
     new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-*` blocks").setDesc(
       "Keep supporting old Fitness codeblock names. Turn off after migrating notes (or use Migrate)."
     ).addToggle(
@@ -1454,9 +1585,82 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
         void this.migrateFromFitnessToAtomic();
       })
     );
+  }
+  async saveAndRefresh() {
+    await this.plugin.saveSettings();
+    await this.plugin.refreshAll();
+  }
+  uniqueActivityId(baseId) {
+    const used = new Set(this.plugin.settings.activityTypes.map((activity) => activity.id));
+    if (!used.has(baseId)) return baseId;
+    let index = 2;
+    while (used.has(`${baseId}-${index}`)) index += 1;
+    return `${baseId}-${index}`;
+  }
+  renderExerciseTypes(containerEl) {
+    containerEl.createEl("h3", { text: "Exercise types" });
     containerEl.createEl("p", {
-      text: "Series (folders, labels, colors) use Atomic defaults under atomics/exercise/Gym and atomics/exercise/Golf. Edit plugin data.json advanced series later if needed.",
+      text: "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name>.",
       cls: "setting-item-description"
+    });
+    for (const activity of exerciseActivities(this.plugin.settings.activityTypes)) {
+      this.renderExerciseType(containerEl, activity);
+    }
+    new import_obsidian3.Setting(containerEl).setName("Add exercise type").setDesc("Creates a daily-session exercise with cues enabled and no set table.").addText(
+      (text) => text.setPlaceholder("Running").setValue(this.pendingExerciseName).onChange((value) => {
+        this.pendingExerciseName = value;
+      })
+    ).addButton(
+      (button) => button.setButtonText("Add").onClick(async () => {
+        const name = this.pendingExerciseName.trim();
+        if (!name) {
+          new import_obsidian3.Notice("Enter an exercise type name first.");
+          return;
+        }
+        const activity = createExerciseActivityType(name);
+        activity.id = this.uniqueActivityId(activity.id);
+        this.plugin.settings.activityTypes = [
+          ...this.plugin.settings.activityTypes,
+          activity
+        ];
+        this.pendingExerciseName = "";
+        await this.saveAndRefresh();
+        this.display();
+      })
+    );
+  }
+  renderExerciseType(containerEl, activity) {
+    new import_obsidian3.Setting(containerEl).setName(activity.label).setDesc(`Activity id: ${activity.id}`).addText(
+      (text) => text.setPlaceholder("Label").setValue(activity.label).onChange(async (value) => {
+        const label = value.trim();
+        if (!label) return;
+        activity.label = label;
+        await this.saveAndRefresh();
+      })
+    ).addText(
+      (text) => text.setPlaceholder("atomics/exercise/Name").setValue(activity.folder).onChange(async (value) => {
+        const folder = value.trim();
+        if (!isSafeVaultFolder(folder)) {
+          new import_obsidian3.Notice("Folder must be a safe vault-relative path.");
+          return;
+        }
+        activity.folder = folder;
+        await this.saveAndRefresh();
+      })
+    ).addToggle(
+      (toggle) => toggle.setTooltip("Enable reminder/cue rollups for this exercise").setValue(activity.supportsCues).onChange(async (value) => {
+        activity.supportsCues = value;
+        await this.saveAndRefresh();
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName(`${activity.label} colors`).setDesc("Heatmap colors from low to high intensity.").addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
+  }
+  bindColorText(text, activity, index) {
+    text.setPlaceholder(`#${index + 1}`).setValue(activity.colors[index]).onChange(async (value) => {
+      const color = value.trim();
+      if (!color) return;
+      activity.colors[index] = color;
+      await this.saveAndRefresh();
     });
   }
   async ensureParentFolder(path) {
@@ -1543,6 +1747,13 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       }
     });
     this.addCommand({
+      id: "atomic-new-exercise-session",
+      name: "New exercise session",
+      callback: () => {
+        void this.createExerciseSession();
+      }
+    });
+    this.addCommand({
       id: "fitness-open-dashboard",
       name: "Open dashboard",
       callback: () => {
@@ -1590,32 +1801,74 @@ var FitnessPlugin = class extends import_obsidian4.Plugin {
       await renderBlock(this, block.kind, block.source, block.el, ctx);
     }
   }
-  seriesByKind(kind) {
-    return this.settings.series.find((s) => s.kind === kind);
+  exerciseActivityById(id) {
+    return exerciseActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id
+    );
+  }
+  chooseExerciseActivity() {
+    const activities = exerciseActivities(this.settings.activityTypes);
+    if (!activities.length) {
+      new import_obsidian4.Notice("No exercise activities configured");
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      let settled = false;
+      const modal = new class extends import_obsidian4.FuzzySuggestModal {
+        getItems() {
+          return activities;
+        }
+        getItemText(activity) {
+          return activity.label;
+        }
+        onChooseItem(activity) {
+          if (settled) return;
+          settled = true;
+          resolve(activity);
+        }
+        onClose() {
+          if (settled) return;
+          settled = true;
+          resolve(null);
+        }
+      }(this.app);
+      modal.setPlaceholder("Exercise type / \u904B\u52D5\u985E\u578B");
+      modal.open();
+    });
+  }
+  async createExerciseSession(activity) {
+    const picked = activity ?? await this.chooseExerciseActivity();
+    if (!picked) return;
+    await createActivitySession(
+      this.app,
+      this.data,
+      picked,
+      this.settings.timezone
+    );
   }
   async createGymSession() {
-    const series = this.seriesByKind("gym");
-    if (!series) {
-      new import_obsidian4.Notice("No gym series configured");
+    const activity = this.exerciseActivityById("gym");
+    if (!activity) {
+      new import_obsidian4.Notice("No gym activity configured");
       return;
     }
     await createGymSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone
     );
   }
   async createGolfSession() {
-    const series = this.seriesByKind("golf");
-    if (!series) {
-      new import_obsidian4.Notice("No golf series configured");
+    const activity = this.exerciseActivityById("golf");
+    if (!activity) {
+      new import_obsidian4.Notice("No golf activity configured");
       return;
     }
     await createGolfSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone
     );
   }

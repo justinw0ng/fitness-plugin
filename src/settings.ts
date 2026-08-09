@@ -1,15 +1,26 @@
-import { App, Notice, normalizePath, PluginSettingTab, Setting } from "obsidian";
+import {
+  App,
+  Notice,
+  normalizePath,
+  PluginSettingTab,
+  Setting,
+  type TextComponent,
+} from "obsidian";
 import type FitnessPlugin from "./main";
+import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import {
   planFitnessMigration,
   rewriteFitnessFences,
 } from "./util/migrate-fitness";
+import { createExerciseActivityType, exerciseActivities } from "./util/activity-types";
+import { isSafeVaultFolder } from "./util/vault-path";
 
 export { mergeSettings } from "./util/merge-settings";
 
 export class FitnessSettingTab extends PluginSettingTab {
   plugin: FitnessPlugin;
+  private pendingExerciseName = "";
 
   constructor(app: App, plugin: FitnessPlugin) {
     super(app, plugin);
@@ -49,33 +60,7 @@ export class FitnessSettingTab extends PluginSettingTab {
           }),
       );
 
-    new Setting(containerEl)
-      .setName("Golf cues path")
-      .setDesc("Vault-relative path for golf cue rollup note.")
-      .addText((text) =>
-        text
-          .setPlaceholder(DEFAULT_SETTINGS.golfCuesPath)
-          .setValue(this.plugin.settings.golfCuesPath)
-          .onChange(async (value) => {
-            this.plugin.settings.golfCuesPath =
-              value.trim() || DEFAULT_SETTINGS.golfCuesPath;
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName("Gym cues path")
-      .setDesc("Vault-relative path for gym cue rollup note.")
-      .addText((text) =>
-        text
-          .setPlaceholder(DEFAULT_SETTINGS.gymCuesPath)
-          .setValue(this.plugin.settings.gymCuesPath)
-          .onChange(async (value) => {
-            this.plugin.settings.gymCuesPath =
-              value.trim() || DEFAULT_SETTINGS.gymCuesPath;
-            await this.plugin.saveSettings();
-          }),
-      );
+    this.renderExerciseTypes(containerEl);
 
     new Setting(containerEl)
       .setName("Allow legacy `fitness-*` blocks")
@@ -109,10 +94,125 @@ export class FitnessSettingTab extends PluginSettingTab {
           }),
       );
 
+  }
+
+  private async saveAndRefresh(): Promise<void> {
+    await this.plugin.saveSettings();
+    await this.plugin.refreshAll();
+  }
+
+  private uniqueActivityId(baseId: string): string {
+    const used = new Set(this.plugin.settings.activityTypes.map((activity) => activity.id));
+    if (!used.has(baseId)) return baseId;
+    let index = 2;
+    while (used.has(`${baseId}-${index}`)) index += 1;
+    return `${baseId}-${index}`;
+  }
+
+  private renderExerciseTypes(containerEl: HTMLElement): void {
+    containerEl.createEl("h3", { text: "Exercise types" });
     containerEl.createEl("p", {
-      text: "Series (folders, labels, colors) use Atomic defaults under atomics/exercise/Gym and atomics/exercise/Golf. Edit plugin data.json advanced series later if needed.",
+      text: "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name>.",
       cls: "setting-item-description",
     });
+
+    for (const activity of exerciseActivities(this.plugin.settings.activityTypes)) {
+      this.renderExerciseType(containerEl, activity);
+    }
+
+    new Setting(containerEl)
+      .setName("Add exercise type")
+      .setDesc("Creates a daily-session exercise with cues enabled and no set table.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Running")
+          .setValue(this.pendingExerciseName)
+          .onChange((value) => {
+            this.pendingExerciseName = value;
+          }),
+      )
+      .addButton((button) =>
+        button.setButtonText("Add").onClick(async () => {
+          const name = this.pendingExerciseName.trim();
+          if (!name) {
+            new Notice("Enter an exercise type name first.");
+            return;
+          }
+          const activity = createExerciseActivityType(name);
+          activity.id = this.uniqueActivityId(activity.id);
+          this.plugin.settings.activityTypes = [
+            ...this.plugin.settings.activityTypes,
+            activity,
+          ];
+          this.pendingExerciseName = "";
+          await this.saveAndRefresh();
+          this.display();
+        }),
+      );
+  }
+
+  private renderExerciseType(containerEl: HTMLElement, activity: ActivityType): void {
+    new Setting(containerEl)
+      .setName(activity.label)
+      .setDesc(`Activity id: ${activity.id}`)
+      .addText((text) =>
+        text
+          .setPlaceholder("Label")
+          .setValue(activity.label)
+          .onChange(async (value) => {
+            const label = value.trim();
+            if (!label) return;
+            activity.label = label;
+            await this.saveAndRefresh();
+          }),
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("atomics/exercise/Name")
+          .setValue(activity.folder)
+          .onChange(async (value) => {
+            const folder = value.trim();
+            if (!isSafeVaultFolder(folder)) {
+              new Notice("Folder must be a safe vault-relative path.");
+              return;
+            }
+            activity.folder = folder;
+            await this.saveAndRefresh();
+          }),
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setTooltip("Enable reminder/cue rollups for this exercise")
+          .setValue(activity.supportsCues)
+          .onChange(async (value) => {
+            activity.supportsCues = value;
+            await this.saveAndRefresh();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName(`${activity.label} colors`)
+      .setDesc("Heatmap colors from low to high intensity.")
+      .addText((text) => this.bindColorText(text, activity, 0))
+      .addText((text) => this.bindColorText(text, activity, 1))
+      .addText((text) => this.bindColorText(text, activity, 2))
+      .addText((text) => this.bindColorText(text, activity, 3));
+  }
+
+  private bindColorText(
+    text: TextComponent,
+    activity: ActivityType,
+    index: 0 | 1 | 2 | 3,
+  ): void {
+    text
+      .setPlaceholder(`#${index + 1}`)
+      .setValue(activity.colors[index])
+      .onChange(async (value) => {
+        const color = value.trim();
+        if (!color) return;
+        activity.colors[index] = color;
+        await this.saveAndRefresh();
+      });
   }
 
   private async ensureParentFolder(path: string): Promise<void> {

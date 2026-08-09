@@ -41,7 +41,7 @@ export async function renderBlock(
   const sourcePath = ctx.sourcePath || "";
   const data = plugin.data;
   const settings = plugin.settings;
-  const series = settings.series;
+  const activityTypes = settings.activityTypes;
   const tz = settings.timezone;
   const resolvedKind = resolveCodeblockKind(kind);
 
@@ -59,12 +59,12 @@ export async function renderBlock(
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        renderHeatmaps(el, data, series, year, tz);
+        renderHeatmaps(el, data, activityTypes, year, tz);
         break;
       }
       case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, series, dateStr);
+        renderTodaySessions(el, data, activityTypes, dateStr);
         break;
       }
       case "atomic-dashboard": {
@@ -76,10 +76,8 @@ export async function renderBlock(
         await renderDashboard(
           el,
           data,
-          series,
+          activityTypes,
           year,
-          settings.golfCuesPath,
-          settings.gymCuesPath,
         );
         break;
       }
@@ -104,7 +102,7 @@ export async function renderBlock(
         await renderCues(
           el,
           data,
-          series,
+          activityTypes,
           year,
           tz,
           activity,

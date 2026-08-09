@@ -1,13 +1,15 @@
-import { Notice, Plugin } from "obsidian";
+import { FuzzySuggestModal, Notice, Plugin } from "obsidian";
 import {
+  createActivitySession,
   createGolfSession,
   createGymSession,
 } from "./commands/create-session";
 import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
 import { FitnessSettingTab, mergeSettings } from "./settings";
-import type { FitnessSettings, SeriesConfig } from "./types";
+import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import { exerciseActivities } from "./util/activity-types";
 
 export default class FitnessPlugin extends Plugin {
   settings: FitnessSettings = DEFAULT_SETTINGS;
@@ -35,6 +37,14 @@ export default class FitnessPlugin extends Plugin {
       name: "New golf session",
       callback: () => {
         void this.createGolfSession();
+      },
+    });
+
+    this.addCommand({
+      id: "atomic-new-exercise-session",
+      name: "New exercise session",
+      callback: () => {
+        void this.createExerciseSession();
       },
     });
 
@@ -96,34 +106,81 @@ export default class FitnessPlugin extends Plugin {
     }
   }
 
-  seriesByKind(kind: SeriesConfig["kind"]): SeriesConfig | undefined {
-    return this.settings.series.find((s) => s.kind === kind);
+  exerciseActivityById(id: string): ActivityType | undefined {
+    return exerciseActivities(this.settings.activityTypes).find(
+      (activity) => activity.id === id,
+    );
+  }
+
+  private chooseExerciseActivity(): Promise<ActivityType | null> {
+    const activities = exerciseActivities(this.settings.activityTypes);
+    if (!activities.length) {
+      new Notice("No exercise activities configured");
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      let settled = false;
+      const modal = new (class extends FuzzySuggestModal<ActivityType> {
+        getItems(): ActivityType[] {
+          return activities;
+        }
+
+        getItemText(activity: ActivityType): string {
+          return activity.label;
+        }
+
+        onChooseItem(activity: ActivityType) {
+          if (settled) return;
+          settled = true;
+          resolve(activity);
+        }
+
+        onClose() {
+          if (settled) return;
+          settled = true;
+          resolve(null);
+        }
+      })(this.app);
+      modal.setPlaceholder("Exercise type / 運動類型");
+      modal.open();
+    });
+  }
+
+  async createExerciseSession(activity?: ActivityType) {
+    const picked = activity ?? (await this.chooseExerciseActivity());
+    if (!picked) return;
+    await createActivitySession(
+      this.app,
+      this.data,
+      picked,
+      this.settings.timezone,
+    );
   }
 
   async createGymSession() {
-    const series = this.seriesByKind("gym");
-    if (!series) {
-      new Notice("No gym series configured");
+    const activity = this.exerciseActivityById("gym");
+    if (!activity) {
+      new Notice("No gym activity configured");
       return;
     }
     await createGymSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone,
     );
   }
 
   async createGolfSession() {
-    const series = this.seriesByKind("golf");
-    if (!series) {
-      new Notice("No golf series configured");
+    const activity = this.exerciseActivityById("golf");
+    if (!activity) {
+      new Notice("No golf activity configured");
       return;
     }
     await createGolfSession(
       this.app,
       this.data,
-      series,
+      activity,
       this.settings.timezone,
     );
   }

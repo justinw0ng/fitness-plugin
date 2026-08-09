@@ -1,4 +1,4 @@
-import type { FitnessSettings, SeriesConfig } from "../types";
+import type { ActivityType, FitnessSettings } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
 
@@ -61,21 +61,21 @@ function moveWasPlanned(moves: MigrateMove[], from: string): boolean {
   return moves.some((move) => move.from === from);
 }
 
-function patchSeriesFolders(
+function patchActivityFolders(
   settings: FitnessSettings,
   moves: MigrateMove[],
-): SeriesConfig[] | undefined {
+): ActivityType[] | undefined {
   let changed = false;
-  const next = settings.series.map((series) => {
-    if (moveWasPlanned(moves, "Gym") && series.folder === "Gym") {
+  const next = settings.activityTypes.map((activity) => {
+    if (moveWasPlanned(moves, "Gym") && activity.folder === "Gym") {
       changed = true;
-      return { ...series, folder: "atomics/exercise/Gym" };
+      return { ...activity, folder: "atomics/exercise/Gym" };
     }
-    if (moveWasPlanned(moves, "Golf") && series.folder === "Golf") {
+    if (moveWasPlanned(moves, "Golf") && activity.folder === "Golf") {
       changed = true;
-      return { ...series, folder: "atomics/exercise/Golf" };
+      return { ...activity, folder: "atomics/exercise/Golf" };
     }
-    return series;
+    return activity;
   });
   return changed ? next : undefined;
 }
@@ -115,8 +115,8 @@ export function planFitnessMigration(input: {
     settingsPatch.gymCuesPath = "atomics/exercise/Gym/Cues.md";
   }
 
-  const series = patchSeriesFolders(input.settings, moves);
-  if (series) settingsPatch.series = series;
+  const activityTypes = patchActivityFolders(input.settings, moves);
+  if (activityTypes) settingsPatch.activityTypes = activityTypes;
 
   return { moves, skippedMoves, settingsPatch };
 }

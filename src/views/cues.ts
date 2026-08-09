@@ -11,12 +11,8 @@ import {
   nowMonth,
   nowYear,
 } from "../dates";
-import type { SeriesConfig } from "../types";
-
-const CUE_SERIES_FOLDERS: Record<string, string> = {
-  golf: "Golf",
-  gym: "Gym",
-};
+import type { ActivityType } from "../types";
+import { resolveCueActivityType } from "../util/activity-types";
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -32,21 +28,18 @@ export function resolveCuesYear(
 export async function renderCues(
   el: HTMLElement,
   data: VaultDataSource,
-  seriesList: SeriesConfig[],
+  activityTypes: ActivityType[],
   year: number,
   timezone: string,
   activity: string,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const legacyFolder = CUE_SERIES_FOLDERS[activity];
 
-  const series =
-    seriesList.find((s) => s.id === activity || s.kind === activity) ||
-    (legacyFolder ? seriesList.find((s) => s.folder === legacyFolder) : undefined);
-  if (!series) {
+  const activityType = resolveCueActivityType(activityTypes, activity);
+  if (!activityType) {
     root.createEl("p", {
-      text: `No ${activity} series configured.`,
+      text: `No cue-enabled ${activity} exercise activity configured.`,
       cls: "fitness-muted",
     });
     return;
@@ -60,7 +53,7 @@ export async function renderCues(
       : `December ${year} / ${year}年12月`;
 
   const cues: Cue[] = [];
-  for (const p of data.listSessions(series.folder, year)) {
+  for (const p of data.listSessions(activityType.folder, year)) {
     if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");

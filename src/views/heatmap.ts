@@ -9,22 +9,23 @@ import {
   weekdaySun0,
   ymdInZone,
 } from "../dates";
-import { EMPTY_CELL, type DayActivity, type SeriesConfig } from "../types";
+import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
+import { exerciseActivities } from "../util/activity-types";
 
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
 
-function colorFor(series: SeriesConfig, level: number): string {
+function colorFor(activity: ActivityType, level: number): string {
   if (!level) return EMPTY_CELL;
-  return series.colors[level - 1] || series.colors[series.colors.length - 1];
+  return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
 }
 
 function durationMap(
   data: VaultDataSource,
-  series: SeriesConfig,
+  activity: ActivityType,
   year: number,
 ): Map<string, DayActivity> {
   const map = new Map<string, DayActivity>();
-  for (const s of data.listSessions(series.folder, year)) {
+  for (const s of data.listSessions(activity.folder, year)) {
     if (!s.date) continue;
     const entry = map.get(s.date) || { minutes: 0, path: null };
     entry.minutes += s.duration_min;
@@ -37,18 +38,18 @@ function durationMap(
 function renderOneHeatmap(
   root: HTMLElement,
   data: VaultDataSource,
-  series: SeriesConfig,
+  activity: ActivityType,
   year: number,
   timezone: string,
 ): void {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
-  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: series.label });
+  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
 
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
   legend.createSpan({ text: "Less / 少" });
   legend.createDiv({ cls: "fitness-legend-swatch" }).style.background =
     EMPTY_CELL;
-  for (const c of series.colors) {
+  for (const c of activity.colors) {
     const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
     sw.style.background = c;
   }
@@ -58,7 +59,7 @@ function renderOneHeatmap(
     attr: { style: "margin-left:8px" },
   });
 
-  const activityMap = durationMap(data, series, year);
+  const activityMap = durationMap(data, activity, year);
   const todayStr = ymdInZone(new Date(), timezone);
   const start = { y: year, m: 1, d: 1 };
   const end = { y: year, m: 12, d: 31 };
@@ -136,7 +137,7 @@ function renderOneHeatmap(
     const col = weeksEl.createDiv({ cls: "fitness-week" });
     for (const day of week) {
       const color = day.isCurrentYear
-        ? colorFor(series, day.level)
+        ? colorFor(activity, day.level)
         : EMPTY_CELL;
       const cell = col.createDiv({
         cls:
@@ -164,14 +165,14 @@ function renderOneHeatmap(
 export function renderHeatmaps(
   el: HTMLElement,
   data: VaultDataSource,
-  seriesList: SeriesConfig[],
+  activityTypes: ActivityType[],
   year: number,
   timezone: string,
 ): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const s of seriesList) {
-    renderOneHeatmap(root, data, s, year, timezone);
+  for (const activity of exerciseActivities(activityTypes)) {
+    renderOneHeatmap(root, data, activity, year, timezone);
   }
 }
 

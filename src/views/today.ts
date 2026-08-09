@@ -4,7 +4,8 @@ import {
   parseYmd,
   ymdInZone,
 } from "../dates";
-import type { SeriesConfig } from "../types";
+import type { ActivityType } from "../types";
+import { exerciseActivities } from "../util/activity-types";
 
 export function resolveTodayDate(
   opts: Record<string, string>,
@@ -20,7 +21,7 @@ export function resolveTodayDate(
 export function renderTodaySessions(
   el: HTMLElement,
   data: VaultDataSource,
-  seriesList: SeriesConfig[],
+  activityTypes: ActivityType[],
   dateStr: string,
 ): void {
   el.empty();
@@ -30,10 +31,10 @@ export function renderTodaySessions(
   const ul = box.createEl("ul");
   const year = Number(dateStr.slice(0, 4));
 
-  for (const s of seriesList) {
-    const path = `${s.folder}/${year}/${dateStr}.md`;
+  for (const activity of exerciseActivities(activityTypes)) {
+    const path = `${activity.folder}/${year}/${dateStr}.md`;
     const li = ul.createEl("li");
-    li.appendText(`${s.label}: `);
+    li.appendText(`${activity.label}: `);
     if (data.exists(path)) {
       const a = li.createEl("a", {
         cls: "fitness-link",

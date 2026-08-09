@@ -1,37 +1,67 @@
-import type { FitnessSettings, SeriesConfig } from "../types";
+import type { ActivityType, FitnessSettings } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { DEFAULT_SETTINGS } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { isSafeVaultFolder } from "./vault-path.ts";
+import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.ts";
 
-type RawSettings = Partial<FitnessSettings> & {
+type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
+  activityTypes?: unknown;
+  series?: unknown;
   cuesPath?: string;
   deprecatedFitnessCuesEnabled?: boolean;
 };
 
-function sanitizeSeries(
-  series: SeriesConfig[] | undefined,
-  fallback: SeriesConfig[],
-): SeriesConfig[] {
-  if (!Array.isArray(series) || series.length === 0) return fallback;
-  const safe = series.filter(
-    (s) =>
-      s != null &&
-      typeof s.folder === "string" &&
-      isSafeVaultFolder(s.folder),
-  );
-  return safe.length > 0 ? safe : fallback;
+function cloneActivities(activityTypes: ActivityType[]): ActivityType[] {
+  return activityTypes.map((activity) => ({
+    ...activity,
+    colors: [
+      activity.colors[0],
+      activity.colors[1],
+      activity.colors[2],
+      activity.colors[3],
+    ],
+  }));
+}
+
+function normalizeActivities(
+  values: unknown,
+  fallback: ActivityType[],
+): ActivityType[] | null {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values
+    .map((value) => normalizeActivityType(value, fallback[0].colors))
+    .filter((activity): activity is ActivityType => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
+}
+
+function legacySeriesActivities(
+  values: unknown,
+  fallback: ActivityType[],
+): ActivityType[] | null {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  const normalized = values
+    .map((value) => activityTypeFromSeries(value, fallback[0].colors))
+    .filter((activity): activity is ActivityType => activity !== null);
+  return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 
 export function mergeSettings(
   raw: RawSettings | null | undefined,
 ): FitnessSettings {
-  const base = { ...DEFAULT_SETTINGS, series: DEFAULT_SETTINGS.series };
-  if (!raw) return { ...base, series: [...base.series] };
+  const base = {
+    ...DEFAULT_SETTINGS,
+    activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
+  };
+  if (!raw) return base;
   const golfCuesPath =
     (raw.golfCuesPath && raw.golfCuesPath.trim()) ||
     (raw.cuesPath && raw.cuesPath.trim()) ||
     base.golfCuesPath;
+  const activityTypes =
+    normalizeActivities(raw.activityTypes, base.activityTypes) ||
+    legacySeriesActivities(raw.series, base.activityTypes) ||
+    cloneActivities(base.activityTypes);
+
   return {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
@@ -43,6 +73,6 @@ export function mergeSettings(
       raw.deprecatedFitnessCuesEnabled === false
         ? false
         : true,
-    series: [...sanitizeSeries(raw.series, base.series)],
+    activityTypes,
   };
 }
