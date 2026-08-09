@@ -75,7 +75,6 @@ export async function createHobbyItem(
   hobbyActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  // Dynamic import keeps pure helpers testable without loading the Obsidian runtime stub.
   const { promptText } = await import("../util/prompt-text");
   const title = await promptText(
     app,
@@ -117,7 +116,6 @@ export async function createReadingItem(
   readingActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  // Dynamic import keeps pure helpers testable without loading the Obsidian runtime stub.
   const { promptText } = await import("../util/prompt-text");
   const title = await promptText(
     app,
