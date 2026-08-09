@@ -1293,6 +1293,18 @@ function minutesByDate(entries) {
   }
   return totals;
 }
+function minutesByDateForYear(entries, year) {
+  const prefix = `${year}-`;
+  return minutesByDate(entries.filter((entry) => entry.date.startsWith(prefix)));
+}
+function sumMinutesForYear(entries, year) {
+  const prefix = `${year}-`;
+  let total = 0;
+  for (const entry of entries) {
+    if (entry.date.startsWith(prefix)) total += entry.minutes;
+  }
+  return total;
+}
 function readTimerFrontmatter(markdown) {
   const parts = splitFrontmatter(markdown);
   if (!parts) return { totalMin: 0, timerStartedAt: null };
@@ -1739,14 +1751,12 @@ async function renderDashboard(el, data, activityTypes, year, language) {
   const hobbyStats = [];
   for (const activity of hobbyActivities(activityTypes)) {
     const items = data.listHobbyItems(activity);
+    const entryLists = await Promise.all(
+      items.map((item) => data.getHobbyTimeLogEntries(item.path))
+    );
     let minutes = 0;
-    for (const item of items) {
-      const markdown = await data.readBody(item.path);
-      for (const entry of parseTimeLog(markdown)) {
-        if (entry.date.startsWith(`${year}-`)) {
-          minutes += entry.minutes;
-        }
-      }
+    for (const entries of entryLists) {
+      minutes += sumMinutesForYear(entries, year);
     }
     hobbyStats.push({ activity, itemCount: items.length, minutes });
   }
@@ -2111,17 +2121,21 @@ function colorFor(activity, level) {
 async function durationMap(data, activity, year) {
   const map = /* @__PURE__ */ new Map();
   if (activity.domain === "hobby") {
-    for (const item of data.listHobbyItems(activity)) {
-      const markdown = await data.readBody(item.path);
-      const totals = minutesByDate(
-        parseTimeLog(markdown).filter(
-          (entry) => entry.date.startsWith(`${year}-`)
+    const items = data.listHobbyItems(activity);
+    const perItem = await Promise.all(
+      items.map(async (item) => ({
+        path: item.path,
+        totals: minutesByDateForYear(
+          await data.getHobbyTimeLogEntries(item.path),
+          year
         )
-      );
+      }))
+    );
+    for (const { path, totals } of perItem) {
       for (const [date, minutes] of totals) {
-        const entry = map.get(date) || { minutes: 0, path: item.path };
+        const entry = map.get(date) || { minutes: 0, path };
         entry.minutes += minutes;
-        if (!entry.path) entry.path = item.path;
+        if (!entry.path) entry.path = path;
         map.set(date, entry);
       }
     }
@@ -2538,6 +2552,42 @@ function registerCodeblocks(plugin) {
 
 // src/data/vault-source.ts
 var import_obsidian3 = require("obsidian");
+
+// src/util/hobby-time-log-cache.ts
+var HobbyTimeLogCache = class {
+  constructor() {
+    this.cache = /* @__PURE__ */ new Map();
+  }
+  get(path, mtime) {
+    const hit = this.cache.get(path);
+    if (!hit || hit.mtime !== mtime) return null;
+    return hit.entries;
+  }
+  set(path, mtime, entries) {
+    this.cache.set(path, { mtime, entries });
+  }
+  invalidate(path) {
+    if (!path) {
+      this.cache.clear();
+      return;
+    }
+    this.cache.delete(path);
+  }
+  rename(oldPath, newPath) {
+    const hit = this.cache.get(oldPath);
+    this.cache.delete(oldPath);
+    if (!hit) {
+      this.cache.delete(newPath);
+      return;
+    }
+    this.cache.set(newPath, hit);
+  }
+  get size() {
+    return this.cache.size;
+  }
+};
+
+// src/data/vault-source.ts
 function asList(value) {
   if (value == null || value === "") return [];
   if (Array.isArray(value)) {
@@ -2558,6 +2608,32 @@ function resolveDate(frontmatter, basename) {
 var VaultDataSource = class {
   constructor(app) {
     this.app = app;
+    this.hobbyTimeLogCache = new HobbyTimeLogCache();
+  }
+  /** Drop cached Time log parses (all paths, or one path after edit/delete). */
+  invalidateHobbyTimeLogCache(path) {
+    this.hobbyTimeLogCache.invalidate(
+      path ? (0, import_obsidian3.normalizePath)(path) : void 0
+    );
+  }
+  /** Keep cache entries aligned when a note is renamed. */
+  renameHobbyTimeLogCache(oldPath, newPath) {
+    this.hobbyTimeLogCache.rename((0, import_obsidian3.normalizePath)(oldPath), (0, import_obsidian3.normalizePath)(newPath));
+  }
+  /**
+   * Parsed Time log entries for a hobby item note.
+   * Reuses an in-memory parse while the file mtime is unchanged.
+   */
+  async getHobbyTimeLogEntries(path) {
+    const file = this.getFileByPath(path);
+    if (!file) return [];
+    const mtime = file.stat.mtime;
+    const cached = this.hobbyTimeLogCache.get(file.path, mtime);
+    if (cached) return cached;
+    const markdown = await this.app.vault.cachedRead(file);
+    const entries = parseTimeLog(markdown);
+    this.hobbyTimeLogCache.set(file.path, mtime, entries);
+    return entries;
   }
   listSessions(folder, year) {
     const prefix = sessionScanPrefix(folder, year);
@@ -3131,10 +3207,25 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       }
     });
     const schedule = () => this.scheduleRefresh();
+    this.registerEvent(
+      this.app.vault.on("modify", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        this.data.renameHobbyTimeLogCache(oldPath, file.path);
+        schedule();
+      })
+    );
     this.registerEvent(this.app.vault.on("create", schedule));
-    this.registerEvent(this.app.vault.on("modify", schedule));
-    this.registerEvent(this.app.vault.on("delete", schedule));
-    this.registerEvent(this.app.vault.on("rename", schedule));
     this.registerEvent(this.app.metadataCache.on("resolved", schedule));
   }
   onunload() {

@@ -108,10 +108,25 @@ export default class FitnessPlugin extends Plugin {
     });
 
     const schedule = () => this.scheduleRefresh();
+    this.registerEvent(
+      this.app.vault.on("modify", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", (file) => {
+        this.data.invalidateHobbyTimeLogCache(file.path);
+        schedule();
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        this.data.renameHobbyTimeLogCache(oldPath, file.path);
+        schedule();
+      }),
+    );
     this.registerEvent(this.app.vault.on("create", schedule));
-    this.registerEvent(this.app.vault.on("modify", schedule));
-    this.registerEvent(this.app.vault.on("delete", schedule));
-    this.registerEvent(this.app.vault.on("rename", schedule));
     this.registerEvent(this.app.metadataCache.on("resolved", schedule));
   }
 

@@ -1,6 +1,6 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { durationToLevel } from "../core";
-import { minutesByDate, parseTimeLog } from "../core/hobby";
+import { minutesByDateForYear } from "../core/hobby";
 import {
   addDays,
   formatYmd,
@@ -32,17 +32,21 @@ async function durationMap(
 ): Promise<Map<string, DayActivity>> {
   const map = new Map<string, DayActivity>();
   if (activity.domain === "hobby") {
-    for (const item of data.listHobbyItems(activity)) {
-      const markdown = await data.readBody(item.path);
-      const totals = minutesByDate(
-        parseTimeLog(markdown).filter((entry) =>
-          entry.date.startsWith(`${year}-`),
+    const items = data.listHobbyItems(activity);
+    const perItem = await Promise.all(
+      items.map(async (item) => ({
+        path: item.path,
+        totals: minutesByDateForYear(
+          await data.getHobbyTimeLogEntries(item.path),
+          year,
         ),
-      );
+      })),
+    );
+    for (const { path, totals } of perItem) {
       for (const [date, minutes] of totals) {
-        const entry = map.get(date) || { minutes: 0, path: item.path };
+        const entry = map.get(date) || { minutes: 0, path };
         entry.minutes += minutes;
-        if (!entry.path) entry.path = item.path;
+        if (!entry.path) entry.path = path;
         map.set(date, entry);
       }
     }

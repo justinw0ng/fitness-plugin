@@ -139,6 +139,24 @@ export function minutesByDate(entries: TimeLogEntry[]): Map<string, number> {
   return totals;
 }
 
+/** Totals for dates in a calendar year (`YYYY-…`). */
+export function minutesByDateForYear(
+  entries: TimeLogEntry[],
+  year: number,
+): Map<string, number> {
+  const prefix = `${year}-`;
+  return minutesByDate(entries.filter((entry) => entry.date.startsWith(prefix)));
+}
+
+export function sumMinutesForYear(entries: TimeLogEntry[], year: number): number {
+  const prefix = `${year}-`;
+  let total = 0;
+  for (const entry of entries) {
+    if (entry.date.startsWith(prefix)) total += entry.minutes;
+  }
+  return total;
+}
+
 export function readTimerFrontmatter(markdown: string): TimerFrontmatter {
   const parts = splitFrontmatter(markdown);
   if (!parts) return { totalMin: 0, timerStartedAt: null };

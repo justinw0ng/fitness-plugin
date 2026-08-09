@@ -1,6 +1,6 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { parseSetTable, rowVolumeKg } from "../core";
-import { parseTimeLog } from "../core/hobby";
+import { sumMinutesForYear } from "../core/hobby";
 import { monthShortForLanguage, nowYear } from "../dates";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
 import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
@@ -193,14 +193,12 @@ export async function renderDashboard(
   }> = [];
   for (const activity of hobbyActivities(activityTypes)) {
     const items = data.listHobbyItems(activity);
+    const entryLists = await Promise.all(
+      items.map((item) => data.getHobbyTimeLogEntries(item.path)),
+    );
     let minutes = 0;
-    for (const item of items) {
-      const markdown = await data.readBody(item.path);
-      for (const entry of parseTimeLog(markdown)) {
-        if (entry.date.startsWith(`${year}-`)) {
-          minutes += entry.minutes;
-        }
-      }
+    for (const entries of entryLists) {
+      minutes += sumMinutesForYear(entries, year);
     }
     hobbyStats.push({ activity, itemCount: items.length, minutes });
   }
