@@ -54,6 +54,6 @@ Reading is the default general habit (item + timer). Use **Atomic: New reading i
 
 `atomic-heatmap` defaults to all enabled habits. Filter with `activity: reading` or `activity: gym, golf`.
 
-Use **Atomic: Ensure reading bookshelf** / **Open reading notes in Bases** for `Bookshelf.base` (Obsidian Bases Cards + Table). Bases must be enabled for those commands.
+Use **Atomic: Create Obsidian bases of reading notes** / **Open Obsidian bases of reading notes** for `Bookshelf.base` (Obsidian Bases Cards + Table). Bases must be enabled for those commands.
 
-Use **Atomic: Ensure/Open book shelf** for `Book Shelf.md` (`atomic-bookshelf`). The shelf uses local CSS 3D hover; no Framer runtime. Cover images accept vault wikilinks, paths, or URLs.
+Use **Atomic: Create/Open book shelf** for `Book Shelf.md` (`atomic-bookshelf`). The shelf uses local CSS 3D hover; no Framer runtime. Cover images accept vault wikilinks, paths, or URLs.

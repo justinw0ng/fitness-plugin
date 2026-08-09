@@ -8,11 +8,11 @@ import { createHobbyItem, createReadingItem } from "./commands/create-reading-it
 import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
 import {
-  ensureBookShelfHostCommand,
+  createBookShelfHostCommand,
   openBookShelfHostCommand,
 } from "./hobbies/book-shelf-host";
 import {
-  ensureReadingBookshelfCommand,
+  createReadingBookshelfCommand,
   openReadingBookshelfCommand,
 } from "./hobbies/reading-bookshelf";
 import { FitnessSettingTab, mergeSettings } from "./settings";
@@ -76,14 +76,14 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-ensure-reading-bookshelf",
-      name: t("command.ensureReadingBookshelf", this.settings.language),
+      id: "atomic-create-reading-bookshelf",
+      name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
           new Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
       },
     });
 
@@ -100,10 +100,10 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-ensure-book-shelf",
-      name: t("command.ensureBookShelf", this.settings.language),
+      id: "atomic-create-book-shelf",
+      name: t("command.createBookShelf", this.settings.language),
       callback: () => {
-        void ensureBookShelfHostCommand(this.data, this.settings.language);
+        void createBookShelfHostCommand(this.data, this.settings.language);
       },
     });
 
