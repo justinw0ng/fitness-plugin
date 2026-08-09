@@ -1,7 +1,7 @@
 # Design: Atomic habit tracker redesign
 
 Date: 2026-08-09  
-Status: proposed (awaiting approval)  
+Status: approved  
 Related: language selection is a **separate** PR/spec (`2026-08-09-i18n-language-selection-design.md`)
 
 ## Goal
@@ -28,7 +28,11 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | Hobby default | Reading at `atomics/hobbies/Reading/` |
 | Custom hobby default folder | `atomics/hobbies/<Name>/` when created via the plugin |
 | Fitness → Atomic vault migrate | **One-click** Settings button (files + settings + codeblock fences) |
+| Migrate conflicts | If destination already exists, **skip** that item (no merge/overwrite) |
+| Cue blocks | Dedicated `atomic-golf-cues` / `atomic-gym-cues` **plus** generic `atomic-cues` (`activity:` arg) |
 | Hobby cues | None |
+| Hobby heatmaps | Minutes from **timer-log entries** (not pages/chapters) |
+| Default hobbies v1 | Reading only (no other built-in hobbies for now) |
 | Canvas | Ordinary vault notes + wikilinks; no custom canvas format |
 | Legacy codeblocks | `fitness-*` aliases until migrate turns them off |
 | Cue blocks | Dedicated `atomic-golf-cues` / `atomic-gym-cues`, plus generic `atomic-cues` with `activity:` arg |
@@ -292,9 +296,13 @@ Idempotent: second click reports zero moves / zero rewrites when already migrate
 4. E2E or explicit Cloud skip
 5. Mark specs implemented
 
-## Open questions remaining
+## Approval notes (2026-08-09)
 
-1. Confirm cue blocks: dedicated `atomic-golf-cues` / `atomic-gym-cues` plus generic `atomic-cues` with `activity:` arg.
-2. Confirm hobby heatmaps count timer-log minutes (not pages/chapters).
-3. Any other default hobby besides Reading in v1?
-4. During migrate, if `atomics/exercise/Gym` already exists and `Gym/` still has files, skip-only is OK (no merge)?
+Product questions closed by approver:
+
+1. Keep dedicated `atomic-golf-cues` / `atomic-gym-cues` plus generic `atomic-cues`.
+2. Hobby heatmaps use timer-log minutes.
+3. No additional default hobbies beyond Reading for now.
+4. Migrate skips when destination exists (no merge).
+
+No open product questions remain. Next step: writing-plans → multi-agent implementation.

@@ -1,7 +1,7 @@
 # Task breakdown: Atomic redesign (post-approval)
 
 Date: 2026-08-09  
-Status: proposed  
+Status: approved (decisions locked)  
 Companion design: `2026-08-09-atomic-tracker-redesign-design.md`  
 Companion i18n design (separate PR): `2026-08-09-i18n-language-selection-design.md`
 
