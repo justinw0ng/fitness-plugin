@@ -21,8 +21,8 @@ Related: `2026-08-09-atomic-tracker-redesign-design.md`
 | Built-in Reading seed | Seed missing Reading only when migrating from empty/legacy lists; do **not** resurrect Reading if the user deleted it from a stored `activityTypes` array |
 | Color UI | Obsidian `addColorPicker` only (no hex text fields) |
 | Color storage | Persist `baseColor` + derived `colors[4]` |
-| Heatmap filter | `activity: all` (default if omitted) or one id; comma lists reserved—v1 uses the **first** id only |
-| Multi-activity heatmap | Out of scope for v1 |
+| Heatmap filter | `activity: all` (default if omitted), one id, or a comma-separated list of ids |
+| Multi-activity heatmap | Supported: render one heatmap per requested **enabled** id (skip unknown/disabled with inline notice, or omit quietly—prefer inline notice once if any id is invalid) |
 | Non-Reading Bases bookshelf | Out of scope (Reading commands stay Reading-specific when enabled) |
 
 ## Approaches considered
@@ -115,8 +115,12 @@ Reuse stacking layout classes so bilingual labels do not overflow beside control
 | Option | Behavior |
 |--------|----------|
 | omit / `activity: all` | Render heatmaps for all **enabled** exercise + hobby activities |
-| `activity: <id>` | Render only that activity if it exists and is enabled; otherwise inline i18n empty/error in the block |
-| `activity: a, b` | v1: use the first id only (comma lists reserved for later) |
+| `activity: <id>` | Render only that activity if it exists and is enabled |
+| `activity: <id1>, <id2>, …` | Render one heatmap per listed id that exists and is enabled, in list order |
+
+Parsing: split on commas, trim, drop empties; treat the token `all` (case-insensitive) as the all-enabled set. If the list mixes `all` with specific ids, treat the whole value as **all**.
+
+Unknown or disabled ids: show a short inline i18n message for those ids and still render any valid ones. If none are valid, show only the error/empty state.
 
 Existing `year:` resolution unchanged. Parse/filter in the heatmap path (same idea as `atomic-bookshelf` `activity:`).
 
@@ -134,13 +138,12 @@ Pure-module coverage:
 
 - `shadesFromBaseColor` + built-in palette fidelity
 - `normalizeActivityType` / `mergeSettings` for `enabled`, `baseColor`, and no Reading resurrection after delete
-- Heatmap activity filter: all / one / first-of-comma / unknown / disabled
+- Heatmap activity filter: all / one / multi-id list / unknown / disabled / mixed `all`+ids
 - `enabled` filtering in exercise/hobby helpers
 - i18n key parity for new settings/command/heatmap strings
 
 ## Out of scope
 
-- Rendering multiple named activities in one heatmap block (beyond first-id behavior)
 - Generalizing Bases bookshelf beyond Reading
 - Changing timer-log or item-note markdown format
 - Auto-deleting vault folders when an activity is removed from settings
@@ -162,5 +165,5 @@ Pure-module coverage:
 1. Settings show one color picker per activity; heatmaps still show four intensity shades.
 2. Users can add/disable/delete general habits; Reading is not forced back after delete.
 3. Disabled habits disappear from heatmaps, dashboard rolls, and commands.
-4. `atomic-heatmap` defaults to all enabled habits; `activity: <id>` shows one.
+4. `atomic-heatmap` defaults to all enabled habits; `activity: <id>` or `activity: a, b` shows those enabled habits.
 5. `npm test`, `npm run typecheck`, and `npm run build` pass.
