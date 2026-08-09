@@ -109,8 +109,8 @@ export function scrollLeftToAlignRight(
 
 **Steps:**
 
-- [ ] `npm test`, `npm run typecheck`, `npm run build`
-- [ ] Commit built `main.js` if heatmap runtime changed
+- [x] `npm test`, `npm run typecheck`, `npm run build`
+- [x] Commit built `main.js` if heatmap runtime changed
 - [ ] Manual E2E when Obsidian available (narrow pane / mobile): overflow scroll, today right-aligned, past year left, labels pinned, stacked heatmaps independent
 - [ ] Update PR
 

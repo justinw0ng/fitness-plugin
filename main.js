@@ -2463,6 +2463,19 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
   return { activities, invalidIds };
 }
 
+// src/util/heatmap-scroll.ts
+function scrollLeftToAlignRight(scrollWidth, clientWidth, targetRightPx) {
+  if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth) || !Number.isFinite(targetRightPx) || scrollWidth < 0 || clientWidth < 0) {
+    return 0;
+  }
+  if (scrollWidth <= clientWidth) {
+    return 0;
+  }
+  const maxScrollLeft = scrollWidth - clientWidth;
+  const desired = targetRightPx - clientWidth;
+  return Math.min(Math.max(desired, 0), maxScrollLeft);
+}
+
 // src/views/heatmap.ts
 var DAY_NAMES = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -2471,6 +2484,45 @@ var DAY_NAMES = {
 function colorFor(activity, level) {
   if (!level) return EMPTY_CELL;
   return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
+}
+function wireHeatmapScroll(scrollEl) {
+  let userHasScrolled = false;
+  let expectedScrollLeft = null;
+  const applyTodayAlign = () => {
+    const todayWeek = scrollEl.querySelector(".is-today-week");
+    if (!todayWeek) return;
+    const targetRightPx = todayWeek.getBoundingClientRect().right - scrollEl.getBoundingClientRect().left + scrollEl.scrollLeft;
+    const nextScrollLeft = scrollLeftToAlignRight(
+      scrollEl.scrollWidth,
+      scrollEl.clientWidth,
+      targetRightPx
+    );
+    expectedScrollLeft = nextScrollLeft;
+    scrollEl.scrollLeft = nextScrollLeft;
+  };
+  scrollEl.addEventListener(
+    "scroll",
+    () => {
+      if (expectedScrollLeft !== null && Math.abs(scrollEl.scrollLeft - expectedScrollLeft) < 1) {
+        expectedScrollLeft = null;
+        return;
+      }
+      userHasScrolled = true;
+    },
+    { passive: true }
+  );
+  const resizeObserver = new ResizeObserver(() => {
+    if (userHasScrolled) return;
+    requestAnimationFrame(() => {
+      if (!userHasScrolled) applyTodayAlign();
+    });
+  });
+  resizeObserver.observe(scrollEl);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      applyTodayAlign();
+    });
+  });
 }
 async function durationMap(data, activity, year) {
   const map = /* @__PURE__ */ new Map();
@@ -2553,7 +2605,13 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language) 
     weeks.push(week);
     weekCount++;
   }
-  const monthRow = wrap.createDiv({ cls: "fitness-month-row" });
+  const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
+  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
+  for (const d of DAY_NAMES[language]) {
+    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  }
+  const scroll = body.createDiv({ cls: "fitness-heatmap-scroll" });
+  const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
   let lastMonth = "";
   for (const week of weeks) {
     if (!week.length) continue;
@@ -2569,14 +2627,12 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language) 
       monthRow.createDiv({ cls: "fitness-month-spacer" });
     }
   }
-  const gridWrap = wrap.createDiv({ cls: "fitness-grid-wrap" });
-  const dayLabels = gridWrap.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
-  }
-  const weeksEl = gridWrap.createDiv({ cls: "fitness-weeks" });
+  const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
   for (const week of weeks) {
-    const col = weeksEl.createDiv({ cls: "fitness-week" });
+    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
+    const col = weeksEl.createDiv({
+      cls: "fitness-week" + (isTodayWeek ? " is-today-week" : "")
+    });
     for (const day of week) {
       const color = day.isCurrentYear ? colorFor(activity, day.level) : EMPTY_CELL;
       const cell = col.createDiv({
@@ -2600,6 +2656,7 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language) 
       }
     }
   }
+  wireHeatmapScroll(scroll);
 }
 async function renderHeatmaps(el, data, activityTypes, year, timezone, language, activityOption) {
   el.empty();
