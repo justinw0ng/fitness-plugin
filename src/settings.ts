@@ -1,7 +1,10 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, normalizePath, PluginSettingTab, Setting } from "obsidian";
 import type FitnessPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./types";
-import { rewriteFitnessCuesFences } from "./util/migrate-cues";
+import {
+  planFitnessMigration,
+  rewriteFitnessFences,
+} from "./util/migrate-fitness";
 
 export { mergeSettings } from "./util/merge-settings";
 
@@ -93,14 +96,16 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Migrate legacy cue blocks")
-      .setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.")
+      .setName("Migrate from Fitness → Atomic")
+      .setDesc(
+        "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases.",
+      )
       .addButton((button) =>
         button
-          .setButtonText("Migrate `fitness-cues` → `fitness-golf-cues`")
+          .setButtonText("Migrate from Fitness → Atomic")
           .setCta()
           .onClick(() => {
-            void this.migrateFitnessCuesFences();
+            void this.migrateFromFitnessToAtomic();
           }),
       );
 
@@ -110,14 +115,45 @@ export class FitnessSettingTab extends PluginSettingTab {
     });
   }
 
-  private async migrateFitnessCuesFences(): Promise<void> {
+  private async ensureParentFolder(path: string): Promise<void> {
+    const normalized = normalizePath(path);
+    const slash = normalized.lastIndexOf("/");
+    if (slash <= 0) return;
+    await this.plugin.data.ensureFolder(normalized.slice(0, slash));
+  }
+
+  private async migrateFromFitnessToAtomic(): Promise<void> {
+    const existingPaths = new Set(
+      this.app.vault.getAllLoadedFiles().map((file) => file.path),
+    );
+    const plan = planFitnessMigration({
+      existingPaths,
+      settings: this.plugin.settings,
+    });
+    let movedPaths = 0;
+    let skippedPaths = plan.skippedMoves.length;
     let changedFiles = 0;
     let replacements = 0;
 
     try {
+      for (const move of plan.moves) {
+        const from = normalizePath(move.from);
+        const to = normalizePath(move.to);
+        const source = this.app.vault.getAbstractFileByPath(from);
+        const destination = this.app.vault.getAbstractFileByPath(to);
+        if (!source || destination) {
+          skippedPaths += 1;
+          continue;
+        }
+
+        await this.ensureParentFolder(to);
+        await this.app.vault.rename(source, to);
+        movedPaths += 1;
+      }
+
       for (const file of this.app.vault.getMarkdownFiles()) {
         const original = await this.app.vault.read(file);
-        const result = rewriteFitnessCuesFences(original);
+        const result = rewriteFitnessFences(original);
         if (result.replacements === 0) continue;
 
         await this.app.vault.modify(file, result.markdown);
@@ -125,17 +161,18 @@ export class FitnessSettingTab extends PluginSettingTab {
         replacements += result.replacements;
       }
 
+      Object.assign(this.plugin.settings, plan.settingsPatch);
       this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
       new Notice(
-        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`,
+        `Migrated Fitness → Atomic: moved ${movedPaths} path${movedPaths === 1 ? "" : "s"}, skipped ${skippedPaths} existing destination${skippedPaths === 1 ? "" : "s"}, rewrote ${replacements} block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-* aliases disabled; reload the plugin (or Obsidian) to drop registered legacy processors.`,
       );
     } catch (err) {
-      console.error("Fitness cues migration failed", err);
+      console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new Notice(`Failed to migrate fitness-cues blocks: ${message}`);
+      new Notice(`Failed to migrate from Fitness to Atomic: ${message}`);
     }
   }
 }
