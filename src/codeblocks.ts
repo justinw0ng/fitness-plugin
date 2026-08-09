@@ -64,7 +64,15 @@ export async function renderBlock(
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        await renderHeatmaps(el, data, activityTypes, year, tz, language);
+        await renderHeatmaps(
+          el,
+          data,
+          activityTypes,
+          year,
+          tz,
+          language,
+          opts.activity,
+        );
         break;
       }
       case "atomic-today": {

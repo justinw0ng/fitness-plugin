@@ -140,6 +140,8 @@ export const en = {
   "view.heatmap.minutes": "{minutes} min",
   "view.heatmap.tooltip": "{date}: {minutes} min",
   "view.heatmap.tooltipOpen": "{date}: {minutes} min - click to open",
+  "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities: {ids}",
+  "view.heatmap.noActivities": "No enabled habits to show in this heatmap.",
   "view.today.title": "🗂️ Today’s sessions",
   "view.today.noSession": "no session yet",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured.",

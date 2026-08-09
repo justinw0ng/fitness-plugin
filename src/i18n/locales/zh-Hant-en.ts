@@ -140,6 +140,8 @@ export const zhHantEn = {
   "view.heatmap.minutes": "{minutes} min / 分鐘",
   "view.heatmap.tooltip": "{date}: {minutes} min / 分鐘",
   "view.heatmap.tooltipOpen": "{date}: {minutes} min / 分鐘 - click to open / 點擊開啟",
+  "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities / 未知或已停用的 Heatmap 活動: {ids}",
+  "view.heatmap.noActivities": "No enabled habits to show in this heatmap / 沒有可顯示的已啟用習慣。",
   "view.today.title": "🗂️ Today’s sessions / 今日訓練",
   "view.today.noSession": "no session yet / 尚未記錄",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / 尚未設定支援提醒的 {activity} 運動活動。",

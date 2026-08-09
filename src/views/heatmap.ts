@@ -13,7 +13,7 @@ import {
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
-import { exerciseActivities, hobbyActivities } from "../util/activity-types";
+import { resolveHeatmapActivities } from "../util/heatmap-activities";
 
 const DAY_NAMES: Record<Language, string[]> = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -204,13 +204,30 @@ export async function renderHeatmaps(
   year: number,
   timezone: string,
   language: Language,
+  activityOption?: string,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const activity of [
-    ...exerciseActivities(activityTypes),
-    ...hobbyActivities(activityTypes),
-  ]) {
+  const { activities, invalidIds } = resolveHeatmapActivities(
+    activityTypes,
+    activityOption,
+  );
+  if (invalidIds.length > 0) {
+    root.createEl("p", {
+      text: t("view.heatmap.invalidActivities", language, {
+        ids: invalidIds.join(", "),
+      }),
+      cls: "fitness-muted",
+    });
+  }
+  if (activities.length === 0 && invalidIds.length === 0) {
+    root.createEl("p", {
+      text: t("view.heatmap.noActivities", language),
+      cls: "fitness-muted",
+    });
+    return;
+  }
+  for (const activity of activities) {
     await renderOneHeatmap(root, data, activity, year, timezone, language);
   }
 }
