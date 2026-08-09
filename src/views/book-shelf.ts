@@ -375,6 +375,10 @@ export function renderBookShelf(
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
   el.empty();
+  // Keep hover title bubbles visible above books (preview codeblocks often clip).
+  el.style.overflow = "visible";
+  const host = el.parentElement;
+  if (host instanceof HTMLElement) host.style.overflow = "visible";
 
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";

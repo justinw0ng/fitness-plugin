@@ -2452,6 +2452,9 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
   el.empty();
+  el.style.overflow = "visible";
+  const host = el.parentElement;
+  if (host instanceof HTMLElement) host.style.overflow = "visible";
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
