@@ -1,4 +1,4 @@
-# fitness-plugin
+# obsidian-atomic
 
 Obsidian community plugin (TypeScript, bundled with esbuild) for gym/golf session tracking. See `README.md` for feature and data-layout details.
 

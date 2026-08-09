@@ -2,7 +2,7 @@
 
 Obsidian plugin for gym and golf sessions — heatmaps, yearly dashboard, golf and gym cue rollups (`fitness-golf-cues`, `fitness-gym-cues`), and quick session creation.
 
-**Install:** download `obsidian-fitness-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases) and unzip it into `<vault>/.obsidian/plugins/` (so you get `obsidian-fitness/main.js`, `manifest.json`, and `styles.css`).
+**Install:** download `obsidian-fitness-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases) and unzip it into `<vault>/.obsidian/plugins/` (so you get `obsidian-fitness/main.js`, `manifest.json`, and `styles.css`).
 
 **Setup guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 

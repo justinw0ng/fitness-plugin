@@ -39,7 +39,7 @@ test("bumpSemver bumps each level", () => {
 function writeVersionTree(dir, version) {
   writeFileSync(
     join(dir, "package.json"),
-    `${JSON.stringify({ name: "fitness-plugin", version }, null, 2)}\n`,
+    `${JSON.stringify({ name: "obsidian-atomic", version }, null, 2)}\n`,
   );
   writeFileSync(
     join(dir, "manifest.json"),
