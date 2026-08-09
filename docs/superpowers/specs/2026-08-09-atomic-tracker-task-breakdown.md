@@ -13,7 +13,7 @@ This is the **phased work map** for multi-agent execution after design approval.
 - Default content root: `atomics/**`
 - One-click **Migrate from Fitness → Atomic** (skip if destination exists)
 - Reading Bases bookshelf: Cards + Table on demand (`Bookshelf.base`); soft-require Bases
-- **Atomic book shelf:** `atomic-bookshelf` in `Book Shelf.md`; books on bookshelf planks (Interactive 3D Books–style); Framer Book–style cover-open on hover; click → book note; CSS only
+- **Atomic book shelf:** `atomic-bookshelf` in `Book Shelf.md`; books on bookshelf planks; cover-open hover rewritten in our CSS/TS (Framer reference only, no Framer JS)
 
 ## Parallelism map
 

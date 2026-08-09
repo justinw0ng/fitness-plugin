@@ -18,7 +18,7 @@
 - Cue blocks: dedicated `atomic-golf-cues` / `atomic-gym-cues` **plus** generic `atomic-cues`
 - Hobby heatmaps: timer-log minutes
 - Reading Bases bookshelf: `.base` file (Cards + Table), on-demand commands; path `atomics/hobbies/Reading/Bookshelf.base`; soft-require Bases
-- Atomic book shelf: `atomic-bookshelf` codeblock; host `atomics/hobbies/Reading/Book Shelf.md`; books stand on shelf boards (Interactive 3D Books–style scene); Framer Book–style cover-open on hover; click → book note; CSS only (no Framer runtime)
+- Atomic book shelf: `atomic-bookshelf` codeblock; host `atomics/hobbies/Reading/Book Shelf.md`; books on shelf boards; cover-open hover rewritten in our CSS/TS (Framer is reference only — do not import/embed Framer JS)
 - Book properties: `cover`, `authors`, `description`, `pages`, `status`, `tags`, optional `spine_color` (+ timer fields)
 - Migrate conflicts: skip destination if it already exists (no merge/overwrite)
 - One-click Settings migrate: folders + fences + settings + disable legacy aliases; idempotent
@@ -439,14 +439,16 @@ Renderer:
 - Register `atomic-bookshelf`
 - Build a **bookshelf scene**: frame + one or more planks; books upright, baseline on the ledge (not a floating card grid)
 - Each book: cover + pages + thin spine edge (`preserve-3d`, perspective ~1200)
-- Hover/focus: cover `rotateY(-70deg)` origin left, ~600ms ease, lift + deeper shadow; book stays on the shelf
+- Hover/focus: cover `rotateY(-70deg)` origin left, ~600ms ease, lift + deeper shadow; book stays on the shelf (our CSS rewrite of the referenced motion)
 - Optional detail chip: title / author / description
 - `prefers-reduced-motion`: no rotate; still clickable
 - Click → open note at `path`
 - Commands: open/ensure `atomics/hobbies/Reading/Book Shelf.md`
+- Hard rule: no Framer packages, no remote Framer module URLs in `package.json`, bundle, or demo HTML
 
 - [ ] Failing tests for `shelfColorFor` / `buildBookShelfItems`
-- [ ] Implement view + commands + CSS animation
+- [ ] Implement view + commands + CSS animation (hand-rolled)
+- [ ] Keep mockup `06-atomic-book-shelf.html` as the same logic in plain CSS/HTML (no Framer)
 - [ ] Commit
 
 ### Task C6: Hobby heatmap + library + dashboard section
@@ -492,6 +494,6 @@ After A merges, B and C may run as parallel agents with file ownership:
 
 ## Self-review
 
-1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Bases bookshelf + Atomic book shelf (Framer-like hover), Canvas wikilinks, legacy aliases — mapped to tasks.
+1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Bases bookshelf + Atomic book shelf (hand-rolled hover), Canvas wikilinks, legacy aliases — mapped to tasks.
 2. No Simplified Chinese / i18n details — deferred to i18n plan.
 3. Types/names consistent: `planFitnessMigration`, `rewriteFitnessFences`, `ActivityType`, `atomics/exercise|hobbies`.
