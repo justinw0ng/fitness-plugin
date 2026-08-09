@@ -1,7 +1,7 @@
 # Design: Language selection (i18n)
 
 Date: 2026-08-09  
-Status: proposed (awaiting approval)  
+Status: approved  
 PR scope: **standalone** — no Atomic rebrand, no exercise/hobby domain changes
 
 ## Goal
@@ -13,21 +13,16 @@ Add a user-facing language setting so the plugin UI can switch between:
 
 Pure logic stays in Obsidian-free modules so locale packing and lookup stay unit-testable.
 
-## Assumptions (correct if wrong)
+## Decisions (locked)
 
-| Topic | Assumption |
-|-------|------------|
-| Locale set | Exactly two modes: `zh-Hant-en` and `en`. No Simplified Chinese, no zh-only mode in v1 |
-| Default | `zh-Hant-en` (matches today’s hardcoded bilingual strings and `Asia/Hong_Kong` default timezone) |
+| Topic | Choice |
+|-------|--------|
+| Locale set | Exactly two modes: `zh-Hant-en` and `en`. **No Simplified Chinese.** No zh-only mode in v1 |
+| Default | `zh-Hant-en` |
 | Scope of translation | Settings tab, Notices, command names, codeblock UI chrome, session templates, dashboard/cue/today/actions labels |
 | Out of scope for this PR | Renaming plugin to Atomic, new codeblock languages, vault folder renames, hobby tracker |
 | User content | Session notes, cue bullets, and frontmatter values the user typed are never auto-translated |
 | Persistence | New settings key `language` in plugin `data.json` via existing merge path |
-
-## Decisions (proposed)
-
-| Topic | Choice |
-|-------|--------|
 | API | `t(key, lang, vars?)` string catalog in `src/i18n/` |
 | Catalog shape | Flat keys (`settings.timezone`, `notice.sessionCreated`) with per-locale maps |
 | Bilingual mode | One string per key that already contains both languages where useful (`Date / 日期`), not runtime concatenation of two locales |
@@ -135,8 +130,10 @@ New row at top of Settings:
 - Custom exercises / hobby tracker
 - Community plugin directory listing copy
 
-## Open questions for approver
+## Approval notes (2026-08-09)
 
-1. Confirm default stays `zh-Hant-en`.
-2. Confirm we do **not** add a Traditional-Chinese-only mode in v1.
-3. Command palette: is a reload Notice acceptable if Obsidian cannot rename commands live?
+1. Default language: `zh-Hant-en`.
+2. No Simplified Chinese locale. Two modes only: bilingual Traditional Chinese & English, and English.
+3. Command palette reload Notice is acceptable when live rename is not possible.
+
+No open product questions remain. Next step: writing-plans → implementation.
