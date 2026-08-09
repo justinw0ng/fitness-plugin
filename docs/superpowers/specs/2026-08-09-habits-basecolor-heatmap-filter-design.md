@@ -8,7 +8,7 @@ Related: `2026-08-09-atomic-tracker-redesign-design.md`
 
 1. Let users pick **one** habit color; derive the four heatmap shades under the hood.
 2. Treat Reading as a **default general habit** that can be enabled, disabled, or deleted—not hard-coded as always on. Allow adding more general habits (item notes + timer), same model as Reading.
-3. Let each `atomic-heatmap` block choose **all enabled habits** or **one habit**.
+3. Let each `atomic-heatmap` block choose **all enabled habits**, **one habit**, or **several habits** by id.
 
 ## Decisions (locked)
 
@@ -128,7 +128,7 @@ Existing `year:` resolution unchanged. Parse/filter in the heatmap path (same id
 
 | Case | Behavior |
 |------|----------|
-| Heatmap unknown or disabled id | Inline message in the codeblock |
+| Heatmap unknown or disabled id(s) | Inline message for invalid ids; still render any valid listed activities |
 | Command for disabled/missing activity | Notice; do not create notes |
 | Delete activity | Obsidian confirm modal; on confirm remove from `activityTypes` only; leave vault files |
 
