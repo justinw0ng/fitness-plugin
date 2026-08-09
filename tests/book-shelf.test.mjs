@@ -4,6 +4,8 @@ import {
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
+  coverBookWidth,
+  packRowSizes,
   parseCoverRef,
   resolveCoverSrc,
   shelfColorFor,
@@ -172,4 +174,26 @@ test("booksPerRow and chunkItems wrap to multiple shelf rows by width", () => {
     chunkItems(["a", "b", "c", "d", "e"], 2),
     [["a", "b"], ["c", "d"], ["e"]],
   );
+});
+
+test("coverBookWidth sizes shelf books from cover aspect ratio", () => {
+  // Fixed height 142; 2:3 cover → width 95
+  assert.equal(coverBookWidth(600, 900), 95);
+  // Square cover widens toward the max clamp
+  assert.equal(coverBookWidth(800, 800), 120);
+  // Very wide cover clamps to max; image still fills via object-fit: cover
+  assert.equal(coverBookWidth(1600, 900), 120);
+  // Tall narrow cover keeps the default min width
+  assert.equal(coverBookWidth(400, 900), 86);
+  assert.equal(coverBookWidth(0, 900), 86);
+  assert.equal(coverBookWidth(600, 0), 86);
+});
+
+test("packRowSizes packs variable-width books onto shelf planks", () => {
+  // available = 200 - 16 = 184; 95 + 8 + 95 = 198 > 184 → one then one
+  assert.deepEqual(packRowSizes([95, 95], 200), [1, 1]);
+  // 86 + 8 + 86 = 180 fits in 184
+  assert.deepEqual(packRowSizes([86, 86], 200), [2]);
+  assert.deepEqual(packRowSizes([120, 86, 86], 320), [2, 1]);
+  assert.deepEqual(packRowSizes([], 200), [0]);
 });

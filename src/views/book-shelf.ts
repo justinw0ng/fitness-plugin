@@ -28,10 +28,84 @@ const STATUS_ORDER = new Map([
 ]);
 
 const BOOK_WIDTH_PX = 86;
+const BOOK_HEIGHT_PX = 142;
+/** Widest upright cover on the shelf; wider art still fills via object-fit: cover. */
+const BOOK_MAX_WIDTH_PX = 120;
 const BOOK_GAP_PX = 8;
 const ROW_PADDING_PX = 16;
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
+
+/** Shelf book width for a cover image at fixed book height, clamped for layout. */
+export function coverBookWidth(
+  naturalWidth: number,
+  naturalHeight: number,
+  bookHeight = BOOK_HEIGHT_PX,
+  minWidth = BOOK_WIDTH_PX,
+  maxWidth = BOOK_MAX_WIDTH_PX,
+): number {
+  if (
+    !Number.isFinite(naturalWidth) ||
+    !Number.isFinite(naturalHeight) ||
+    naturalWidth <= 0 ||
+    naturalHeight <= 0 ||
+    !Number.isFinite(bookHeight) ||
+    bookHeight <= 0
+  ) {
+    return minWidth;
+  }
+  const width = Math.round(bookHeight * (naturalWidth / naturalHeight));
+  return Math.min(maxWidth, Math.max(minWidth, width));
+}
+
+/** Greedy plank packing for upright books that may differ in width. */
+export function packRowSizes(
+  widths: number[],
+  containerWidth: number,
+  gap = BOOK_GAP_PX,
+  padding = ROW_PADDING_PX,
+): number[] {
+  if (!widths.length) return [0];
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return [widths.length];
+  const available = Math.max(0, containerWidth - padding);
+  const rows: number[] = [];
+  let count = 0;
+  let used = 0;
+  for (const width of widths) {
+    const bookWidth = Math.max(1, width);
+    const next = count === 0 ? bookWidth : used + gap + bookWidth;
+    if (count > 0 && next > available) {
+      rows.push(count);
+      count = 1;
+      used = bookWidth;
+    } else {
+      count += 1;
+      used = next;
+    }
+  }
+  if (count > 0) rows.push(count);
+  return rows;
+}
+
+function applyBookWidth(el: HTMLElement, width: number): void {
+  const px = `${Math.round(width)}px`;
+  el.style.width = px;
+  el.style.flexBasis = px;
+}
+
+function chunkByRowSizes<T>(items: T[], rowSizes: number[]): T[][] {
+  if (!items.length) return [[]];
+  const rows: T[][] = [];
+  let index = 0;
+  for (const size of rowSizes) {
+    const count = Math.max(0, Math.floor(size));
+    if (count <= 0) continue;
+    rows.push(items.slice(index, index + count));
+    index += count;
+  }
+  if (index < items.length) rows.push(items.slice(index));
+  return rows.length ? rows : [[]];
+}
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -171,6 +245,8 @@ function createBook(
   item: BookShelfItem,
   data: VaultDataSource,
   language: Language,
+  widthPx: number,
+  onCoverWidth?: (path: string, width: number) => void,
 ): void {
   const button = parent.createEl("button", {
     cls: "atomic-book",
@@ -180,6 +256,7 @@ function createBook(
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
+  applyBookWidth(button, widthPx);
   button.addEventListener("click", (event) => {
     event.preventDefault();
     void data.openPath(item.path);
@@ -201,10 +278,20 @@ function createBook(
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    face.createEl("img", {
+    const image = face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" },
     });
+    const applyFromImage = (): void => {
+      const next = coverBookWidth(image.naturalWidth, image.naturalHeight);
+      applyBookWidth(button, next);
+      onCoverWidth?.(item.path, next);
+    };
+    if (image.complete && image.naturalWidth > 0) {
+      applyFromImage();
+    } else {
+      image.addEventListener("load", applyFromImage, { once: true });
+    }
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
@@ -238,12 +325,21 @@ function createBook(
 function paintRows(
   frame: HTMLElement,
   items: BookShelfItem[],
-  perRow: number,
+  widths: number[],
   data: VaultDataSource,
   language: Language,
+  onCoverWidth?: (path: string, width: number) => void,
 ): void {
   frame.empty();
-  const rows = items.length ? chunkItems(items, perRow) : [[]];
+  const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
+  const rowSizes = items.length
+    ? packRowSizes(
+        items.map((_, index) => widths[index] ?? BOOK_WIDTH_PX),
+        containerWidth,
+      )
+    : [0];
+  const rows = items.length ? chunkByRowSizes(items, rowSizes) : [[]];
+  let offset = 0;
   for (const rowItems of rows) {
     const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
     const books = row.createDiv({ cls: "atomic-book-row-books" });
@@ -253,7 +349,17 @@ function paintRows(
         text: t("view.bookShelf.empty", language),
       });
     } else {
-      for (const item of rowItems) createBook(books, item, data, language);
+      for (const item of rowItems) {
+        createBook(
+          books,
+          item,
+          data,
+          language,
+          widths[offset] ?? BOOK_WIDTH_PX,
+          onCoverWidth,
+        );
+        offset += 1;
+      }
     }
     row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
@@ -285,13 +391,26 @@ export function renderBookShelf(
 
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
+  const widths = items.map(() => BOOK_WIDTH_PX);
+  let lastSignature = "";
+  let relayoutQueued = false;
 
-  let lastPerRow = -1;
   const layout = (): void => {
-    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
-    if (perRow === lastPerRow && frame.childElementCount > 0) return;
-    lastPerRow = perRow;
-    paintRows(frame, items, perRow, data, language);
+    const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
+    const signature = `${Math.round(containerWidth)}:${widths.join(",")}`;
+    if (signature === lastSignature && frame.childElementCount > 0) return;
+    lastSignature = signature;
+    paintRows(frame, items, widths, data, language, (path, width) => {
+      const index = items.findIndex((item) => item.path === path);
+      if (index < 0 || widths[index] === width) return;
+      widths[index] = width;
+      if (relayoutQueued) return;
+      relayoutQueued = true;
+      queueMicrotask(() => {
+        relayoutQueued = false;
+        layout();
+      });
+    });
   };
 
   layout();

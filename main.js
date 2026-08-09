@@ -1,9 +1,7 @@
 "use strict";
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -17,14 +15,6 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/main.ts
@@ -33,10 +23,10 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // src/commands/create-session.ts
-var import_obsidian = require("obsidian");
+var import_obsidian2 = require("obsidian");
 
 // src/core.ts
 var LB_TO_KG = 0.45359237;
@@ -302,9 +292,9 @@ var en = {
   "command.newExerciseSession": "New exercise session",
   "command.newReadingItem": "New reading item",
   "command.newHobbyItem": "New hobby item",
-  "command.ensureReadingBookshelf": "Ensure reading bookshelf",
-  "command.openReadingBookshelf": "Open reading notes in Bases",
-  "command.ensureBookShelf": "Ensure book shelf",
+  "command.createReadingBookshelf": "Create Obsidian bases of reading notes",
+  "command.openReadingBookshelf": "Open Obsidian bases of reading notes",
+  "command.createBookShelf": "Create book shelf",
   "command.openBookShelf": "Open book shelf",
   "command.openDashboard": "Open dashboard",
   "notice.created": "Created: {path}",
@@ -327,11 +317,16 @@ var en = {
   "notice.invalidDate": "Invalid date",
   "notice.createdReadingItem": "Created Reading item: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item: {path}",
+  "notice.readingItemFailed": "Could not create Reading item: {message}",
   "notice.createdHobbyItem": "Created {label} item: {path}",
   "notice.openedExistingHobbyItem": "Opened existing {label} item: {path}",
-  "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
-  "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
-  "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",
+  "notice.hobbyItemFailed": "Could not create hobby item: {message}",
+  "notice.bookShelfFailed": "Could not create book shelf: {message}",
+  "notice.createdReadingBookshelf": "Created Obsidian Bases of reading notes: {path}",
+  "notice.updatedReadingBookshelf": "Updated Obsidian Bases of reading notes: {path}",
+  "notice.readingBookshelfExists": "Obsidian Bases of reading notes already exists: {path}",
+  "notice.readingBookshelfFailed": "Could not create Obsidian Bases of reading notes: {message}",
+  "notice.enableBases": "Enable the Bases core plugin to use Obsidian Bases of reading notes.",
   "notice.createdBookShelf": "Created book shelf: {path}",
   "notice.bookShelfExists": "Book shelf already exists: {path}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note.",
@@ -366,7 +361,7 @@ var en = {
   "template.golfFeltHint": "felt: good, ok, bad",
   "template.readingRemarks": "Remarks",
   "template.readingTimeLog": "Time log",
-  "template.readingBookshelfTitle": "Reading bookshelf v1",
+  "template.readingBookshelfTitle": "Reading bookshelf v2",
   "template.base.title": "Title",
   "template.base.authors": "Authors",
   "template.base.description": "Description",
@@ -479,9 +474,9 @@ var zhHantEn = {
   "command.newExerciseSession": "New exercise session / \u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
   "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
   "command.newHobbyItem": "New hobby item / \u65B0\u589E\u8208\u8DA3\u9805\u76EE",
-  "command.ensureReadingBookshelf": "Ensure reading bookshelf / \u5EFA\u7ACB\u95B1\u8B80 Bookshelf",
-  "command.openReadingBookshelf": "Open reading notes in Bases / \u5728 Bases \u958B\u555F\u95B1\u8B80\u7B46\u8A18",
-  "command.ensureBookShelf": "Ensure book shelf / \u5EFA\u7ACB\u66F8\u67B6",
+  "command.createReadingBookshelf": "Create Obsidian bases of reading notes / \u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases",
+  "command.openReadingBookshelf": "Open Obsidian bases of reading notes / \u958B\u555F\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases",
+  "command.createBookShelf": "Create book shelf / \u5EFA\u7ACB\u66F8\u67B6",
   "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
   "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
   "notice.created": "Created / \u5DF2\u5EFA\u7ACB: {path}",
@@ -504,11 +499,16 @@ var zhHantEn = {
   "notice.invalidDate": "Invalid date / \u65E5\u671F\u7121\u6548",
   "notice.createdReadingItem": "Created Reading item / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item / \u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.readingItemFailed": "Could not create Reading item / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {message}",
   "notice.createdHobbyItem": "Created {label} item / \u5DF2\u5EFA\u7ACB {label} \u9805\u76EE: {path}",
   "notice.openedExistingHobbyItem": "Opened existing {label} item / \u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
-  "notice.createdReadingBookshelf": "Created Reading bookshelf / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bookshelf: {path}",
-  "notice.readingBookshelfExists": "Reading bookshelf already exists / \u95B1\u8B80 Bookshelf \u5DF2\u5B58\u5728: {path}",
-  "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bookshelf\u3002",
+  "notice.hobbyItemFailed": "Could not create hobby item / \u7121\u6CD5\u5EFA\u7ACB\u8208\u8DA3\u9805\u76EE: {message}",
+  "notice.bookShelfFailed": "Could not create book shelf / \u7121\u6CD5\u5EFA\u7ACB\u66F8\u67B6: {message}",
+  "notice.createdReadingBookshelf": "Created Obsidian Bases of reading notes / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {path}",
+  "notice.updatedReadingBookshelf": "Updated Obsidian Bases of reading notes / \u5DF2\u66F4\u65B0\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {path}",
+  "notice.readingBookshelfExists": "Obsidian Bases of reading notes already exists / \u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases \u5DF2\u5B58\u5728: {path}",
+  "notice.readingBookshelfFailed": "Could not create Obsidian Bases of reading notes / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {message}",
+  "notice.enableBases": "Enable the Bases core plugin to use Obsidian Bases of reading notes / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases\u3002",
   "notice.createdBookShelf": "Created book shelf / \u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
   "notice.bookShelfExists": "Book shelf already exists / \u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
@@ -543,7 +543,7 @@ var zhHantEn = {
   "template.golfFeltHint": "felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE",
   "template.readingRemarks": "Remarks / \u5099\u8A3B",
   "template.readingTimeLog": "Time log / \u6642\u9593\u8A18\u9304",
-  "template.readingBookshelfTitle": "Reading bookshelf v1",
+  "template.readingBookshelfTitle": "Reading bookshelf v2",
   "template.base.title": "Title / \u66F8\u540D",
   "template.base.authors": "Authors / \u4F5C\u8005",
   "template.base.description": "Description / \u63CF\u8FF0",
@@ -631,13 +631,8 @@ function t(key, language, vars) {
   return out;
 }
 
-// src/util/yaml.ts
-function yamlScalar(value) {
-  const escaped = String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
-  return `"${escaped}"`;
-}
-
-// src/commands/create-session.ts
+// src/util/prompt-text.ts
+var import_obsidian = require("obsidian");
 function promptText(app, title, defaultValue, language) {
   return new Promise((resolve) => {
     const modal = new class extends import_obsidian.Modal {
@@ -686,10 +681,18 @@ function promptText(app, title, defaultValue, language) {
     modal.open();
   });
 }
+
+// src/util/yaml.ts
+function yamlScalar(value) {
+  const escaped = String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+  return `"${escaped}"`;
+}
+
+// src/commands/create-session.ts
 function suggestOne(app, placeholder, items, labels) {
   return new Promise((resolve) => {
     let settled = false;
-    const modal = new class extends import_obsidian.FuzzySuggestModal {
+    const modal = new class extends import_obsidian2.FuzzySuggestModal {
       getItems() {
         return items;
       }
@@ -799,7 +802,7 @@ async function promptSessionDate(app, timezone, language) {
   if (dateRaw === null) return null;
   const date = dateRaw.trim() || today;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    new import_obsidian.Notice(t("notice.invalidDate", language));
+    new import_obsidian2.Notice(t("notice.invalidDate", language));
     return null;
   }
   return date;
@@ -842,7 +845,7 @@ async function createActivitySession(app, data, activity, timezone, language) {
   const target = `${folder}/${date}.md`;
   if (data.exists(target)) {
     await data.openPath(target);
-    new import_obsidian.Notice(
+    new import_obsidian2.Notice(
       t("notice.openedExistingSession", language, {
         activity: activity.label,
         path: target
@@ -853,7 +856,7 @@ async function createActivitySession(app, data, activity, timezone, language) {
   const body = activity.supportsSetTable ? await gymSessionBody(app, activity, date, language) : activity.id === "golf" ? golfBody(activity, date, language) : genericExerciseBody(activity, date, language);
   await data.createNote(target, body);
   await data.openPath(target);
-  new import_obsidian.Notice(
+  new import_obsidian2.Notice(
     t("notice.createdSession", language, {
       activity: activity.label,
       path: target
@@ -865,6 +868,12 @@ async function createGymSession(app, data, activity, timezone, language) {
 }
 async function createGolfSession(app, data, activity, timezone, language) {
   await createActivitySession(app, data, activity, timezone, language);
+}
+
+// src/util/notice.ts
+function showNotice(message) {
+  const { Notice: Notice5 } = require("obsidian");
+  new Notice5(message);
 }
 
 // src/util/vault-path.ts
@@ -901,7 +910,7 @@ function hobbyItemsScanPrefix(folder) {
   return itemsFolder ? `${itemsFolder}/` : null;
 }
 
-// src/commands/create-reading-item.ts
+// src/commands/hobby-item.ts
 var FALLBACK_BOOK_TITLE = "Untitled Book";
 function normalizeSlashes2(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
@@ -916,6 +925,9 @@ function buildHobbyItemPath(activityFolder, title) {
   }
   const base = normalizeSlashes2(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
+}
+function buildReadingItemPath(activityFolder, title) {
+  return buildHobbyItemPath(activityFolder, title);
 }
 function readingItemMarkdown(title, language = "en", activityId = "reading") {
   const cleanedTitle = cleanBookTitle(title);
@@ -948,39 +960,77 @@ related_canvas:
 \`\`\`
 `;
 }
+
+// src/commands/create-reading-item.ts
 async function createHobbyItem(app, data, hobbyActivity, language) {
-  const title = window.prompt(
+  const title = await promptText(
+    app,
     t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
-    ""
+    "",
+    language
   );
   if (title === null) return;
   const path = buildHobbyItemPath(hobbyActivity.folder, title);
-  const { Notice: Notice5 } = await import("obsidian");
-  if (data.exists(path)) {
+  try {
+    if (data.exists(path)) {
+      await data.openPath(path);
+      showNotice(
+        t("notice.openedExistingHobbyItem", language, {
+          label: hobbyActivity.label,
+          path
+        })
+      );
+      return;
+    }
+    await data.createNote(
+      path,
+      readingItemMarkdown(title, language, hobbyActivity.id)
+    );
     await data.openPath(path);
-    new Notice5(
-      t("notice.openedExistingHobbyItem", language, {
+    showNotice(
+      t("notice.createdHobbyItem", language, {
         label: hobbyActivity.label,
         path
       })
     );
-    return;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.hobbyItemFailed", language, { message }));
   }
-  await data.createNote(
-    path,
-    readingItemMarkdown(title, language, hobbyActivity.id)
-  );
-  await data.openPath(path);
-  new Notice5(
-    t("notice.createdHobbyItem", language, {
-      label: hobbyActivity.label,
-      path
-    })
-  );
-  void app;
 }
 async function createReadingItem(app, data, readingActivity, language) {
-  await createHobbyItem(app, data, readingActivity, language);
+  const title = await promptText(
+    app,
+    t("modal.readingItemTitle", language),
+    "",
+    language
+  );
+  if (title === null) return;
+  const path = buildReadingItemPath(readingActivity.folder, title);
+  try {
+    if (data.exists(path)) {
+      await data.openPath(path);
+      showNotice(
+        t("notice.openedExistingReadingItem", language, {
+          path
+        })
+      );
+      return;
+    }
+    await data.createNote(
+      path,
+      readingItemMarkdown(title, language, readingActivity.id)
+    );
+    await data.openPath(path);
+    showNotice(
+      t("notice.createdReadingItem", language, {
+        path
+      })
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.readingItemFailed", language, { message }));
+  }
 }
 
 // src/util/parse-block.ts
@@ -1300,14 +1350,26 @@ function cuePathForActivity(activity) {
   return `${activity.folder.replace(/\/$/, "")}/Cues.md`;
 }
 
+// src/util/action-activities.ts
+function actionActivities(activityTypes) {
+  return [
+    ...exerciseActivities(activityTypes),
+    ...hobbyActivities(activityTypes)
+  ];
+}
+
 // src/views/actions.ts
 function renderActions(el, plugin) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const wrap = root.createDiv({ cls: "fitness-actions" });
-  for (const activity of exerciseActivities(plugin.settings.activityTypes)) {
+  for (const activity of actionActivities(plugin.settings.activityTypes)) {
     const button = wrap.createEl("button", { text: activity.label });
     button.addEventListener("click", () => {
+      if (activity.domain === "hobby" && activity.noteModel === "item") {
+        void plugin.createHobbyItem(activity);
+        return;
+      }
       void plugin.createExerciseSession(activity);
     });
   }
@@ -1680,23 +1742,32 @@ activity: reading
 \`\`\`
 `;
 }
-async function ensureBookShelfHostFile(data, language = "en") {
+async function createBookShelfHostFile(data, language = "en") {
   if (data.exists(BOOK_SHELF_HOST_REL)) {
     return { path: BOOK_SHELF_HOST_REL, created: false };
   }
   await data.createNote(BOOK_SHELF_HOST_REL, bookShelfHostMarkdown(language));
   return { path: BOOK_SHELF_HOST_REL, created: true };
 }
-async function ensureBookShelfHostCommand(data, language) {
-  const { Notice: Notice5 } = await import("obsidian");
-  const result = await ensureBookShelfHostFile(data, language);
-  new Notice5(
-    result.created ? t("notice.createdBookShelf", language, { path: result.path }) : t("notice.bookShelfExists", language, { path: result.path })
-  );
+async function createBookShelfHostCommand(data, language) {
+  try {
+    const result = await createBookShelfHostFile(data, language);
+    showNotice(
+      result.created ? t("notice.createdBookShelf", language, { path: result.path }) : t("notice.bookShelfExists", language, { path: result.path })
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.bookShelfFailed", language, { message }));
+  }
 }
 async function openBookShelfHostCommand(data, language) {
-  const result = await ensureBookShelfHostFile(data, language);
-  await data.openPath(result.path);
+  try {
+    const result = await createBookShelfHostFile(data, language);
+    await data.openPath(result.path);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.bookShelfFailed", language, { message }));
+  }
 }
 
 // src/hobbies/reading-bookshelf.ts
@@ -1712,9 +1783,9 @@ function readingBookshelfBaseYaml(itemsFolder = READING_ITEMS_FOLDER, language =
   return `# ${t("template.readingBookshelfTitle", language)}
 filters:
   and:
-    - file.inFolder("${itemsFolder}")
-    - type == "atomic-item"
-    - activity == "reading"
+    - 'file.inFolder("${itemsFolder}")'
+    - 'type == "atomic-item"'
+    - 'activity == "reading"'
 properties:
   file.name:
     displayName: ${t("template.base.title", language)}
@@ -1734,7 +1805,7 @@ views:
   - type: cards
     name: ${t("template.base.cards", language)}
     image: cover
-    fields:
+    order:
       - file.name
       - authors
       - description
@@ -1744,7 +1815,7 @@ views:
       - total_min
   - type: table
     name: ${t("template.base.table", language)}
-    columns:
+    order:
       - file.name
       - authors
       - description
@@ -1754,8 +1825,10 @@ views:
       - total_min
 `;
 }
-function shouldCreateReadingBookshelf(existing) {
-  return !existing;
+function needsReadingBookshelfUpgrade(content) {
+  const legacyCards = /^\s+-\s+type:\s*cards[\s\S]*?\n\s+fields:\s*$/m.test(content);
+  const legacyTable = /^\s+-\s+type:\s*table[\s\S]*?\n\s+columns:\s*$/m.test(content);
+  return legacyCards || legacyTable;
 }
 function isBasesCorePluginEnabled(app) {
   const appRecord = app;
@@ -1764,42 +1837,85 @@ function isBasesCorePluginEnabled(app) {
   if (!isRecord2(internalPlugins)) return false;
   const getEnabledPluginById = internalPlugins.getEnabledPluginById;
   if (typeof getEnabledPluginById === "function") {
-    return getEnabledPluginById.call(internalPlugins, "bases") != null;
+    try {
+      if (getEnabledPluginById.call(internalPlugins, "bases") != null) {
+        return true;
+      }
+    } catch {
+    }
   }
+  const plugins = internalPlugins.plugins;
+  if (isRecord2(plugins)) {
+    const bases = plugins.bases;
+    if (isRecord2(bases) && bases.enabled === true) return true;
+  }
+  const config = internalPlugins.config;
+  if (isRecord2(config) && config.bases === true) return true;
   const getPluginById = internalPlugins.getPluginById;
-  if (typeof getPluginById !== "function") return false;
-  const plugin = getPluginById.call(internalPlugins, "bases");
-  return isRecord2(plugin) && plugin.enabled === true;
-}
-async function ensureReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER, language = "en") {
-  if (!shouldCreateReadingBookshelf(data.exists(READING_BOOKSHELF_REL))) {
-    return { path: READING_BOOKSHELF_REL, created: false };
+  if (typeof getPluginById === "function") {
+    try {
+      const plugin = getPluginById.call(internalPlugins, "bases");
+      if (isRecord2(plugin) && plugin.enabled === true) return true;
+    } catch {
+      return false;
+    }
   }
-  await data.createNote(
-    READING_BOOKSHELF_REL,
-    readingBookshelfBaseYaml(itemsFolder, language)
-  );
-  return { path: READING_BOOKSHELF_REL, created: true };
+  return false;
 }
-async function ensureReadingBookshelfCommand(app, data, language) {
-  const { Notice: Notice5 } = await import("obsidian");
+async function createReadingBookshelfFile(data, itemsFolder = READING_ITEMS_FOLDER, language = "en") {
+  const yaml = readingBookshelfBaseYaml(itemsFolder, language);
+  if (!data.exists(READING_BOOKSHELF_REL)) {
+    await data.createNote(READING_BOOKSHELF_REL, yaml);
+    return { path: READING_BOOKSHELF_REL, created: true, updated: false };
+  }
+  const existing = await data.readBody(READING_BOOKSHELF_REL);
+  if (needsReadingBookshelfUpgrade(existing)) {
+    await data.writeNote(READING_BOOKSHELF_REL, yaml);
+    return { path: READING_BOOKSHELF_REL, created: false, updated: true };
+  }
+  return { path: READING_BOOKSHELF_REL, created: false, updated: false };
+}
+async function createReadingBookshelfCommand(app, data, language) {
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice5(t("notice.enableBases", language));
+    showNotice(t("notice.enableBases", language));
     return;
   }
-  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
-  new Notice5(
-    result.created ? t("notice.createdReadingBookshelf", language, { path: result.path }) : t("notice.readingBookshelfExists", language, { path: result.path })
-  );
+  try {
+    const result = await createReadingBookshelfFile(
+      data,
+      READING_ITEMS_FOLDER,
+      language
+    );
+    if (result.created) {
+      showNotice(t("notice.createdReadingBookshelf", language, { path: result.path }));
+      return;
+    }
+    if (result.updated) {
+      showNotice(t("notice.updatedReadingBookshelf", language, { path: result.path }));
+      return;
+    }
+    showNotice(t("notice.readingBookshelfExists", language, { path: result.path }));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.readingBookshelfFailed", language, { message }));
+  }
 }
 async function openReadingBookshelfCommand(app, data, language) {
-  const { Notice: Notice5 } = await import("obsidian");
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice5(t("notice.enableBases", language));
+    showNotice(t("notice.enableBases", language));
     return;
   }
-  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
-  await data.openPath(result.path);
+  try {
+    const result = await createReadingBookshelfFile(
+      data,
+      READING_ITEMS_FOLDER,
+      language
+    );
+    await data.openPath(result.path);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.readingBookshelfFailed", language, { message }));
+  }
 }
 
 // src/views/dashboard.ts
@@ -2099,9 +2215,58 @@ var STATUS_ORDER = /* @__PURE__ */ new Map([
   ["finished", 3]
 ]);
 var BOOK_WIDTH_PX = 86;
+var BOOK_HEIGHT_PX = 142;
+var BOOK_MAX_WIDTH_PX = 120;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 16;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
+function coverBookWidth(naturalWidth, naturalHeight, bookHeight = BOOK_HEIGHT_PX, minWidth = BOOK_WIDTH_PX, maxWidth = BOOK_MAX_WIDTH_PX) {
+  if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0 || !Number.isFinite(bookHeight) || bookHeight <= 0) {
+    return minWidth;
+  }
+  const width = Math.round(bookHeight * (naturalWidth / naturalHeight));
+  return Math.min(maxWidth, Math.max(minWidth, width));
+}
+function packRowSizes(widths, containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!widths.length) return [0];
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return [widths.length];
+  const available = Math.max(0, containerWidth - padding);
+  const rows = [];
+  let count = 0;
+  let used = 0;
+  for (const width of widths) {
+    const bookWidth = Math.max(1, width);
+    const next = count === 0 ? bookWidth : used + gap + bookWidth;
+    if (count > 0 && next > available) {
+      rows.push(count);
+      count = 1;
+      used = bookWidth;
+    } else {
+      count += 1;
+      used = next;
+    }
+  }
+  if (count > 0) rows.push(count);
+  return rows;
+}
+function applyBookWidth(el, width) {
+  const px = `${Math.round(width)}px`;
+  el.style.width = px;
+  el.style.flexBasis = px;
+}
+function chunkByRowSizes(items, rowSizes) {
+  if (!items.length) return [[]];
+  const rows = [];
+  let index = 0;
+  for (const size of rowSizes) {
+    const count = Math.max(0, Math.floor(size));
+    if (count <= 0) continue;
+    rows.push(items.slice(index, index + count));
+    index += count;
+  }
+  if (index < items.length) rows.push(items.slice(index));
+  return rows.length ? rows : [[]];
+}
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -2174,28 +2339,13 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
-function booksPerRow(containerWidth, bookWidth = BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
-  const available = Math.max(0, containerWidth - padding);
-  const per = Math.floor((available + gap) / (bookWidth + gap));
-  return Math.max(1, per);
-}
-function chunkItems(items, size) {
-  const rowSize = Math.max(1, Math.floor(size));
-  if (!items.length) return [[]];
-  const rows = [];
-  for (let index = 0; index < items.length; index += rowSize) {
-    rows.push(items.slice(index, index + rowSize));
-  }
-  return rows;
-}
 function titleLengthClass(title) {
   const length = title.trim().length;
   if (length > 36) return "is-title-xs";
   if (length > 22) return "is-title-sm";
   return "";
 }
-function createBook(parent, item, data, language) {
+function createBook(parent, item, data, language, widthPx, onCoverWidth) {
   const button = parent.createEl("button", {
     cls: "atomic-book",
     attr: {
@@ -2204,6 +2354,7 @@ function createBook(parent, item, data, language) {
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
+  applyBookWidth(button, widthPx);
   button.addEventListener("click", (event) => {
     event.preventDefault();
     void data.openPath(item.path);
@@ -2223,10 +2374,20 @@ function createBook(parent, item, data, language) {
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    face.createEl("img", {
+    const image = face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" }
     });
+    const applyFromImage = () => {
+      const next = coverBookWidth(image.naturalWidth, image.naturalHeight);
+      applyBookWidth(button, next);
+      onCoverWidth?.(item.path, next);
+    };
+    if (image.complete && image.naturalWidth > 0) {
+      applyFromImage();
+    } else {
+      image.addEventListener("load", applyFromImage, { once: true });
+    }
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
@@ -2254,9 +2415,15 @@ function createBook(parent, item, data, language) {
     });
   }
 }
-function paintRows(frame, items, perRow, data, language) {
+function paintRows(frame, items, widths, data, language, onCoverWidth) {
   frame.empty();
-  const rows = items.length ? chunkItems(items, perRow) : [[]];
+  const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
+  const rowSizes = items.length ? packRowSizes(
+    items.map((_, index) => widths[index] ?? BOOK_WIDTH_PX),
+    containerWidth
+  ) : [0];
+  const rows = items.length ? chunkByRowSizes(items, rowSizes) : [[]];
+  let offset = 0;
   for (const rowItems of rows) {
     const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
     const books = row.createDiv({ cls: "atomic-book-row-books" });
@@ -2266,7 +2433,17 @@ function paintRows(frame, items, perRow, data, language) {
         text: t("view.bookShelf.empty", language)
       });
     } else {
-      for (const item of rowItems) createBook(books, item, data, language);
+      for (const item of rowItems) {
+        createBook(
+          books,
+          item,
+          data,
+          language,
+          widths[offset] ?? BOOK_WIDTH_PX,
+          onCoverWidth
+        );
+        offset += 1;
+      }
     }
     row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
@@ -2289,12 +2466,25 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   }
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  let lastPerRow = -1;
+  const widths = items.map(() => BOOK_WIDTH_PX);
+  let lastSignature = "";
+  let relayoutQueued = false;
   const layout = () => {
-    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
-    if (perRow === lastPerRow && frame.childElementCount > 0) return;
-    lastPerRow = perRow;
-    paintRows(frame, items, perRow, data, language);
+    const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
+    const signature = `${Math.round(containerWidth)}:${widths.join(",")}`;
+    if (signature === lastSignature && frame.childElementCount > 0) return;
+    lastSignature = signature;
+    paintRows(frame, items, widths, data, language, (path, width) => {
+      const index = items.findIndex((item) => item.path === path);
+      if (index < 0 || widths[index] === width) return;
+      widths[index] = width;
+      if (relayoutQueued) return;
+      relayoutQueued = true;
+      queueMicrotask(() => {
+        relayoutQueued = false;
+        layout();
+      });
+    });
   };
   layout();
   if (typeof ResizeObserver !== "undefined") {
@@ -2517,11 +2707,11 @@ function resolveHeatmapYear(opts, sourcePath, timezone) {
 }
 
 // src/views/timer.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 async function modifyCurrentNote(plugin, sourcePath, updater) {
   const file = plugin.data.getFileByPath(sourcePath);
   if (!file) {
-    new import_obsidian2.Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
+    new import_obsidian3.Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
     return;
   }
   const original = await plugin.app.vault.read(file);
@@ -2555,29 +2745,42 @@ async function renderAtomicTimer(plugin, el, sourcePath) {
       })
     });
     actions.createEl("button", { text: t("view.timer.stop", plugin.settings.language) }).addEventListener("click", () => {
-      void modifyCurrentNote(plugin, sourcePath, (latest) => {
+      void (async () => {
+        const file = plugin.data.getFileByPath(sourcePath);
+        if (!file) {
+          new import_obsidian3.Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
+          return;
+        }
+        const latest = await plugin.app.vault.read(file);
         const latestFrontmatter = readTimerFrontmatter(latest);
         if (!latestFrontmatter.timerStartedAt) {
-          new import_obsidian2.Notice(t("notice.timerNotRunning", plugin.settings.language));
-          return latest;
+          new import_obsidian3.Notice(t("notice.timerNotRunning", plugin.settings.language));
+          return;
         }
-        const note = window.prompt(t("modal.timeLogNote", plugin.settings.language), "") ?? "";
+        const note = await promptText(
+          plugin.app,
+          t("modal.timeLogNote", plugin.settings.language),
+          "",
+          plugin.settings.language
+        );
+        if (note === null) return;
         const result = stopTimer({
           markdown: latest,
           startedAtIso: latestFrontmatter.timerStartedAt,
           stoppedAtIso: (/* @__PURE__ */ new Date()).toISOString(),
           note
         });
-        new import_obsidian2.Notice(
+        await plugin.app.vault.modify(file, result.markdown);
+        plugin.scheduleRefresh();
+        new import_obsidian3.Notice(
           t("notice.timerLogged", plugin.settings.language, {
             minutes: result.minutes
           })
         );
-        return result.markdown;
-      });
+      })();
     });
     actions.createEl("button", { text: t("view.timer.resume", plugin.settings.language) }).addEventListener("click", () => {
-      new import_obsidian2.Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
+      new import_obsidian3.Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
     });
     actions.createEl("button", { text: t("view.timer.discard", plugin.settings.language) }).addEventListener("click", () => {
       void modifyCurrentNote(
@@ -2809,7 +3012,7 @@ function registerCodeblocks(plugin) {
 }
 
 // src/data/vault-source.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 
 // src/util/hobby-time-log-cache.ts
 var HobbyTimeLogCache = class {
@@ -2871,12 +3074,12 @@ var VaultDataSource = class {
   /** Drop cached Time log parses (all paths, or one path after edit/delete). */
   invalidateHobbyTimeLogCache(path) {
     this.hobbyTimeLogCache.invalidate(
-      path ? (0, import_obsidian3.normalizePath)(path) : void 0
+      path ? (0, import_obsidian4.normalizePath)(path) : void 0
     );
   }
   /** Keep cache entries aligned when a note is renamed. */
   renameHobbyTimeLogCache(oldPath, newPath) {
-    this.hobbyTimeLogCache.rename((0, import_obsidian3.normalizePath)(oldPath), (0, import_obsidian3.normalizePath)(newPath));
+    this.hobbyTimeLogCache.rename((0, import_obsidian4.normalizePath)(oldPath), (0, import_obsidian4.normalizePath)(newPath));
   }
   /**
    * Parsed Time log entries for a hobby item note.
@@ -2896,7 +3099,7 @@ var VaultDataSource = class {
   listSessions(folder, year) {
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian4.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -2921,7 +3124,7 @@ var VaultDataSource = class {
     }
     const prefix = hobbyItemsScanPrefix(activity.folder);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian3.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian4.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -2938,15 +3141,15 @@ var VaultDataSource = class {
     return out;
   }
   async readBody(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
-    if (!(af instanceof import_obsidian3.TFile)) return "";
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
+    if (!(af instanceof import_obsidian4.TFile)) return "";
     return this.app.vault.read(af);
   }
   exists(path) {
-    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
+    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
   }
   async ensureFolder(folderPath) {
-    const norm = (0, import_obsidian3.normalizePath)(folderPath);
+    const norm = (0, import_obsidian4.normalizePath)(folderPath);
     if (this.app.vault.getAbstractFileByPath(norm)) return;
     const parts = norm.split("/").filter(Boolean);
     let cur = "";
@@ -2958,35 +3161,44 @@ var VaultDataSource = class {
     }
   }
   async createNote(path, content) {
-    const norm = (0, import_obsidian3.normalizePath)(path);
+    const norm = (0, import_obsidian4.normalizePath)(path);
     const parent = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
     if (parent) await this.ensureFolder(parent);
     return this.app.vault.create(norm, content);
   }
+  async writeNote(path, content) {
+    const norm = (0, import_obsidian4.normalizePath)(path);
+    const existing = this.app.vault.getAbstractFileByPath(norm);
+    if (existing instanceof import_obsidian4.TFile) {
+      await this.app.vault.modify(existing, content);
+      return existing;
+    }
+    return this.createNote(norm, content);
+  }
   async openPath(path) {
-    const norm = (0, import_obsidian3.normalizePath)(path);
+    const norm = (0, import_obsidian4.normalizePath)(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
-    if (file instanceof import_obsidian3.TFile) {
+    if (file instanceof import_obsidian4.TFile) {
       await this.app.workspace.getLeaf(false).openFile(file);
       return;
     }
     await this.app.workspace.openLinkText(norm, "", false);
   }
   getFileByPath(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
-    return af instanceof import_obsidian3.TFile ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
+    return af instanceof import_obsidian4.TFile ? af : null;
   }
   isUnderSeriesFolder(path, folders) {
-    const norm = (0, import_obsidian3.normalizePath)(path);
+    const norm = (0, import_obsidian4.normalizePath)(path);
     return folders.some((f) => {
       if (!isSafeVaultFolder(f)) return false;
-      const p = (0, import_obsidian3.normalizePath)(f);
+      const p = (0, import_obsidian4.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
   }
   getFolder(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
-    return af instanceof import_obsidian3.TFolder ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
+    return af instanceof import_obsidian4.TFolder ? af : null;
   }
   /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
   resolveResourcePath(linkOrPath, sourcePath = "") {
@@ -2999,15 +3211,15 @@ var VaultDataSource = class {
       trimmed,
       sourcePath
     );
-    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(trimmed));
-    const file = fromLink instanceof import_obsidian3.TFile ? fromLink : fromPath instanceof import_obsidian3.TFile ? fromPath : null;
+    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(trimmed));
+    const file = fromLink instanceof import_obsidian4.TFile ? fromLink : fromPath instanceof import_obsidian4.TFile ? fromPath : null;
     if (!file) return null;
     return this.app.vault.getResourcePath(file);
   }
 };
 
 // src/settings.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/util/migrate-fitness.ts
 var MOVE_DEFINITIONS = [
@@ -3201,7 +3413,7 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
-var ConfirmDeleteActivityModal = class extends import_obsidian4.Modal {
+var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
   constructor(app, options) {
     super(app);
     this.message = options.message;
@@ -3212,7 +3424,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian4.Modal {
   onOpen() {
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian4.Setting(this.contentEl).addButton(
+    new import_obsidian5.Setting(this.contentEl).addButton(
       (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
     ).addButton(
       (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
@@ -3222,7 +3434,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian4.Modal {
     );
   }
 };
-var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -3234,28 +3446,28 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     const language = this.plugin.settings.language;
     containerEl.empty();
     containerEl.createEl("h2", { text: t("settings.title", language) });
-    new import_obsidian4.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
         this.plugin.settings.language = value;
         await this.plugin.saveSettings();
         this.display();
         await this.plugin.refreshAll();
-        new import_obsidian4.Notice(t("notice.reloadForCommands", value));
+        new import_obsidian5.Notice(t("notice.reloadForCommands", value));
       })
     );
-    new import_obsidian4.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
       })
     );
-    new import_obsidian4.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         if (!isSafeVaultFolder(next)) {
-          new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         this.plugin.settings.dashboardPath = next;
@@ -3264,15 +3476,15 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     );
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
-    new import_obsidian4.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
         this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian4.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
+        new import_obsidian5.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
       })
     );
-    new import_obsidian4.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
       (button) => button.setButtonText(t("settings.migrateFitness", language)).setCta().onClick(() => {
         void this.migrateFromFitnessToAtomic();
       })
@@ -3299,7 +3511,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
     }
-    new import_obsidian4.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
         this.pendingExerciseName = value;
       })
@@ -3307,7 +3519,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingExerciseName.trim();
         if (!name) {
-          new import_obsidian4.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
+          new import_obsidian5.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
           return;
         }
         const activity = createExerciseActivityType(name);
@@ -3332,7 +3544,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
-    new import_obsidian4.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+    new import_obsidian5.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
         this.pendingHobbyName = value;
       })
@@ -3340,7 +3552,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingHobbyName.trim();
         if (!name) {
-          new import_obsidian4.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
+          new import_obsidian5.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
           return;
         }
         const activity = createHobbyActivityType(name);
@@ -3358,7 +3570,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
   renderActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
     const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
-    const row = new import_obsidian4.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+    const row = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
       (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
         await this.saveAndRefresh();
@@ -3374,7 +3586,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       (text) => text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         activity.folder = folder;
@@ -3394,7 +3606,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
         this.confirmDeleteActivity(activity);
       })
     );
-    const colorSetting = new import_obsidian4.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+    const colorSetting = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
         activity.colors = shadesFromBaseColor(value);
@@ -3430,14 +3642,14 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     );
     await this.saveAndRefresh();
     this.display();
-    new import_obsidian4.Notice(
+    new import_obsidian5.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label
       })
     );
   }
   async ensureParentFolder(path) {
-    const normalized = (0, import_obsidian4.normalizePath)(path);
+    const normalized = (0, import_obsidian5.normalizePath)(path);
     const slash = normalized.lastIndexOf("/");
     if (slash <= 0) return;
     await this.plugin.data.ensureFolder(normalized.slice(0, slash));
@@ -3456,8 +3668,8 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     let replacements = 0;
     try {
       for (const move of plan.moves) {
-        const from = (0, import_obsidian4.normalizePath)(move.from);
-        const to = (0, import_obsidian4.normalizePath)(move.to);
+        const from = (0, import_obsidian5.normalizePath)(move.from);
+        const to = (0, import_obsidian5.normalizePath)(move.to);
         const source = this.app.vault.getAbstractFileByPath(from);
         const destination = this.app.vault.getAbstractFileByPath(to);
         if (!source || destination) {
@@ -3481,7 +3693,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
-      new import_obsidian4.Notice(
+      new import_obsidian5.Notice(
         t("notice.migrationComplete", this.plugin.settings.language, {
           movedPaths,
           pathWord: movedPaths === 1 ? "path" : "paths",
@@ -3496,7 +3708,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
     } catch (err) {
       console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian4.Notice(
+      new import_obsidian5.Notice(
         t("notice.migrationFailed", this.plugin.settings.language, { message })
       );
     }
@@ -3504,7 +3716,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
 };
 
 // src/main.ts
-var FitnessPlugin = class extends import_obsidian5.Plugin {
+var FitnessPlugin = class extends import_obsidian6.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -3552,14 +3764,14 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       }
     });
     this.addCommand({
-      id: "atomic-ensure-reading-bookshelf",
-      name: t("command.ensureReadingBookshelf", this.settings.language),
+      id: "atomic-create-reading-bookshelf",
+      name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
-        void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
+        void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
       }
     });
     this.addCommand({
@@ -3567,17 +3779,17 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
       }
     });
     this.addCommand({
-      id: "atomic-ensure-book-shelf",
-      name: t("command.ensureBookShelf", this.settings.language),
+      id: "atomic-create-book-shelf",
+      name: t("command.createBookShelf", this.settings.language),
       callback: () => {
-        void ensureBookShelfHostCommand(this.data, this.settings.language);
+        void createBookShelfHostCommand(this.data, this.settings.language);
       }
     });
     this.addCommand({
@@ -3662,12 +3874,12 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian5.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian6.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
       let settled = false;
-      const modal = new class extends import_obsidian5.FuzzySuggestModal {
+      const modal = new class extends import_obsidian6.FuzzySuggestModal {
         getItems() {
           return activities;
         }
@@ -3717,7 +3929,7 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian5.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian6.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
@@ -3731,7 +3943,7 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian5.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian6.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
@@ -3745,20 +3957,20 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
   }
-  async createHobbyItem() {
-    const picked = await this.chooseHobbyActivity();
+  async createHobbyItem(activity) {
+    const picked = activity ?? await this.chooseHobbyActivity();
     if (!picked) return;
     await createHobbyItem(this.app, this.data, picked, this.settings.language);
   }
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian5.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian6.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);
