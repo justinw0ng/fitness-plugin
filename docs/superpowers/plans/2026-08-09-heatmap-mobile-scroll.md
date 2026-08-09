@@ -93,12 +93,12 @@ export function scrollLeftToAlignRight(
 
 **Steps:**
 
-- [ ] After mount, if any cell/week is today in-year: measure today’s week `offsetLeft + offsetWidth` as `targetRightPx`, set `scrollLeft` via helper
-- [ ] If no today in year: leave at `0`
-- [ ] `ResizeObserver` (or window resize fallback) on scrollport: re-apply while `userHasScrolled === false`
-- [ ] On `scroll` event: if delta from programmatic set, set `userHasScrolled = true` and stop re-applying
-- [ ] Avoid feedback loops: ignore scroll events caused by the programmatic assign (flag or compare expected)
-- [ ] Commit
+- [x] After mount, if any cell/week is today in-year: measure today’s week `offsetLeft + offsetWidth` as `targetRightPx`, set `scrollLeft` via helper
+- [x] If no today in year: leave at `0`
+- [x] `ResizeObserver` (or window resize fallback) on scrollport: re-apply while `userHasScrolled === false`
+- [x] On `scroll` event: if delta from programmatic set, set `userHasScrolled = true` and stop re-applying
+- [x] Avoid feedback loops: ignore scroll events caused by the programmatic assign (flag or compare expected)
+- [x] Commit
 
 ---
 

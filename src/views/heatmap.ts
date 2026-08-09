@@ -14,6 +14,7 @@ import {
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
+import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
 
 const DAY_NAMES: Record<Language, string[]> = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -23,6 +24,52 @@ const DAY_NAMES: Record<Language, string[]> = {
 function colorFor(activity: ActivityType, level: number): string {
   if (!level) return EMPTY_CELL;
   return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
+}
+
+function wireHeatmapScroll(scrollEl: HTMLElement): void {
+  let userHasScrolled = false;
+  let programmaticScroll = false;
+
+  const applyTodayAlign = () => {
+    const todayWeek = scrollEl.querySelector<HTMLElement>(".is-today-week");
+    if (!todayWeek) return;
+
+    const targetRightPx = todayWeek.offsetLeft + todayWeek.offsetWidth;
+    const nextScrollLeft = scrollLeftToAlignRight(
+      scrollEl.scrollWidth,
+      scrollEl.clientWidth,
+      targetRightPx,
+    );
+
+    programmaticScroll = true;
+    scrollEl.scrollLeft = nextScrollLeft;
+    requestAnimationFrame(() => {
+      programmaticScroll = false;
+    });
+  };
+
+  scrollEl.addEventListener(
+    "scroll",
+    () => {
+      if (programmaticScroll) return;
+      userHasScrolled = true;
+    },
+    { passive: true },
+  );
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (userHasScrolled) return;
+    requestAnimationFrame(() => {
+      if (!userHasScrolled) applyTodayAlign();
+    });
+  });
+  resizeObserver.observe(scrollEl);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      applyTodayAlign();
+    });
+  });
 }
 
 async function durationMap(
@@ -199,6 +246,8 @@ async function renderOneHeatmap(
       }
     }
   }
+
+  wireHeatmapScroll(scroll);
 }
 
 export async function renderHeatmaps(
