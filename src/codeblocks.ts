@@ -2,7 +2,7 @@ import type { MarkdownPostProcessorContext } from "obsidian";
 import type FitnessPlugin from "./main";
 import { parseBlockOptions } from "./util/parse-block";
 import { renderActions } from "./views/actions";
-import { renderGolfCues, resolveCuesYear } from "./views/cues";
+import { renderCues, resolveCuesYear } from "./views/cues";
 import {
   renderDashboard,
   resolveDashboardYear,
@@ -57,16 +57,41 @@ export async function renderBlock(
           frontmatterYear(plugin, sourcePath),
           tz,
         );
-        await renderDashboard(el, data, series, year, settings.cuesPath);
+        await renderDashboard(
+          el,
+          data,
+          series,
+          year,
+          settings.golfCuesPath,
+          settings.gymCuesPath,
+        );
         break;
       }
+      case "fitness-golf-cues":
+      case "fitness-gym-cues":
       case "fitness-cues": {
+        if (kind === "fitness-cues" && !settings.deprecatedFitnessCuesEnabled) {
+          el.empty();
+          const root = el.createDiv({ cls: "fitness-plugin" });
+          root.createEl("p", {
+            text: "Legacy fitness-cues block is disabled. Use fitness-golf-cues.",
+            cls: "fitness-muted",
+          });
+          break;
+        }
         const year = resolveCuesYear(
           opts,
           frontmatterYear(plugin, sourcePath),
           tz,
         );
-        await renderGolfCues(el, data, series, year, tz);
+        await renderCues(
+          el,
+          data,
+          series,
+          year,
+          tz,
+          kind === "fitness-gym-cues" ? "gym" : "golf",
+        );
         break;
       }
       case "fitness-actions": {
@@ -91,6 +116,8 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
     "fitness-heatmap",
     "fitness-today",
     "fitness-dashboard",
+    "fitness-golf-cues",
+    "fitness-gym-cues",
     "fitness-cues",
     "fitness-actions",
   ];

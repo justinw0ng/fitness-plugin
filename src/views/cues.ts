@@ -13,6 +13,13 @@ import {
 } from "../dates";
 import type { SeriesConfig } from "../types";
 
+type CueKind = "golf" | "gym";
+
+const CUE_SERIES_FOLDERS: Record<CueKind, string> = {
+  golf: "Golf",
+  gym: "Gym",
+};
+
 export function resolveCuesYear(
   opts: Record<string, string>,
   frontmatterYear: unknown,
@@ -24,22 +31,23 @@ export function resolveCuesYear(
   return nowYear(timezone);
 }
 
-export async function renderGolfCues(
+export async function renderCues(
   el: HTMLElement,
   data: VaultDataSource,
   seriesList: SeriesConfig[],
   year: number,
   timezone: string,
+  kind: CueKind,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
 
-  const golf =
-    seriesList.find((s) => s.kind === "golf") ||
-    seriesList.find((s) => s.folder === "Golf");
-  if (!golf) {
+  const series =
+    seriesList.find((s) => s.kind === kind) ||
+    seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
+  if (!series) {
     root.createEl("p", {
-      text: "No golf series configured.",
+      text: `No ${kind} series configured.`,
       cls: "fitness-muted",
     });
     return;
@@ -53,7 +61,7 @@ export async function renderGolfCues(
       : `December ${year} / ${year}年12月`;
 
   const cues: Cue[] = [];
-  for (const p of data.listSessions(golf.folder, year)) {
+  for (const p of data.listSessions(series.folder, year)) {
     if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");
