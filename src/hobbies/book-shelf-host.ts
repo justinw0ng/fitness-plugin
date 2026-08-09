@@ -1,6 +1,8 @@
 import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { showNotice } from "../util/notice.ts";
 
 export const BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
 
@@ -27,19 +29,28 @@ export async function createBookShelfHostCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
-  const { Notice } = await import("obsidian");
-  const result = await createBookShelfHostFile(data, language);
-  new Notice(
-    result.created
-      ? t("notice.createdBookShelf", language, { path: result.path })
-      : t("notice.bookShelfExists", language, { path: result.path }),
-  );
+  try {
+    const result = await createBookShelfHostFile(data, language);
+    showNotice(
+      result.created
+        ? t("notice.createdBookShelf", language, { path: result.path })
+        : t("notice.bookShelfExists", language, { path: result.path }),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.bookShelfFailed", language, { message }));
+  }
 }
 
 export async function openBookShelfHostCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
-  const result = await createBookShelfHostFile(data, language);
-  await data.openPath(result.path);
+  try {
+    const result = await createBookShelfHostFile(data, language);
+    await data.openPath(result.path);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showNotice(t("notice.bookShelfFailed", language, { message }));
+  }
 }

@@ -7,7 +7,7 @@ import {
   buildHobbyItemPath,
   buildReadingItemPath,
   readingItemMarkdown,
-} from "../src/commands/create-reading-item.ts";
+} from "../src/commands/hobby-item.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -73,8 +73,23 @@ test("create reading/hobby item and timer stop use Obsidian promptText, not wind
     "utf8",
   );
   const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
+  const bookshelf = readFileSync(
+    join(root, "src/hobbies/reading-bookshelf.ts"),
+    "utf8",
+  );
+  const bookShelfHost = readFileSync(
+    join(root, "src/hobbies/book-shelf-host.ts"),
+    "utf8",
+  );
   assert.match(reading, /promptText/);
   assert.doesNotMatch(reading, /window\.prompt/);
+  assert.doesNotMatch(reading, /await import\(["']obsidian["']\)/);
   assert.match(timer, /promptText/);
   assert.doesNotMatch(timer, /window\.prompt/);
+  assert.doesNotMatch(bookshelf, /await import\(["']obsidian["']\)/);
+  assert.doesNotMatch(bookShelfHost, /await import\(["']obsidian["']\)/);
+  assert.match(
+    readFileSync(join(root, "src/util/notice.ts"), "utf8"),
+    /require\(["']obsidian["']\)/,
+  );
 });

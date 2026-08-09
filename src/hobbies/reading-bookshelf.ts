@@ -3,6 +3,8 @@ import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { showNotice } from "../util/notice.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
 export const READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
@@ -140,9 +142,8 @@ export async function createReadingBookshelfCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
-  const { Notice } = await import("obsidian");
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice(t("notice.enableBases", language));
+    showNotice(t("notice.enableBases", language));
     return;
   }
 
@@ -153,17 +154,17 @@ export async function createReadingBookshelfCommand(
       language,
     );
     if (result.created) {
-      new Notice(t("notice.createdReadingBookshelf", language, { path: result.path }));
+      showNotice(t("notice.createdReadingBookshelf", language, { path: result.path }));
       return;
     }
     if (result.updated) {
-      new Notice(t("notice.updatedReadingBookshelf", language, { path: result.path }));
+      showNotice(t("notice.updatedReadingBookshelf", language, { path: result.path }));
       return;
     }
-    new Notice(t("notice.readingBookshelfExists", language, { path: result.path }));
+    showNotice(t("notice.readingBookshelfExists", language, { path: result.path }));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    new Notice(t("notice.readingBookshelfFailed", language, { message }));
+    showNotice(t("notice.readingBookshelfFailed", language, { message }));
   }
 }
 
@@ -172,9 +173,8 @@ export async function openReadingBookshelfCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
-  const { Notice } = await import("obsidian");
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice(t("notice.enableBases", language));
+    showNotice(t("notice.enableBases", language));
     return;
   }
 
@@ -187,6 +187,6 @@ export async function openReadingBookshelfCommand(
     await data.openPath(result.path);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    new Notice(t("notice.readingBookshelfFailed", language, { message }));
+    showNotice(t("notice.readingBookshelfFailed", language, { message }));
   }
 }

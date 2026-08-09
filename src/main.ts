@@ -304,8 +304,8 @@ export default class FitnessPlugin extends Plugin {
     await createReadingItem(this.app, this.data, activity, this.settings.language);
   }
 
-  async createHobbyItem() {
-    const picked = await this.chooseHobbyActivity();
+  async createHobbyItem(activity?: ActivityType) {
+    const picked = activity ?? (await this.chooseHobbyActivity());
     if (!picked) return;
     await createHobbyItem(this.app, this.data, picked, this.settings.language);
   }
