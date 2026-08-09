@@ -138,7 +138,14 @@ async function renderOneHeatmap(
     weekCount++;
   }
 
-  const monthRow = wrap.createDiv({ cls: "fitness-month-row" });
+  const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
+  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
+  for (const d of DAY_NAMES[language]) {
+    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  }
+
+  const scroll = body.createDiv({ cls: "fitness-heatmap-scroll" });
+  const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
   let lastMonth = "";
   for (const week of weeks) {
     if (!week.length) continue;
@@ -155,15 +162,12 @@ async function renderOneHeatmap(
     }
   }
 
-  const gridWrap = wrap.createDiv({ cls: "fitness-grid-wrap" });
-  const dayLabels = gridWrap.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
-  }
-
-  const weeksEl = gridWrap.createDiv({ cls: "fitness-weeks" });
+  const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
   for (const week of weeks) {
-    const col = weeksEl.createDiv({ cls: "fitness-week" });
+    const isTodayWeek = week.some((day) => day.isToday);
+    const col = weeksEl.createDiv({
+      cls: "fitness-week" + (isTodayWeek ? " is-today-week" : ""),
+    });
     for (const day of week) {
       const color = day.isCurrentYear
         ? colorFor(activity, day.level)

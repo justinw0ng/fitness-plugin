@@ -76,12 +76,12 @@ export function scrollLeftToAlignRight(
 
 **Steps:**
 
-- [ ] Move month row + weeks into `.fitness-heatmap-scroll`
-- [ ] Keep day labels as sibling outside the scrollport
-- [ ] Mark today’s week column (e.g. class `is-today-week` or data attr) for alignment
-- [ ] CSS: scrollport `overflow-x: auto`; remove standalone `overflow-x` from `.fitness-month-row`
-- [ ] Ensure month spacers/labels still align with week column width (18px / cell+gap)
-- [ ] Commit (`git checkout -- main.js` if build dirty)
+- [x] Move month row + weeks into `.fitness-heatmap-scroll`
+- [x] Keep day labels as sibling outside the scrollport
+- [x] Mark today’s week column (e.g. class `is-today-week` or data attr) for alignment
+- [x] CSS: scrollport `overflow-x: auto`; remove standalone `overflow-x` from `.fitness-month-row`
+- [x] Ensure month spacers/labels still align with week column width (18px / cell+gap)
+- [x] Commit (`git checkout -- main.js` if build dirty)
 
 ---
 
