@@ -18,8 +18,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          # Check out the PR branch tip so version bump commits can be pushed back.
-          ref: ${{ github.head_ref }}
+          # Check out PR head (works for fork PRs too) so same-repo branches can still be pushed to.
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
