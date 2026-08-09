@@ -8,6 +8,7 @@ Open these HTML files in a browser (design references for the proposed Atomic tr
 | [02-exercise-dashboard.html](./02-exercise-dashboard.html) | Exercise heatmaps + cues (Gym, Golf, custom Running) |
 | [03-hobby-item-note.html](./03-hobby-item-note.html) | Reading item note with Start/Stop timer and remarks |
 | [04-canvas.html](./04-canvas.html) | Obsidian Canvas linking via normal wikilinks |
+| [05-reading-bookshelf-base.html](./05-reading-bookshelf-base.html) | Reading bookshelf via Obsidian Bases (command-triggered Cards + Table) |
 
 Specs:
 

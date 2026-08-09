@@ -5,89 +5,78 @@ Status: approved (decisions locked)
 Companion design: `2026-08-09-atomic-tracker-redesign-design.md`  
 Companion i18n design (separate PR): `2026-08-09-i18n-language-selection-design.md`
 
-This is the **phased work map** for multi-agent execution after design approval. Detailed TDD steps land in `docs/superpowers/plans/` via the writing-plans skill once the specs are approved.
+This is the **phased work map** for multi-agent execution after design approval. Detailed TDD steps live in `docs/superpowers/plans/2026-08-09-atomic-tracker.md`.
+
+## Locked product constraints
+
+- Plugin id: `obsidian-atomic`
+- Default content root: `atomics/**`
+- One-click **Migrate from Fitness → Atomic** (skip if destination exists)
+- Reading bookshelf: Obsidian Bases Cards + Table, via plugin commands on demand (`Bookshelf.base`)
+- Soft-require Bases core plugin for bookshelf commands only
 
 ## Parallelism map
 
 ```text
 [I18n PR] -------------------- independent --------------------►
-[A Rebrand] ──► [B Exercise] ──►
-            └─► [C Hobby]    ──► [D Docs + verification]
+[A Rebrand + atomics/** + migrate] ──► [B Exercise] ──►
+                                     └─► [C Hobby] ──► [D Docs + verification]
 ```
 
 | Track | Branch pattern | Agents | Shared files to avoid racing |
 |-------|----------------|--------|------------------------------|
-| I18n | `cursor/i18n-language-selection-*-1b5c` | 1 | `src/settings.ts` (coordinate merge with A) |
-| A Rebrand | `cursor/atomic-rebrand-*-1b5c` | 1 | manifest, codeblocks, CSS, release workflow |
-| B Exercise | `cursor/atomic-exercise-*-1b5c` | 1 | starts after A merges |
-| C Hobby | `cursor/atomic-hobby-*-1b5c` | 1 | starts after A merges; parallel to B |
-| D Verify/docs | `cursor/atomic-docs-verify-*-1b5c` | 1 + security-review agent | after B+C |
-
-If I18n and A both need `settings.ts`, merge I18n first or have A reserve a Language placeholder row only.
+| I18n | `cursor/i18n-language-selection-*-1b5c` | 1 | `src/settings.ts` (coordinate with A) |
+| A Rebrand + migrate | `cursor/atomic-rebrand-*-1b5c` | 1 | manifest, codeblocks, CSS, release, migrate util |
+| B Exercise | `cursor/atomic-exercise-*-1b5c` | 1 | after A |
+| C Hobby | `cursor/atomic-hobby-*-1b5c` | 1 | after A; parallel to B |
+| D Verify/docs | `cursor/atomic-docs-verify-*-1b5c` | 1 + security-review | after B+C |
 
 ## Track I18n — language selection
 
-- [ ] Catalog types + `en` / `zh-Hant-en` tables
-- [ ] `t()` + settings key `language`
-- [ ] Settings dropdown + wire views/notices/templates
-- [ ] Unit tests (parity, fallback)
-- [ ] USER_GUIDE snippet
-- [ ] `npm test` / typecheck / build
-- [ ] Security: enum sanitize only (no remote packs)
+- [ ] Catalog + `language` setting + Settings dropdown + wiring + tests + docs
 
-## Track A — rebrand shell
+## Track A — rebrand, `atomics/**`, one-click migrate
 
-- [ ] `manifest.json` / package description → Atomic; id `obsidian-atomic`
-- [ ] Register `atomic-*` languages; alias `fitness-*` behind flag
-- [ ] CSS root transition `fitness-plugin` → `atomic-plugin`
-- [ ] Release workflow `PLUGIN_ID`
-- [ ] Migrate helper stub for fence rewrites
-- [ ] Tests for alias + migrate rewrite
-- [ ] README install path update
+- [ ] id `obsidian-atomic`; defaults under `atomics/**`
+- [ ] `atomic-*` + `fitness-*` aliases
+- [ ] One-click migrate plan/apply + Settings button + tests
+- [ ] Release `PLUGIN_ID` + README
 
 ## Track B — exercise generalization
 
-- [ ] `ActivityType` model; migrate `series` → exercise activity types
-- [ ] Settings CRUD for exercise types
-- [ ] Custom exercise daily-session template
-- [ ] Cues parameterized by activity id (`supportsCues`)
-- [ ] Commands: session picker / per-type create
-- [ ] Dashboard/heatmap consume activity types
-- [ ] Unit tests: merge, cues filter, folder safety
+- [ ] `ActivityType` exercise domain + Settings CRUD
+- [ ] Templates, cues, session picker, tests
 
 ## Track C — hobby tracker
 
-- [ ] Default Reading hobby type (`noteModel: item`)
-- [ ] Create item note command + template
-- [ ] TDD timer core (start/stop/resume/discard, log parse/append)
-- [ ] `atomic-timer` codeblock UI
-- [ ] Hobby minutes → heatmap
-- [ ] `atomic-hobby-library` + dashboard section
-- [ ] Canvas guidance + optional `related_canvas`
-- [ ] Security tests: path + log injection
+- [ ] Default Reading at `atomics/hobbies/Reading` (`noteModel: item`)
+- [ ] Book item notes: `cover`, `authors`, `description`, `pages`, `status`, `tags` + timer fields
+- [ ] TDD timer core + `atomic-timer` UI
+- [ ] Commands: **Open / Ensure reading bookshelf** → `atomics/hobbies/Reading/Bookshelf.base` (Bases Cards + Table); create if missing; never clobber existing
+- [ ] Soft-require Bases (Notice if disabled)
+- [ ] Hobby minutes → heatmap; optional Library embed; Canvas docs
+- [ ] Security tests: path + log injection + bookshelf path
 
 ## Track D — docs, E2E, security review
 
-- [ ] USER_GUIDE full rewrite for Atomic domains
-- [ ] AGENTS.md expectations
-- [ ] Run `npm test`, `npm run typecheck`, `npm run build`
-- [ ] Dispatch security-review agent on phase diffs
-- [ ] Manual Obsidian E2E checklist (or explicit Cloud skip)
-- [ ] Update design spec status to implemented
+- [ ] USER_GUIDE / README / AGENTS (include Bases bookshelf)
+- [ ] `npm test` / typecheck / build
+- [ ] Security-review agent
+- [ ] Manual E2E (or Cloud skip), including bookshelf with Bases enabled
 
-## Definition of done (whole program)
+## Definition of done
 
-1. Users can track Gym, Golf, and custom exercises with cues/dashboard/heatmaps
-2. Users can track Reading (and custom hobbies) with item notes, remarks, and Start/Stop time
-3. Notes remain Canvas-linkable markdown
-4. Language PR merged or clearly sequenced
-5. Legacy `fitness-*` migratable
-6. Unit + security tests green; docs updated
+1. Plugin id is `obsidian-atomic`; defaults under `atomics/**`
+2. One-click Fitness migrate works (skip-on-conflict)
+3. Exercise: Gym, Golf, custom types with cues/dashboard/heatmaps
+4. Reading: item notes, remarks, Start/Stop timer
+5. Reading bookshelf opens on demand via Obsidian Bases (Cards + Table)
+6. Notes remain Canvas-linkable markdown
+7. Language PR sequenced; tests/docs green
 
-## Agent execution rules (when implementation starts)
+## Agent execution rules
 
-1. writing-plans → one plan file per phase track (A/B/C) or one plan with phase headings
-2. Prefer subagent-driven-development: fresh subagent per task, review between tasks
-3. For B parallel C after A: dispatching-parallel-agents with strict file ownership
-4. Before any "done" claim: verification-before-completion (`npm test`, typecheck, build)
-5. Obsidian GUI E2E only when available; otherwise note skip in PR
+1. Prefer subagent-driven-development per task
+2. B parallel C after A with file ownership
+3. verification-before-completion before any done claim
+4. Obsidian GUI E2E only when available

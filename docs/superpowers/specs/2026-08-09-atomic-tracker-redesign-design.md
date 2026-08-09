@@ -33,12 +33,13 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | Hobby cues | None |
 | Hobby heatmaps | Minutes from **timer-log entries** (not pages/chapters) |
 | Default hobbies v1 | Reading only (no other built-in hobbies for now) |
+| Reading bookshelf UI | **Obsidian Bases** (core plugin), not a custom gallery renderer |
+| Bookshelf trigger | Plugin commands create/open the `.base` file **on demand** |
+| Bookshelf default path | `atomics/hobbies/Reading/Bookshelf.base` |
+| Bookshelf views | **Cards** (gallery/cover grid, default) + **Table** |
+| Bases dependency | Soft-require: bookshelf commands Notice if Bases core plugin is off; rest of Atomic still works |
 | Canvas | Ordinary vault notes + wikilinks; no custom canvas format |
 | Legacy codeblocks | `fitness-*` aliases until migrate turns them off |
-| Cue blocks | Dedicated `atomic-golf-cues` / `atomic-gym-cues`, plus generic `atomic-cues` with `activity:` arg |
-| Hobby heatmap source | Timer-log minutes (not pages/chapters) |
-| Default hobbies (v1) | Reading only (no extra defaults for now) |
-| Migrate destination conflict | Skip only when destination exists; no merge of leftover source files |
 
 ## Decomposition (multiple PRs after approval)
 
@@ -47,7 +48,7 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | **I18n** (separate design PR) | Language dropdown + catalogs | none |
 | **A — Rebrand shell** | Manifest → Atomic / `obsidian-atomic`; `atomic-*` blocks + `fitness-*` aliases; default paths under `atomics/**` | none (can parallel i18n) |
 | **B — Exercise generalization** | Custom exercise types; cues for opted-in exercise series | A |
-| **C — Hobby tracker** | Reading; item notes; timer; hobby heatmaps; Canvas-friendly links | A |
+| **C — Hobby tracker** | Reading items + timer; Bases bookshelf commands; hobby heatmaps; Canvas links | A |
 | **D — Docs + verification** | USER_GUIDE/README/AGENTS; unit/security; E2E checklist | B + C |
 
 One-click Fitness migration ships in **A** (paths + fences + settings) and is extended in **B/C** if new path keys appear.
@@ -71,9 +72,11 @@ atomics/
 │       └── YYYY/YYYY-MM-DD.md
 └── hobbies/
     └── Reading/
-        ├── Library.md              # optional index block
+        ├── Bookshelf.base          # created on demand by plugin command (Bases)
+        ├── Library.md              # optional; may embed ![[Bookshelf.base]]
+        ├── Covers/                 # optional local cover attachments
         └── Items/
-            └── Atomic Habits.md    # item note + timer
+            └── Atomic Habits.md    # book item note + timer + properties
 ```
 
 Rules:
@@ -137,16 +140,36 @@ Fails book/timer/remarks model. Rejected.
 - Custom exercise daily notes under `atomics/exercise/<Name>/YYYY/YYYY-MM-DD.md` by default
 - Gym keeps set table via `supportsSetTable`; others get a simpler session template + Reminders when cues enabled
 
-### Hobby tracker (mockups: `docs/mockups/atomic/03-hobby-item-note.html`, `04-canvas.html`)
+### Hobby tracker (mockups: `docs/mockups/atomic/03-hobby-item-note.html`, `04-canvas.html`, `05-reading-bookshelf-base.html`)
 
 Default Reading under `atomics/hobbies/Reading/`.
 
-Item note:
+#### Book item notes
 
-- Frontmatter: `type: atomic-item`, `domain: hobby`, `activity: reading`, `status`, `total_min`, optional `related_canvas`
-- Body: remarks / chapter notes
-- `atomic-timer` Start / Stop / Resume / Discard
-- Time log bullets appended by the timer
+Path: `atomics/hobbies/Reading/Items/<Title>.md`
+
+Frontmatter (Bases properties — gallery/table columns):
+
+```yaml
+type: atomic-item
+domain: hobby
+activity: reading
+status: to-read          # to-read | reading | finished | to-read-again
+authors:
+  - Author Name
+description: Short blurb
+pages: 320
+cover: "[[atomics/hobbies/Reading/Covers/title.jpg]]"   # local attachment wikilink (or URL)
+tags:
+  - books
+total_min: 0
+timer_started_at:
+related_canvas:
+```
+
+Body: remarks / chapter notes.  
+`atomic-timer` Start / Stop / Resume / Discard.  
+Time log bullets appended by the timer.
 
 Timer:
 
@@ -156,6 +179,36 @@ Timer:
 4. Heatmap minutes from log entry dates
 
 Canvas: drag item notes onto Obsidian Canvas or paste wikilinks. No proprietary format.
+
+#### Reading bookshelf via Obsidian Bases (on demand)
+
+Do **not** build a custom Projects-style gallery. Use Obsidian **Bases** (core plugin) Cards view for the cover grid, plus a Table view.
+
+**Commands**
+
+| Command id | Name | Behavior |
+|------------|------|----------|
+| `atomic-open-reading-bookshelf` | Atomic: Open reading bookshelf | Ensure `Bookshelf.base` exists (create/update template if missing), then open it |
+| `atomic-ensure-reading-bookshelf` | Atomic: Ensure reading bookshelf | Create/update the `.base` file only (no force-open) |
+
+Optional later: embed `![[Bookshelf.base]]` / `![[Bookshelf.base#Cards]]` into `atomics/hobbies/Reading/Library.md` when that note is created.
+
+**Default base path:** `atomics/hobbies/Reading/Bookshelf.base`
+
+**Filter:** notes under `atomics/hobbies/Reading/Items` with `type == "atomic-item"` and `activity == "reading"` (also accept `file.inFolder(...)` as the primary scope).
+
+**Views (seeded YAML):**
+
+1. `Cards` (default) — image property `cover`, fit contain/cover configurable in Bases UI; show `file.name`, `authors`, `description`, `pages`, `status`, `tags`, `total_min`
+2. `Table` — same properties as columns for bulk edit/sort/filter
+
+**Create/update policy**
+
+- First command run: write the `.base` file from a versioned template string in the plugin.
+- Later runs of **Ensure** / **Open**: if file missing, create; if present, do **not** overwrite user-edited view settings unless template schema version in a YAML comment/key is older and user confirms — v1: only create when missing (never clobber). Document that users customize freely in Bases UI.
+- If Bases core plugin is disabled: Notice explaining how to enable it; do not crash.
+
+**Reference UX:** gallery of book covers with title, authors, description, pages, status, tags (as in the attached Books gallery screenshot). Bases Cards is the supported mechanism.
 
 ### Codeblocks
 
@@ -253,13 +306,15 @@ Idempotent: second click reports zero moves / zero rewrites when already migrate
 4. Gym/Golf heatmaps and cues work from new paths
 5. Add Running under exercise; note lands in `atomics/exercise/Running/`
 6. Reading item + timer + remarks; Canvas drag works
-7. Legacy `fitness-*` no longer required after migrate
+7. **Open reading bookshelf** → Bases Cards gallery (cover/authors/status/tags); Table view works
+8. With Bases core plugin disabled, bookshelf command shows a clear Notice
+9. Legacy `fitness-*` no longer required after migrate
 
 ## Docs updates
 
 - `README.md` — Atomic, install `obsidian-atomic`, `atomics/**` layout
-- `docs/USER_GUIDE.md` — domains, defaults, one-click migrate, timer, canvas
-- `AGENTS.md` — plugin id, `atomics/**` defaults, test expectations
+- `docs/USER_GUIDE.md` — domains, defaults, one-click migrate, timer, Bases bookshelf commands, canvas
+- `AGENTS.md` — plugin id, `atomics/**` defaults, Bases soft-require for bookshelf, test expectations
 - Mockups under `docs/mockups/atomic/`
 
 ## High-level task breakdown
@@ -283,10 +338,12 @@ Idempotent: second click reports zero moves / zero rewrites when already migrate
 ### Phase C — Hobby tracker
 
 1. Reading default under `atomics/hobbies/Reading/`
-2. Item notes + timer (TDD)
-3. Hobby heatmap/dashboard/library
-4. Canvas docs + optional `related_canvas`
-5. Security tests
+2. Book item notes with Bases-friendly properties (`cover`, `authors`, `description`, `pages`, `status`, `tags`)
+3. Item notes + timer (TDD)
+4. Commands to ensure/open `Bookshelf.base` (Cards + Table) under `atomics/hobbies/Reading/`
+5. Hobby heatmap/dashboard; optional Library note embedding the base
+6. Canvas docs + optional `related_canvas`
+7. Security tests
 
 ### Phase D — Verification & docs
 
@@ -305,4 +362,6 @@ Product questions closed by approver:
 3. No additional default hobbies beyond Reading for now.
 4. Migrate skips when destination exists (no merge).
 
-No open product questions remain. Next step: writing-plans → multi-agent implementation.
+### Follow-up (same day): Reading bookshelf
+
+Approver wants a bookshelf dashboard **on demand via plugin commands**, implemented with **Obsidian Bases** (Cards gallery + Table), matching the attached gallery-style book cards (cover, authors, description, pages, status, tags). Locked into this spec; Phase C plan updated.

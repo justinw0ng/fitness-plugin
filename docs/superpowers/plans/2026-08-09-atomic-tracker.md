@@ -17,6 +17,9 @@
 - Hobby default: Reading at `atomics/hobbies/Reading` only (no other built-in hobbies)
 - Cue blocks: dedicated `atomic-golf-cues` / `atomic-gym-cues` **plus** generic `atomic-cues`
 - Hobby heatmaps: timer-log minutes
+- Reading bookshelf: Obsidian Bases `.base` file (Cards + Table), created/opened **on demand** by plugin commands — not a custom gallery UI
+- Bookshelf path: `atomics/hobbies/Reading/Bookshelf.base`; soft-require Bases core plugin (Notice if off)
+- Book properties for Bases: `cover`, `authors`, `description`, `pages`, `status`, `tags` (+ existing timer fields)
 - Migrate conflicts: skip destination if it already exists (no merge/overwrite)
 - One-click Settings migrate: folders + fences + settings + disable legacy aliases; idempotent
 - Keep `fitness-*` aliases until migrate turns them off
@@ -364,24 +367,55 @@ export function minutesByDate(entries: TimeLogEntry[]): Map<string, number>;
 - [ ] Implement minimal hobby timer helpers
 - [ ] Commit
 
-### Task C3: Item note command + `atomic-timer` block
+### Task C3: Book item note command + `atomic-timer` block
 
-- [ ] Create `atomics/hobbies/Reading/Items/<Name>.md` template with frontmatter + empty timer block + Remarks + Time log
+- [ ] Create `atomics/hobbies/Reading/Items/<Name>.md` with Bases-friendly frontmatter: `cover`, `authors`, `description`, `pages`, `status`, `tags`, timer fields
 - [ ] Processor Start/Stop/Resume/Discard writing frontmatter + log via core helpers
 - [ ] Commit
 
-### Task C4: Hobby heatmap + library + dashboard section
+### Task C4: Obsidian Bases bookshelf (on demand)
 
-- [ ] Heatmap series from `minutesByDate`
-- [ ] `atomic-hobby-library` lists items
-- [ ] Dashboard hobby section
-- [ ] Docs: Canvas = drag wikilink; optional `related_canvas`
-- [ ] Security tests: folder safety + log injection
+**Files:**
+- Create: `src/hobbies/reading-bookshelf.ts` (template string + ensure/open helpers)
+- Test: `tests/reading-bookshelf.test.mjs` (pure template contents / path join / idempotent ensure-when-missing logic without Obsidian)
+- Modify: `src/main.ts` (register commands)
+
+**Interfaces:**
+
+```ts
+export const READING_BOOKSHELF_REL =
+  "atomics/hobbies/Reading/Bookshelf.base";
+
+export function readingBookshelfBaseYaml(itemsFolder: string): string;
+// filters: file.inFolder(itemsFolder) + type/activity checks
+// views: Cards (image property cover) + Table
+```
+
+Seeded `.base` YAML must include Cards (default) + Table views and property display names for authors/description/pages/status/tags/total_min.
+
+Commands:
+
+- `atomic-open-reading-bookshelf` — if Bases disabled → Notice; else ensure file exists (create only if missing), then `openFile`
+- `atomic-ensure-reading-bookshelf` — create if missing only; Notice with path
+
+v1 never overwrites an existing `.base` (user customizations in Bases UI win).
+
+- [ ] Failing test: template contains `type: cards`, `type: table`, `cover`, and `atomics/hobbies/Reading/Items`
+- [ ] Implement template + command wiring
 - [ ] Commit
 
-### Task C5: Phase C verify
+### Task C5: Hobby heatmap + library + dashboard section
 
-- [ ] Full npm scripts + Cloud E2E skip note
+- [ ] Heatmap series from `minutesByDate`
+- [ ] Optional `Library.md` with `![[Bookshelf.base]]` embed when created via plugin
+- [ ] Dashboard hobby section
+- [ ] Docs: Bases bookshelf commands; Canvas = drag wikilink; optional `related_canvas`
+- [ ] Security tests: folder safety + log injection + bookshelf path safety
+- [ ] Commit
+
+### Task C6: Phase C verify
+
+- [ ] Full npm scripts + Cloud E2E skip note (Bases GUI only when Obsidian available)
 
 ---
 
@@ -413,6 +447,6 @@ After A merges, B and C may run as parallel agents with file ownership:
 
 ## Self-review
 
-1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Canvas wikilinks, legacy aliases — mapped to tasks.
+1. Spec coverage: id, `atomics/**`, one-click migrate skip-on-conflict, dedicated+generic cues, Reading-only, timer-log heatmaps, Bases bookshelf commands, Canvas wikilinks, legacy aliases — mapped to tasks.
 2. No Simplified Chinese / i18n details — deferred to i18n plan.
 3. Types/names consistent: `planFitnessMigration`, `rewriteFitnessFences`, `ActivityType`, `atomics/exercise|hobbies`.
