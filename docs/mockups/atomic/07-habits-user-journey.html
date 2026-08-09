@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Habits user journey</title>
+  <style>
+    :root {
+      --bg: #eef3f0;
+      --panel: #fffcf7;
+      --ink: #14201a;
+      --muted: #5d6b63;
+      --line: #d7e0da;
+      --accent: #1f6b4a;
+      --soft: #e3f0e9;
+      --danger: #b42318;
+      --step: #0f3d2a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Serif 4", "Libre Baskerville", Georgia, serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 420px at 10% -10%, #d9ebe1, transparent),
+        var(--bg);
+      min-height: 100vh;
+    }
+    .frame {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 24px 40px;
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.55rem; }
+    header p { margin: 0 0 18px; color: var(--muted); max-width: 70ch; }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .nav button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .nav button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 20px 22px 24px;
+      min-height: 520px;
+    }
+    .step-kicker {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .panel h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    .panel .blurb { color: var(--muted); margin: 0 0 18px; max-width: 68ch; }
+    .scene { display: none; }
+    .scene.on { display: block; }
+    .setting-block { border-top: 1px solid var(--line); padding: 14px 0; }
+    .setting-block:first-of-type { border-top: 0; }
+    .setting-name { font-weight: 700; }
+    .setting-desc { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+    input[type="text"], input[type="color"] {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 6px;
+      padding: 7px 9px;
+      font: inherit;
+    }
+    input[type="color"] { width: 42px; height: 34px; padding: 2px; }
+    .toggle {
+      width: 42px; height: 24px; border-radius: 999px; background: var(--accent);
+      position: relative; flex: 0 0 auto;
+    }
+    .toggle.off { background: #b7c0ba; }
+    .toggle::after {
+      content: ""; position: absolute; top: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    }
+    .toggle.off::after { right: auto; left: 3px; }
+    .swatches { display: inline-flex; gap: 4px; }
+    .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.15); }
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 7px 12px;
+      font: inherit;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.danger { color: var(--danger); border-color: #f0c2bd; background: #fff7f6; }
+    .code {
+      background: #17231c;
+      color: #e7f5ec;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre;
+      overflow: auto;
+    }
+    .heatmaps { display: grid; gap: 14px; }
+    .heatmap-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+    .heatmap-card h3 { margin: 0 0 8px; font-size: 1rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(20, 12px);
+      gap: 3px;
+    }
+    .cell { width: 12px; height: 12px; border-radius: 2px; background: #ebedf0; }
+    .notice {
+      background: #fff8e8;
+      border: 1px solid #f0d9a4;
+      color: #8a5a00;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .footer-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 18px;
+      gap: 10px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <h1>Atomic habits — user journey</h1>
+      <p>Review walkthrough for base colors, general habits CRUD, and heatmap activity filters. Mock UI (Obsidian not available in this environment).</p>
+    </header>
+
+    <div class="nav" id="nav"></div>
+
+    <div class="panel">
+      <section class="scene on" data-step="1">
+        <div class="step-kicker">Step 1 · Settings</div>
+        <h2>One color per habit</h2>
+        <p class="blurb">Pick a single color. Atomic generates the four heatmap shades and shows a swatch preview. Enable toggles and Delete sit on the same activity row.</p>
+        <div class="setting-block">
+          <div class="setting-name">🏋️ Gym / 健身</div>
+          <div class="setting-desc">Activity id: gym · folder atomics/exercise/Gym</div>
+          <div class="controls">
+            <div class="toggle" title="Enabled"></div>
+            <input type="text" value="🏋️ Gym / 健身" readonly />
+            <input type="text" value="atomics/exercise/Gym" readonly style="width:14rem" />
+            <div class="toggle" title="Cues on"></div>
+            <button class="btn danger">Delete</button>
+          </div>
+        </div>
+        <div class="setting-block">
+          <div class="setting-name">Gym / 健身 color</div>
+          <div class="setting-desc">Heatmap shades are generated automatically (light → dark).</div>
+          <div class="controls">
+            <input type="color" value="#30a14e" />
+            <span class="swatches">
+              <i class="swatch" style="background:#9be9a8"></i>
+              <i class="swatch" style="background:#40c463"></i>
+              <i class="swatch" style="background:#30a14e"></i>
+              <i class="swatch" style="background:#216e39"></i>
+            </span>
+            <span class="pill">derived shades</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene" data-step="2">
+        <div class="step-kicker">Step 2 · General habits</div>
+        <h2>Add or disable Reading-style habits</h2>
+        <p class="blurb">Reading ships as a default general habit. Disable it to hide commands/heatmaps, or delete it from settings without touching vault notes. Add Chess the same way (item + timer).</p>
+        <div class="setting-block">
+          <div class="setting-name">Reading / 睇書</div>
+          <div class="setting-desc">Activity id: reading · atomics/hobbies/Reading</div>
+          <div class="controls">
+            <div class="toggle" title="Enabled"></div>
+            <input type="text" value="Reading / 睇書" readonly />
+            <input type="text" value="atomics/hobbies/Reading" readonly style="width:15rem" />
+            <input type="color" value="#2563eb" />
+            <span class="swatches">
+              <i class="swatch" style="background:#bfdbfe"></i>
+              <i class="swatch" style="background:#60a5fa"></i>
+              <i class="swatch" style="background:#2563eb"></i>
+              <i class="swatch" style="background:#1e3a8a"></i>
+            </span>
+            <button class="btn danger">Delete</button>
+          </div>
+        </div>
+        <div class="setting-block">
+          <div class="setting-name">Add general habit</div>
+          <div class="setting-desc">Creates an item hobby with timer tracking and no cues.</div>
+          <div class="controls">
+            <input type="text" value="Chess" readonly />
+            <button class="btn primary">Add</button>
+          </div>
+        </div>
+        <div class="setting-block">
+          <div class="setting-name">Chess <span class="pill">new</span></div>
+          <div class="setting-desc">Activity id: chess · atomics/hobbies/Chess</div>
+          <div class="controls">
+            <div class="toggle"></div>
+            <input type="text" value="Chess" readonly />
+            <input type="color" value="#7c3aed" />
+            <span class="swatches">
+              <i class="swatch" style="background:#d4b8ff"></i>
+              <i class="swatch" style="background:#a78bfa"></i>
+              <i class="swatch" style="background:#7c3aed"></i>
+              <i class="swatch" style="background:#4c1d95"></i>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene" data-step="3">
+        <div class="step-kicker">Step 3 · Heatmap filter</div>
+        <h2>Choose all habits or a subset</h2>
+        <p class="blurb"><code>atomic-heatmap</code> defaults to every enabled habit. Pass one id or a comma list to render only those heatmaps.</p>
+        <div class="code">```atomic-heatmap
+activity: all
+year: 2026
+```
+
+```atomic-heatmap
+activity: reading
+year: 2026
+```
+
+```atomic-heatmap
+activity: gym, golf, chess
+year: 2026
+```</div>
+      </section>
+
+      <section class="scene" data-step="4">
+        <div class="step-kicker">Step 4 · Rendered result</div>
+        <h2>Filtered heatmaps</h2>
+        <p class="blurb">Example for <code>activity: gym, golf, chess</code>. Invalid or disabled ids would show a notice above the cards.</p>
+        <div class="heatmaps">
+          <div class="heatmap-card">
+            <h3>🏋️ Gym / 健身</h3>
+            <div class="grid" data-palette="green"></div>
+          </div>
+          <div class="heatmap-card">
+            <h3>⛳ Golf / 高爾夫</h3>
+            <div class="grid" data-palette="orange"></div>
+          </div>
+          <div class="heatmap-card">
+            <h3>Chess</h3>
+            <div class="grid" data-palette="violet"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene" data-step="5">
+        <div class="step-kicker">Step 5 · Disable path</div>
+        <h2>Disabled habits leave the UI quietly</h2>
+        <p class="blurb">Turn Reading off in settings. Heatmaps and dashboard omit it. Reading-specific commands show a Notice instead of creating notes.</p>
+        <div class="setting-block">
+          <div class="setting-name">Reading / 睇書</div>
+          <div class="controls">
+            <div class="toggle off" title="Disabled"></div>
+            <input type="text" value="Reading / 睇書" readonly />
+            <span class="pill">hidden from heatmaps &amp; commands</span>
+          </div>
+        </div>
+        <div class="notice">No Reading hobby configured — enable it in Settings → Atomic, or use New hobby item for another habit.</div>
+        <div class="code">```atomic-heatmap
+activity: reading
+year: 2026
+```
+→ inline: Unknown or disabled heatmap activities: reading</div>
+      </section>
+
+      <div class="footer-nav">
+        <button class="btn" id="prev">← Previous</button>
+        <button class="btn primary" id="next">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      ["1", "Color picker"],
+      ["2", "General habits"],
+      ["3", "Heatmap filter"],
+      ["4", "Rendered heatmaps"],
+      ["5", "Disable path"],
+    ];
+    const nav = document.getElementById("nav");
+    const scenes = [...document.querySelectorAll(".scene")];
+    let index = 0;
+
+    function paintGrids() {
+      const palettes = {
+        green: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+        orange: ["#ebedf0", "#ffd8a8", "#ffa94d", "#f76707", "#d9480f"],
+        violet: ["#ebedf0", "#d4b8ff", "#a78bfa", "#7c3aed", "#4c1d95"],
+      };
+      document.querySelectorAll(".grid").forEach((grid) => {
+        if (grid.childElementCount) return;
+        const colors = palettes[grid.dataset.palette] || palettes.green;
+        for (let i = 0; i < 80; i++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          const level = Math.random() < 0.55 ? 0 : 1 + Math.floor(Math.random() * 4);
+          cell.style.background = colors[level];
+          grid.appendChild(cell);
+        }
+      });
+    }
+
+    function show(i) {
+      index = Math.max(0, Math.min(steps.length - 1, i));
+      scenes.forEach((scene) => scene.classList.toggle("on", scene.dataset.step === steps[index][0]));
+      [...nav.children].forEach((btn, bi) => btn.classList.toggle("active", bi === index));
+      document.getElementById("prev").disabled = index === 0;
+      document.getElementById("next").textContent = index === steps.length - 1 ? "Done" : "Next →";
+      paintGrids();
+    }
+
+    steps.forEach(([id, label], i) => {
+      const btn = document.createElement("button");
+      btn.textContent = `${id}. ${label}`;
+      btn.addEventListener("click", () => show(i));
+      nav.appendChild(btn);
+    });
+    document.getElementById("prev").addEventListener("click", () => show(index - 1));
+    document.getElementById("next").addEventListener("click", () => {
+      if (index < steps.length - 1) show(index + 1);
+    });
+    show(0);
+  </script>
+</body>
+</html>

@@ -25,6 +25,8 @@ type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
 function cloneActivities(activityTypes: ActivityType[]): ActivityType[] {
   return activityTypes.map((activity) => ({
     ...activity,
+    enabled: activity.enabled !== false,
+    baseColor: activity.baseColor,
     colors: [
       activity.colors[0],
       activity.colors[1],
@@ -45,7 +47,7 @@ function normalizeActivities(
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 
-function appendNewBuiltInActivities(
+function appendMissingBuiltInHobbies(
   activityTypes: ActivityType[],
   builtIns: ActivityType[],
 ): ActivityType[] {
@@ -81,13 +83,26 @@ export function mergeSettings(
       "",
     base.golfCuesPath,
   );
-  const activityTypes =
-    appendNewBuiltInActivities(
-      normalizeActivities(raw.activityTypes, base.activityTypes) ||
-        legacySeriesActivities(raw.series, base.activityTypes) ||
-        cloneActivities(base.activityTypes),
+
+  const fromActivityTypes = normalizeActivities(
+    raw.activityTypes,
+    base.activityTypes,
+  );
+  const fromLegacySeries = legacySeriesActivities(raw.series, base.activityTypes);
+
+  let activityTypes: ActivityType[];
+  if (fromActivityTypes) {
+    // Modern activityTypes list wins as-is (including intentional Reading deletion).
+    activityTypes = fromActivityTypes;
+  } else if (fromLegacySeries) {
+    // Legacy series never had hobbies — seed built-in hobbies once.
+    activityTypes = appendMissingBuiltInHobbies(
+      fromLegacySeries,
       DEFAULT_SETTINGS.activityTypes,
     );
+  } else {
+    activityTypes = cloneActivities(base.activityTypes);
+  }
 
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,

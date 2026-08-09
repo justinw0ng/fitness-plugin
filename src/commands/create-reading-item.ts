@@ -21,23 +21,29 @@ function cleanBookTitle(title: string): string {
   return cleaned || FALLBACK_BOOK_TITLE;
 }
 
-export function buildReadingItemPath(activityFolder: string, title: string): string {
+export function buildHobbyItemPath(activityFolder: string, title: string): string {
   if (!isSafeVaultFolder(activityFolder)) {
-    throw new Error("Reading folder must be a safe vault-relative folder");
+    throw new Error("Hobby folder must be a safe vault-relative folder");
   }
   const base = normalizeSlashes(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
 }
 
+export function buildReadingItemPath(activityFolder: string, title: string): string {
+  return buildHobbyItemPath(activityFolder, title);
+}
+
 export function readingItemMarkdown(
   title: string,
   language: Language = "en",
+  activityId = "reading",
 ): string {
   const cleanedTitle = cleanBookTitle(title);
+  const activity = activityId.trim() || "reading";
   return `---
 type: atomic-item
 domain: hobby
-activity: reading
+activity: ${activity}
 status: to-read
 authors:
   - ""
@@ -63,25 +69,50 @@ related_canvas:
 `;
 }
 
+export async function createHobbyItem(
+  app: App,
+  data: VaultDataSource,
+  hobbyActivity: ActivityType,
+  language: Language,
+): Promise<void> {
+  const title = window.prompt(
+    t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
+    "",
+  );
+  if (title === null) return;
+  const path = buildHobbyItemPath(hobbyActivity.folder, title);
+  const { Notice } = await import("obsidian");
+
+  if (data.exists(path)) {
+    await data.openPath(path);
+    new Notice(
+      t("notice.openedExistingHobbyItem", language, {
+        label: hobbyActivity.label,
+        path,
+      }),
+    );
+    return;
+  }
+
+  await data.createNote(
+    path,
+    readingItemMarkdown(title, language, hobbyActivity.id),
+  );
+  await data.openPath(path);
+  new Notice(
+    t("notice.createdHobbyItem", language, {
+      label: hobbyActivity.label,
+      path,
+    }),
+  );
+  void app;
+}
+
 export async function createReadingItem(
   app: App,
   data: VaultDataSource,
   readingActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  const title = window.prompt(t("modal.readingItemTitle", language), "");
-  if (title === null) return;
-  const path = buildReadingItemPath(readingActivity.folder, title);
-  const { Notice } = await import("obsidian");
-
-  if (data.exists(path)) {
-    await data.openPath(path);
-    new Notice(t("notice.openedExistingReadingItem", language, { path }));
-    return;
-  }
-
-  await data.createNote(path, readingItemMarkdown(title, language));
-  await data.openPath(path);
-  new Notice(t("notice.createdReadingItem", language, { path }));
-  void app;
+  await createHobbyItem(app, data, readingActivity, language);
 }

@@ -61,7 +61,7 @@ test("mergeSettings defaults include golf/gym paths and legacy on", () => {
   assert.equal("series" in s, false);
 });
 
-test("mergeSettings adds the built-in Reading hobby to pre-Phase-C activityTypes", () => {
+test("mergeSettings does not resurrect Reading deleted from modern activityTypes", () => {
   const s = mergeSettings({
     activityTypes: [
       {
@@ -89,26 +89,51 @@ test("mergeSettings adds the built-in Reading hobby to pre-Phase-C activityTypes
     ],
   });
 
-  assert.equal(s.activityTypes.map((activity) => activity.id).join(","), "gym,golf,reading");
-  const reading = s.activityTypes.find((activity) => activity.id === "reading");
-  assert.deepEqual(
-    {
-      domain: reading?.domain,
-      folder: reading?.folder,
-      noteModel: reading?.noteModel,
-      supportsCues: reading?.supportsCues,
-      supportsTimer: reading?.supportsTimer,
-      supportsSetTable: reading?.supportsSetTable,
-    },
-    {
-      domain: "hobby",
-      folder: "atomics/hobbies/Reading",
-      noteModel: "item",
-      supportsCues: false,
-      supportsTimer: true,
-      supportsSetTable: false,
-    },
+  assert.equal(s.activityTypes.map((activity) => activity.id).join(","), "gym,golf");
+  assert.equal(
+    s.activityTypes.find((activity) => activity.id === "reading"),
+    undefined,
   );
+});
+
+test("mergeSettings preserves enabled false on stored activities", () => {
+  const s = mergeSettings({
+    activityTypes: [
+      {
+        id: "reading",
+        domain: "hobby",
+        label: "Reading",
+        folder: "atomics/hobbies/Reading",
+        enabled: false,
+        baseColor: "#2563eb",
+        colors: ["#bfdbfe", "#60a5fa", "#2563eb", "#1e3a8a"],
+        noteModel: "item",
+        supportsCues: false,
+        supportsTimer: true,
+        supportsSetTable: false,
+      },
+    ],
+  });
+
+  assert.equal(s.activityTypes.length, 1);
+  assert.equal(s.activityTypes[0]?.id, "reading");
+  assert.equal(s.activityTypes[0]?.enabled, false);
+});
+
+test("mergeSettings seeds Reading when migrating legacy series only", () => {
+  const s = mergeSettings({
+    series: [
+      {
+        id: "gym",
+        label: "Gym",
+        folder: "Gym",
+        colors: ["#1", "#2", "#3", "#4"],
+        kind: "gym",
+      },
+    ],
+  });
+
+  assert.ok(s.activityTypes.some((activity) => activity.id === "reading"));
 });
 
 test("mergeSettings maps legacy series to activityTypes and preserves folders until migration", () => {
@@ -195,7 +220,7 @@ test("mergeSettings prefers stored activityTypes over legacy series", () => {
     ],
   });
 
-  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["running", "reading"]);
+  assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["running"]);
   assert.equal(s.activityTypes[0].folder, "atomics/exercise/Running");
 });
 

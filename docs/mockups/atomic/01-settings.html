@@ -25,9 +25,9 @@
       padding: 28px;
     }
     h1 { margin: 0 0 6px; font-size: 1.45rem; }
-    .lead { color: var(--muted); margin: 0 0 22px; max-width: 60ch; }
+    .lead { color: var(--muted); margin: 0 0 22px; max-width: 70ch; }
     .shell {
-      max-width: 920px;
+      max-width: 960px;
       display: grid;
       grid-template-columns: 210px 1fr;
       border: 1px solid var(--line);
@@ -47,9 +47,12 @@
     .desc { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
     input, select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); background: #fff; font: inherit; }
     table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { color: var(--muted); font-weight: 600; }
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--accent); font-size: 0.78rem; }
+    .pill.off { background: #eee; color: #666; }
+    .swatches { display: inline-flex; gap: 3px; vertical-align: middle; }
+    .swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,.12); display: inline-block; }
     .btn {
       display: inline-block;
       margin-top: 10px;
@@ -62,11 +65,12 @@
     }
     .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     .legacy { background: #fff8e8; border: 1px solid #f0d9a4; padding: 12px; color: var(--warn); }
+    code { font-size: 0.88em; }
   </style>
 </head>
 <body>
   <h1>Atomic settings</h1>
-  <p class="lead">One plugin, two domains. Exercise types keep cues. Hobby types stay cue-free and item-centric.</p>
+  <p class="lead">One color per habit (shades are generated). Enable/disable and delete work for exercise and general habits. Reading is a default general habit, not hard-forced on.</p>
 
   <div class="shell">
     <aside>
@@ -77,12 +81,12 @@
     </aside>
     <main>
       <h2>Atomic</h2>
-      <p class="sub">Visualize habits so they last — exercise + hobbies in your vault.</p>
+      <p class="sub">Visualize habits so they last — exercise + general habits in your vault.</p>
 
       <div class="row">
         <div>
           <div class="label">Language</div>
-          <div class="desc">Owned by the separate i18n PR.</div>
+          <div class="desc">Plugin UI language. Existing notes are not rewritten.</div>
         </div>
         <select><option>Traditional Chinese &amp; English</option><option>English</option></select>
       </div>
@@ -96,7 +100,7 @@
       <div class="row">
         <div>
           <div class="label">Dashboard path</div>
-          <div class="desc">Default <code>atomics/Dashboard.md</code>. Plugin-created content stays under <code>atomics/**</code> unless overridden.</div>
+          <div class="desc">Default <code>atomics/Dashboard.md</code>.</div>
         </div>
         <input value="atomics/Dashboard.md" readonly />
       </div>
@@ -104,25 +108,49 @@
       <section>
         <h3>Exercise types</h3>
         <table>
-          <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
+          <thead><tr><th>Label</th><th>Enabled</th><th>Color</th><th>Cues</th><th>Folder</th></tr></thead>
           <tbody>
-            <tr><td>Gym / 健身</td><td><code>atomics/exercise/Gym</code></td><td><span class="pill">on</span></td><td>daily session + sets</td></tr>
-            <tr><td>Golf / 高爾夫</td><td><code>atomics/exercise/Golf</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
-            <tr><td>Running</td><td><code>atomics/exercise/Running</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
+            <tr>
+              <td>Gym / 健身</td>
+              <td><span class="pill">on</span></td>
+              <td><span class="swatches"><i class="swatch" style="background:#9be9a8"></i><i class="swatch" style="background:#40c463"></i><i class="swatch" style="background:#30a14e"></i><i class="swatch" style="background:#216e39"></i></span></td>
+              <td><span class="pill">on</span></td>
+              <td><code>atomics/exercise/Gym</code></td>
+            </tr>
+            <tr>
+              <td>Golf / 高爾夫</td>
+              <td><span class="pill">on</span></td>
+              <td><span class="swatches"><i class="swatch" style="background:#ffd8a8"></i><i class="swatch" style="background:#ffa94d"></i><i class="swatch" style="background:#f76707"></i><i class="swatch" style="background:#d9480f"></i></span></td>
+              <td><span class="pill">on</span></td>
+              <td><code>atomics/exercise/Golf</code></td>
+            </tr>
           </tbody>
         </table>
         <button class="btn primary">Add exercise type</button>
       </section>
 
       <section>
-        <h3>Hobby types</h3>
+        <h3>General habits</h3>
         <table>
-          <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
+          <thead><tr><th>Label</th><th>Enabled</th><th>Color</th><th>Model</th><th>Folder</th></tr></thead>
           <tbody>
-            <tr><td>Reading</td><td><code>atomics/hobbies/Reading</code></td><td>off</td><td>item + timer</td></tr>
+            <tr>
+              <td>Reading / 睇書</td>
+              <td><span class="pill">on</span></td>
+              <td><span class="swatches"><i class="swatch" style="background:#bfdbfe"></i><i class="swatch" style="background:#60a5fa"></i><i class="swatch" style="background:#2563eb"></i><i class="swatch" style="background:#1e3a8a"></i></span></td>
+              <td>item + timer</td>
+              <td><code>atomics/hobbies/Reading</code></td>
+            </tr>
+            <tr>
+              <td>Chess</td>
+              <td><span class="pill">on</span></td>
+              <td><span class="swatches"><i class="swatch" style="background:#d4b8ff"></i><i class="swatch" style="background:#a78bfa"></i><i class="swatch" style="background:#7c3aed"></i><i class="swatch" style="background:#4c1d95"></i></span></td>
+              <td>item + timer</td>
+              <td><code>atomics/hobbies/Chess</code></td>
+            </tr>
           </tbody>
         </table>
-        <button class="btn primary">Add hobby type</button>
+        <button class="btn primary">Add general habit</button>
       </section>
 
       <section>
@@ -130,15 +158,7 @@
         <div class="legacy">
           One click moves <code>Fitness/Dashboard.md</code>, <code>Gym/**</code>, and <code>Golf/**</code> into <code>atomics/**</code>,
           rewrites <code>fitness-*</code> fences to <code>atomic-*</code>, updates settings, and turns off legacy aliases.
-          Skips destinations that already exist. Idempotent.
           <div><button class="btn primary">Migrate from Fitness → Atomic</button></div>
-        </div>
-      </section>
-
-      <section>
-        <h3>Legacy Fitness blocks</h3>
-        <div class="legacy">
-          Allow <code>fitness-*</code> aliases only until migration completes.
         </div>
       </section>
     </main>

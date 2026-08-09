@@ -4,7 +4,7 @@ import {
   createGolfSession,
   createGymSession,
 } from "./commands/create-session";
-import { createReadingItem } from "./commands/create-reading-item";
+import { createHobbyItem, createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
 import {
@@ -68,9 +68,21 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "atomic-new-hobby-item",
+      name: t("command.newHobbyItem", this.settings.language),
+      callback: () => {
+        void this.createHobbyItem();
+      },
+    });
+
+    this.addCommand({
       id: "atomic-ensure-reading-bookshelf",
       name: t("command.ensureReadingBookshelf", this.settings.language),
       callback: () => {
+        if (!this.hobbyActivityById("reading")) {
+          new Notice(t("notice.noReadingHobby", this.settings.language));
+          return;
+        }
         void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
       },
     });
@@ -79,6 +91,10 @@ export default class FitnessPlugin extends Plugin {
       id: "atomic-open-reading-bookshelf",
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
+        if (!this.hobbyActivityById("reading")) {
+          new Notice(t("notice.noReadingHobby", this.settings.language));
+          return;
+        }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
       },
     });
@@ -184,10 +200,13 @@ export default class FitnessPlugin extends Plugin {
     );
   }
 
-  private chooseExerciseActivity(): Promise<ActivityType | null> {
-    const activities = exerciseActivities(this.settings.activityTypes);
+  private chooseActivity(
+    activities: ActivityType[],
+    emptyNoticeKey: "notice.noExerciseActivities" | "notice.noHobbyActivities",
+    placeholderKey: "modal.exerciseTypePlaceholder" | "modal.hobbyTypePlaceholder",
+  ): Promise<ActivityType | null> {
     if (!activities.length) {
-      new Notice(t("notice.noExerciseActivities", this.settings.language));
+      new Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
@@ -213,9 +232,25 @@ export default class FitnessPlugin extends Plugin {
           resolve(null);
         }
       })(this.app);
-      modal.setPlaceholder(t("modal.exerciseTypePlaceholder", this.settings.language));
+      modal.setPlaceholder(t(placeholderKey, this.settings.language));
       modal.open();
     });
+  }
+
+  private chooseExerciseActivity(): Promise<ActivityType | null> {
+    return this.chooseActivity(
+      exerciseActivities(this.settings.activityTypes),
+      "notice.noExerciseActivities",
+      "modal.exerciseTypePlaceholder",
+    );
+  }
+
+  private chooseHobbyActivity(): Promise<ActivityType | null> {
+    return this.chooseActivity(
+      hobbyActivities(this.settings.activityTypes),
+      "notice.noHobbyActivities",
+      "modal.hobbyTypePlaceholder",
+    );
   }
 
   async createExerciseSession(activity?: ActivityType) {
@@ -267,6 +302,12 @@ export default class FitnessPlugin extends Plugin {
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
+  }
+
+  async createHobbyItem() {
+    const picked = await this.chooseHobbyActivity();
+    if (!picked) return;
+    await createHobbyItem(this.app, this.data, picked, this.settings.language);
   }
 
   async openDashboard() {

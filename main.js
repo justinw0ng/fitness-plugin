@@ -282,16 +282,28 @@ var en = {
   "settings.labelPlaceholder": "Label",
   "settings.exerciseFolderPlaceholder": "atomics/exercise/Name",
   "settings.enableCuesTooltip": "Enable reminder/cue rollups for this exercise",
+  "settings.enabledTooltip": "Include this habit in heatmaps, dashboard, and commands",
+  "settings.baseColor": "{label} color",
+  "settings.baseColorDesc": "Pick one color. Heatmap shades are generated automatically (light to dark).",
   "settings.colors": "{label} colors",
   "settings.colorsDesc": "Heatmap colors from low to high intensity.",
   "settings.exerciseNamePlaceholder": "Running",
   "settings.colorPlaceholder": "#{number}",
+  "settings.hobbyTypes": "General habits",
+  "settings.hobbyTypesDesc": "Item notes with timers. New habits default under atomics/hobbies/<Name>. Reading is included by default and can be disabled or deleted.",
+  "settings.addHobbyType": "Add general habit",
+  "settings.addHobbyTypeDesc": "Creates an item hobby with timer tracking and no cues.",
+  "settings.hobbyNamePlaceholder": "Chess",
+  "settings.hobbyFolderPlaceholder": "atomics/hobbies/Name",
+  "settings.delete": "Delete",
+  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic settings? Vault notes are not deleted.",
   "command.newGymSession": "New gym session",
   "command.newGolfSession": "New golf session",
   "command.newExerciseSession": "New exercise session",
   "command.newReadingItem": "New reading item",
+  "command.newHobbyItem": "New hobby item",
   "command.ensureReadingBookshelf": "Ensure reading bookshelf",
-  "command.openReadingBookshelf": "Open reading bookshelf",
+  "command.openReadingBookshelf": "Open reading notes in Bases",
   "command.ensureBookShelf": "Ensure book shelf",
   "command.openBookShelf": "Open book shelf",
   "command.openDashboard": "Open dashboard",
@@ -299,6 +311,9 @@ var en = {
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names.",
   "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration.",
   "notice.enterExerciseType": "Enter an exercise type name first.",
+  "notice.enterHobbyType": "Enter a general habit name first.",
+  "notice.activityDeleted": "Removed {label} from settings.",
+  "notice.noHobbyActivities": "No enabled general habits configured",
   "notice.folderUnsafe": "Folder must be a safe vault-relative path.",
   "notice.migrationComplete": "Migrated Fitness to Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors.",
   "notice.migrationFailed": "Failed to migrate from Fitness to Atomic: {message}",
@@ -312,6 +327,8 @@ var en = {
   "notice.invalidDate": "Invalid date",
   "notice.createdReadingItem": "Created Reading item: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item: {path}",
+  "notice.createdHobbyItem": "Created {label} item: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",
@@ -328,7 +345,9 @@ var en = {
   "modal.otherLocationDetail": "Other location detail",
   "modal.weightUnitPlaceholder": "Weight unit (Esc -> kg)",
   "modal.exerciseTypePlaceholder": "Exercise type",
+  "modal.hobbyTypePlaceholder": "General habit",
   "modal.readingItemTitle": "Reading item title",
+  "modal.hobbyItemTitle": "{label} item title",
   "modal.timeLogNote": "Time log note",
   "location.home": "Home",
   "location.commercial": "Commercial",
@@ -394,6 +413,8 @@ var en = {
   "view.heatmap.minutes": "{minutes} min",
   "view.heatmap.tooltip": "{date}: {minutes} min",
   "view.heatmap.tooltipOpen": "{date}: {minutes} min - click to open",
+  "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities: {ids}",
+  "view.heatmap.noActivities": "No enabled habits to show in this heatmap.",
   "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions",
   "view.today.noSession": "no session yet",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured.",
@@ -438,16 +459,28 @@ var zhHantEn = {
   "settings.labelPlaceholder": "Label / \u6A19\u7C64",
   "settings.exerciseFolderPlaceholder": "atomics/exercise/Name",
   "settings.enableCuesTooltip": "Enable reminder/cue rollups for this exercise / \u555F\u7528\u6B64\u904B\u52D5\u7684\u63D0\u9192\u5F59\u6574",
+  "settings.enabledTooltip": "Include this habit in heatmaps, dashboard, and commands / \u5728 Heatmap\u3001\u5100\u8868\u677F\u8207\u547D\u4EE4\u4E2D\u5305\u542B\u6B64\u7FD2\u6163",
+  "settings.baseColor": "{label} color / \u984F\u8272",
+  "settings.baseColorDesc": "Pick one color. Heatmap shades are generated automatically (light to dark) / \u9078\u64C7\u4E00\u7A2E\u984F\u8272\uFF0CHeatmap \u6DF1\u6DFA\u8272\u968E\u6703\u81EA\u52D5\u7522\u751F\uFF08\u7531\u6DFA\u81F3\u6DF1\uFF09\u3002",
   "settings.colors": "{label} colors / \u984F\u8272",
   "settings.colorsDesc": "Heatmap colors from low to high intensity / Heatmap \u984F\u8272\uFF0C\u7531\u4F4E\u81F3\u9AD8\u5F37\u5EA6\u3002",
   "settings.exerciseNamePlaceholder": "Running / \u8DD1\u6B65",
   "settings.colorPlaceholder": "#{number}",
+  "settings.hobbyTypes": "General habits / \u4E00\u822C\u7FD2\u6163",
+  "settings.hobbyTypesDesc": "Item notes with timers. New habits default under atomics/hobbies/<Name>. Reading is included by default and can be disabled or deleted / \u542B\u8A08\u6642\u5668\u7684\u9805\u76EE\u7B46\u8A18\u3002\u65B0\u7FD2\u6163\u9810\u8A2D\u653E\u5728 atomics/hobbies/<Name>\u3002\u95B1\u8B80\u70BA\u9810\u8A2D\u9805\u76EE\uFF0C\u53EF\u505C\u7528\u6216\u522A\u9664\u3002",
+  "settings.addHobbyType": "Add general habit / \u65B0\u589E\u4E00\u822C\u7FD2\u6163",
+  "settings.addHobbyTypeDesc": "Creates an item hobby with timer tracking and no cues / \u5EFA\u7ACB\u542B\u8A08\u6642\u5668\u3001\u4E0D\u542B\u63D0\u9192\u7684\u8208\u8DA3\u9805\u76EE\u985E\u578B\u3002",
+  "settings.hobbyNamePlaceholder": "Chess / \u4E0B\u68CB",
+  "settings.hobbyFolderPlaceholder": "atomics/hobbies/Name",
+  "settings.delete": "Delete / \u522A\u9664",
+  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic settings? Vault notes are not deleted / \u8981\u5F9E Atomic \u8A2D\u5B9A\u79FB\u9664\u300C{label}\u300D\u55CE\uFF1F\u4E0D\u6703\u522A\u9664 vault \u7B46\u8A18\u3002",
   "command.newGymSession": "New gym session / \u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
   "command.newGolfSession": "New golf session / \u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
   "command.newExerciseSession": "New exercise session / \u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
   "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
+  "command.newHobbyItem": "New hobby item / \u65B0\u589E\u8208\u8DA3\u9805\u76EE",
   "command.ensureReadingBookshelf": "Ensure reading bookshelf / \u5EFA\u7ACB\u95B1\u8B80 Bookshelf",
-  "command.openReadingBookshelf": "Open reading bookshelf / \u958B\u555F\u95B1\u8B80 Bookshelf",
+  "command.openReadingBookshelf": "Open reading notes in Bases / \u5728 Bases \u958B\u555F\u95B1\u8B80\u7B46\u8A18",
   "command.ensureBookShelf": "Ensure book shelf / \u5EFA\u7ACB\u66F8\u67B6",
   "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
   "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
@@ -455,19 +488,24 @@ var zhHantEn = {
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names / \u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
   "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration / \u820A\u7248 fitness-* \u8A2D\u5B9A\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u5957\u7528\u8A3B\u518A\u3002",
   "notice.enterExerciseType": "Enter an exercise type name first / \u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
+  "notice.enterHobbyType": "Enter a general habit name first / \u8ACB\u5148\u8F38\u5165\u4E00\u822C\u7FD2\u6163\u540D\u7A31\u3002",
+  "notice.activityDeleted": "Removed {label} from settings / \u5DF2\u5F9E\u8A2D\u5B9A\u79FB\u9664 {label}\u3002",
+  "notice.noHobbyActivities": "No enabled general habits configured / \u5C1A\u672A\u8A2D\u5B9A\u5DF2\u555F\u7528\u7684\u4E00\u822C\u7FD2\u6163",
   "notice.folderUnsafe": "Folder must be a safe vault-relative path / \u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
   "notice.migrationComplete": "Migrated Fitness \u2192 Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors / \u5DF2\u9077\u79FB Fitness \u2192 Atomic\uFF1A\u642C\u79FB {movedPaths} \u500B\u8DEF\u5F91\uFF0C\u7565\u904E {skippedPaths} \u500B\u65E2\u6709\u76EE\u7684\u5730\uFF0C\u5728 {changedFiles} \u500B\u6A94\u6848\u6539\u5BEB {replacements} \u500B\u5340\u584A\u3002\u5DF2\u505C\u7528\u820A fitness-* \u5225\u540D\uFF1B\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u79FB\u9664\u5DF2\u8A3B\u518A\u7684\u820A\u8655\u7406\u5668\u3002",
   "notice.migrationFailed": "Failed to migrate from Fitness to Atomic / Fitness \u9077\u79FB\u81F3 Atomic \u5931\u6557: {message}",
   "notice.noExerciseActivities": "No exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
   "notice.noGymActivity": "No gym activity configured / \u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
   "notice.noGolfActivity": "No golf activity configured / \u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
-  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u95B1\u8B80\u8208\u8DA3",
+  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u7747\u66F8\u8208\u8DA3",
   "notice.dashboardNotFound": "Dashboard not found / \u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
   "notice.openedExistingSession": "Opened existing {activity} session / \u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
   "notice.createdSession": "Created {activity} session / \u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
   "notice.invalidDate": "Invalid date / \u65E5\u671F\u7121\u6548",
   "notice.createdReadingItem": "Created Reading item / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item / \u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.createdHobbyItem": "Created {label} item / \u5DF2\u5EFA\u7ACB {label} \u9805\u76EE: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item / \u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists / \u95B1\u8B80 Bookshelf \u5DF2\u5B58\u5728: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bookshelf\u3002",
@@ -484,7 +522,9 @@ var zhHantEn = {
   "modal.otherLocationDetail": "Other location detail / \u5176\u4ED6\u5730\u9EDE\u8AAA\u660E",
   "modal.weightUnitPlaceholder": "Weight unit / \u91CD\u91CF\u55AE\u4F4D (Esc -> kg)",
   "modal.exerciseTypePlaceholder": "Exercise type / \u904B\u52D5\u985E\u578B",
+  "modal.hobbyTypePlaceholder": "General habit / \u4E00\u822C\u7FD2\u6163",
   "modal.readingItemTitle": "Reading item title / \u95B1\u8B80\u9805\u76EE\u6A19\u984C",
+  "modal.hobbyItemTitle": "{label} item title / {label} \u9805\u76EE\u6A19\u984C",
   "modal.timeLogNote": "Time log note / \u6642\u9593\u8A18\u9304\u5099\u8A3B",
   "location.home": "Home / \u5BB6\u4E2D",
   "location.commercial": "Commercial / \u5546\u696D\u5065\u8EAB\u623F",
@@ -550,6 +590,8 @@ var zhHantEn = {
   "view.heatmap.minutes": "{minutes} min / \u5206\u9418",
   "view.heatmap.tooltip": "{date}: {minutes} min / \u5206\u9418",
   "view.heatmap.tooltipOpen": "{date}: {minutes} min / \u5206\u9418 - click to open / \u9EDE\u64CA\u958B\u555F",
+  "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities / \u672A\u77E5\u6216\u5DF2\u505C\u7528\u7684 Heatmap \u6D3B\u52D5: {ids}",
+  "view.heatmap.noActivities": "No enabled habits to show in this heatmap / \u6C92\u6709\u53EF\u986F\u793A\u7684\u5DF2\u555F\u7528\u7FD2\u6163\u3002",
   "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions / \u4ECA\u65E5\u8A13\u7DF4",
   "view.today.noSession": "no session yet / \u5C1A\u672A\u8A18\u9304",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u9192\u7684 {activity} \u904B\u52D5\u6D3B\u52D5\u3002",
@@ -868,19 +910,20 @@ function cleanBookTitle(title) {
   const cleaned = String(title || "").replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
   return cleaned || FALLBACK_BOOK_TITLE;
 }
-function buildReadingItemPath(activityFolder, title) {
+function buildHobbyItemPath(activityFolder, title) {
   if (!isSafeVaultFolder(activityFolder)) {
-    throw new Error("Reading folder must be a safe vault-relative folder");
+    throw new Error("Hobby folder must be a safe vault-relative folder");
   }
   const base = normalizeSlashes2(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
 }
-function readingItemMarkdown(title, language = "en") {
+function readingItemMarkdown(title, language = "en", activityId = "reading") {
   const cleanedTitle = cleanBookTitle(title);
+  const activity = activityId.trim() || "reading";
   return `---
 type: atomic-item
 domain: hobby
-activity: reading
+activity: ${activity}
 status: to-read
 authors:
   - ""
@@ -905,20 +948,39 @@ related_canvas:
 \`\`\`
 `;
 }
-async function createReadingItem(app, data, readingActivity, language) {
-  const title = window.prompt(t("modal.readingItemTitle", language), "");
+async function createHobbyItem(app, data, hobbyActivity, language) {
+  const title = window.prompt(
+    t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
+    ""
+  );
   if (title === null) return;
-  const path = buildReadingItemPath(readingActivity.folder, title);
+  const path = buildHobbyItemPath(hobbyActivity.folder, title);
   const { Notice: Notice5 } = await import("obsidian");
   if (data.exists(path)) {
     await data.openPath(path);
-    new Notice5(t("notice.openedExistingReadingItem", language, { path }));
+    new Notice5(
+      t("notice.openedExistingHobbyItem", language, {
+        label: hobbyActivity.label,
+        path
+      })
+    );
     return;
   }
-  await data.createNote(path, readingItemMarkdown(title, language));
+  await data.createNote(
+    path,
+    readingItemMarkdown(title, language, hobbyActivity.id)
+  );
   await data.openPath(path);
-  new Notice5(t("notice.createdReadingItem", language, { path }));
+  new Notice5(
+    t("notice.createdHobbyItem", language, {
+      label: hobbyActivity.label,
+      path
+    })
+  );
   void app;
+}
+async function createReadingItem(app, data, readingActivity, language) {
+  await createHobbyItem(app, data, readingActivity, language);
 }
 
 // src/util/parse-block.ts
@@ -958,6 +1020,8 @@ var DEFAULT_ACTIVITY_TYPES = [
     domain: "exercise",
     label: "\u{1F3CB}\uFE0F Gym / \u5065\u8EAB",
     folder: "atomics/exercise/Gym",
+    enabled: true,
+    baseColor: GREEN[2],
     colors: GREEN,
     noteModel: "dailySession",
     supportsCues: true,
@@ -969,6 +1033,8 @@ var DEFAULT_ACTIVITY_TYPES = [
     domain: "exercise",
     label: "\u26F3 Golf / \u9AD8\u723E\u592B",
     folder: "atomics/exercise/Golf",
+    enabled: true,
+    baseColor: ORANGE[2],
     colors: ORANGE,
     noteModel: "dailySession",
     supportsCues: true,
@@ -978,8 +1044,10 @@ var DEFAULT_ACTIVITY_TYPES = [
   {
     id: "reading",
     domain: "hobby",
-    label: "Reading",
+    label: "Reading / \u7747\u66F8",
     folder: "atomics/hobbies/Reading",
+    enabled: true,
+    baseColor: BLUE[2],
     colors: BLUE,
     noteModel: "item",
     supportsCues: false,
@@ -997,8 +1065,64 @@ var DEFAULT_SETTINGS = {
   activityTypes: DEFAULT_ACTIVITY_TYPES
 };
 
+// src/util/colors.ts
+var BUILTIN_SHADES = {
+  [GREEN[2].toLowerCase()]: GREEN,
+  [ORANGE[2].toLowerCase()]: ORANGE,
+  [BLUE[2].toLowerCase()]: BLUE
+};
+function isHexColor(value) {
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim());
+}
+function expandHex(hex) {
+  const cleaned = hex.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(cleaned)) return cleaned;
+  if (/^#[0-9a-f]{3}$/.test(cleaned)) {
+    const [, r, g, b] = cleaned;
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+  return GREEN[2];
+}
+function parseRgb(hex) {
+  const full = expandHex(hex);
+  return {
+    r: Number.parseInt(full.slice(1, 3), 16),
+    g: Number.parseInt(full.slice(3, 5), 16),
+    b: Number.parseInt(full.slice(5, 7), 16)
+  };
+}
+function toHex({ r, g, b }) {
+  const clamp = (n) => Math.max(0, Math.min(255, Math.round(n)));
+  return `#${[clamp(r), clamp(g), clamp(b)].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+}
+function mix(from, to, amount) {
+  return {
+    r: from.r + (to.r - from.r) * amount,
+    g: from.g + (to.g - from.g) * amount,
+    b: from.b + (to.b - from.b) * amount
+  };
+}
+function shadesFromBaseColor(baseColor) {
+  const normalized = expandHex(baseColor);
+  const builtin = BUILTIN_SHADES[normalized];
+  if (builtin) return [builtin[0], builtin[1], builtin[2], builtin[3]];
+  const base = parseRgb(normalized);
+  const white = { r: 255, g: 255, b: 255 };
+  const black = { r: 0, g: 0, b: 0 };
+  return [
+    toHex(mix(base, white, 0.55)),
+    toHex(mix(base, white, 0.25)),
+    normalized,
+    toHex(mix(base, black, 0.35))
+  ];
+}
+function defaultBaseColorForDomain(domain) {
+  return domain === "hobby" ? BLUE[2] : GREEN[2];
+}
+
 // src/util/activity-types.ts
 var FALLBACK_EXERCISE_NAME = "Exercise";
+var FALLBACK_HOBBY_NAME = "Hobby";
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1014,19 +1138,10 @@ function defaultExerciseFolder(label) {
   const folder = `atomics/exercise/${cleanFolderSegment(label)}`;
   return isSafeVaultFolder(folder) ? folder : `atomics/exercise/${FALLBACK_EXERCISE_NAME}`;
 }
-function createExerciseActivityType(label) {
-  const cleanedLabel = cleanFolderSegment(label);
-  return {
-    id: activityIdFromLabel(cleanedLabel),
-    domain: "exercise",
-    label: cleanedLabel,
-    folder: defaultExerciseFolder(cleanedLabel),
-    colors: GREEN,
-    noteModel: "dailySession",
-    supportsCues: true,
-    supportsTimer: false,
-    supportsSetTable: false
-  };
+function defaultHobbyFolder(label) {
+  const cleaned = cleanFolderSegment(label);
+  const folder = `atomics/hobbies/${cleaned === FALLBACK_EXERCISE_NAME ? FALLBACK_HOBBY_NAME : cleaned}`;
+  return isSafeVaultFolder(folder) ? folder : `atomics/hobbies/${FALLBACK_HOBBY_NAME}`;
 }
 function colorTuple(value, fallback) {
   if (!Array.isArray(value) || value.length !== 4) return fallback;
@@ -1035,6 +1150,64 @@ function colorTuple(value, fallback) {
     return [first, second, third, fourth];
   }
   return fallback;
+}
+function resolveBaseColor(value, domain, fallbackColors) {
+  if (typeof value.baseColor === "string" && isHexColor(value.baseColor)) {
+    return value.baseColor.trim().toLowerCase().length === 4 ? shadesFromBaseColor(value.baseColor)[2] : expandToSix(value.baseColor.trim());
+  }
+  const fromColors = colorTuple(value.colors, fallbackColors)[2];
+  if (typeof fromColors === "string" && isHexColor(fromColors)) {
+    return expandToSix(fromColors.trim());
+  }
+  return defaultBaseColorForDomain(domain);
+}
+function expandToSix(hex) {
+  const cleaned = hex.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(cleaned)) return cleaned;
+  if (/^#[0-9a-f]{3}$/.test(cleaned)) {
+    const [, r, g, b] = cleaned;
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+  return defaultBaseColorForDomain("exercise");
+}
+function withDerivedColors(activity) {
+  const baseColor = expandToSix(activity.baseColor);
+  return {
+    ...activity,
+    baseColor,
+    colors: shadesFromBaseColor(baseColor)
+  };
+}
+function createExerciseActivityType(label) {
+  const cleanedLabel = cleanFolderSegment(label);
+  return withDerivedColors({
+    id: activityIdFromLabel(cleanedLabel),
+    domain: "exercise",
+    label: cleanedLabel,
+    folder: defaultExerciseFolder(cleanedLabel),
+    enabled: true,
+    baseColor: GREEN[2],
+    noteModel: "dailySession",
+    supportsCues: true,
+    supportsTimer: false,
+    supportsSetTable: false
+  });
+}
+function createHobbyActivityType(label) {
+  const cleanedLabel = cleanFolderSegment(label);
+  const labelForHobby = cleanedLabel === FALLBACK_EXERCISE_NAME ? FALLBACK_HOBBY_NAME : cleanedLabel;
+  return withDerivedColors({
+    id: activityIdFromLabel(labelForHobby),
+    domain: "hobby",
+    label: labelForHobby,
+    folder: defaultHobbyFolder(labelForHobby),
+    enabled: true,
+    baseColor: defaultBaseColorForDomain("hobby"),
+    noteModel: "item",
+    supportsCues: false,
+    supportsTimer: true,
+    supportsSetTable: false
+  });
 }
 function domainFrom(value) {
   return value === "exercise" || value === "hobby" ? value : null;
@@ -1053,17 +1226,19 @@ function normalizeActivityType(value, fallbackColors) {
   }
   const idRaw = typeof value.id === "string" ? value.id.trim() : "";
   const id = activityIdFromLabel(idRaw || label);
-  return {
+  const baseColor = resolveBaseColor(value, domain, fallbackColors);
+  return withDerivedColors({
     id,
     domain,
     label,
     folder,
-    colors: colorTuple(value.colors, fallbackColors),
+    enabled: value.enabled !== false,
+    baseColor,
     noteModel,
     supportsCues: domain === "exercise" && value.supportsCues === true,
     supportsTimer: domain === "hobby" && value.supportsTimer === true,
     supportsSetTable: domain === "exercise" && noteModel === "dailySession" && value.supportsSetTable === true
-  };
+  });
 }
 function activityTypeFromSeries(value, fallbackColors) {
   if (!isRecord(value)) return null;
@@ -1073,26 +1248,46 @@ function activityTypeFromSeries(value, fallbackColors) {
   const idRaw = typeof value.id === "string" ? value.id.trim() : "";
   const kind = value.kind === "gym" || value.kind === "golf" ? value.kind : "generic";
   const id = activityIdFromLabel(idRaw || kind || label);
-  return {
+  const colors = colorTuple(
+    value.colors,
+    kind === "golf" ? ORANGE : fallbackColors
+  );
+  const baseColor = resolveBaseColor(
+    { ...value, colors },
+    "exercise",
+    colors
+  );
+  return withDerivedColors({
     id,
     domain: "exercise",
     label,
     folder,
-    colors: colorTuple(value.colors, fallbackColors),
+    enabled: value.enabled !== false,
+    baseColor,
     noteModel: "dailySession",
     supportsCues: true,
     supportsTimer: false,
     supportsSetTable: kind === "gym"
-  };
+  });
 }
 function exerciseActivities(activityTypes) {
   return activityTypes.filter(
-    (activity) => activity.domain === "exercise" && activity.noteModel === "dailySession"
+    (activity) => activity.enabled !== false && activity.domain === "exercise" && activity.noteModel === "dailySession"
   );
 }
 function hobbyActivities(activityTypes) {
   return activityTypes.filter(
+    (activity) => activity.enabled !== false && activity.domain === "hobby" && activity.noteModel === "item" && activity.supportsTimer
+  );
+}
+function allHobbyActivities(activityTypes) {
+  return activityTypes.filter(
     (activity) => activity.domain === "hobby" && activity.noteModel === "item" && activity.supportsTimer
+  );
+}
+function allExerciseActivities(activityTypes) {
+  return activityTypes.filter(
+    (activity) => activity.domain === "exercise" && activity.noteModel === "dailySession"
   );
 }
 function resolveCueActivityType(activityTypes, activityId) {
@@ -1935,7 +2130,7 @@ ${item.path}`;
 function statusRank(status) {
   return STATUS_ORDER.get(status) ?? 99;
 }
-function buildBookShelfItems(files) {
+function buildBookShelfItems(files, activityId = "reading") {
   return files.filter(
     (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
   ).map((file) => {
@@ -2109,6 +2304,45 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   }
 }
 
+// src/util/heatmap-activities.ts
+function enabledActivities(activityTypes) {
+  return [...exerciseActivities(activityTypes), ...hobbyActivities(activityTypes)];
+}
+function parseActivityTokens(activityOption) {
+  if (activityOption == null) return ["all"];
+  return activityOption.split(",").map((token) => token.trim()).filter((token) => token.length > 0);
+}
+function resolveHeatmapActivities(activityTypes, activityOption) {
+  const enabled = enabledActivities(activityTypes);
+  const tokens = parseActivityTokens(activityOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+    return { activities: enabled, invalidIds: [] };
+  }
+  const byId = new Map(
+    activityTypes.map((activity) => [activity.id.toLowerCase(), activity])
+  );
+  const activities = [];
+  const invalidIds = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const token of tokens) {
+    const key = token.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const activity = byId.get(key);
+    if (!activity || activity.enabled === false) {
+      invalidIds.push(token);
+      continue;
+    }
+    const isRenderable = activity.domain === "exercise" && activity.noteModel === "dailySession" || activity.domain === "hobby" && activity.noteModel === "item" && activity.supportsTimer;
+    if (!isRenderable) {
+      invalidIds.push(token);
+      continue;
+    }
+    activities.push(activity);
+  }
+  return { activities, invalidIds };
+}
+
 // src/views/heatmap.ts
 var DAY_NAMES = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -2247,13 +2481,29 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language) 
     }
   }
 }
-async function renderHeatmaps(el, data, activityTypes, year, timezone, language) {
+async function renderHeatmaps(el, data, activityTypes, year, timezone, language, activityOption) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  for (const activity of [
-    ...exerciseActivities(activityTypes),
-    ...hobbyActivities(activityTypes)
-  ]) {
+  const { activities, invalidIds } = resolveHeatmapActivities(
+    activityTypes,
+    activityOption
+  );
+  if (invalidIds.length > 0) {
+    root.createEl("p", {
+      text: t("view.heatmap.invalidActivities", language, {
+        ids: invalidIds.join(", ")
+      }),
+      cls: "fitness-muted"
+    });
+  }
+  if (activities.length === 0 && invalidIds.length === 0) {
+    root.createEl("p", {
+      text: t("view.heatmap.noActivities", language),
+      cls: "fitness-muted"
+    });
+    return;
+  }
+  for (const activity of activities) {
     await renderOneHeatmap(root, data, activity, year, timezone, language);
   }
 }
@@ -2457,7 +2707,15 @@ async function renderBlock(plugin, kind, source, el, ctx) {
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        await renderHeatmaps(el, data, activityTypes, year, tz, language);
+        await renderHeatmaps(
+          el,
+          data,
+          activityTypes,
+          year,
+          tz,
+          language,
+          opts.activity
+        );
         break;
       }
       case "atomic-today": {
@@ -2878,6 +3136,8 @@ function safeVaultPath(value, fallback) {
 function cloneActivities(activityTypes) {
   return activityTypes.map((activity) => ({
     ...activity,
+    enabled: activity.enabled !== false,
+    baseColor: activity.baseColor,
     colors: [
       activity.colors[0],
       activity.colors[1],
@@ -2891,7 +3151,7 @@ function normalizeActivities(values, fallback) {
   const normalized = values.map((value) => normalizeActivityType(value, fallback[0].colors)).filter((activity) => activity !== null);
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
-function appendNewBuiltInActivities(activityTypes, builtIns) {
+function appendMissingBuiltInHobbies(activityTypes, builtIns) {
   const existingIds = new Set(activityTypes.map((activity) => activity.id));
   const addedBuiltIns = builtIns.filter(
     (activity) => activity.domain === "hobby" && !existingIds.has(activity.id)
@@ -2913,10 +3173,22 @@ function mergeSettings(raw) {
     raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || "",
     base.golfCuesPath
   );
-  const activityTypes = appendNewBuiltInActivities(
-    normalizeActivities(raw.activityTypes, base.activityTypes) || legacySeriesActivities(raw.series, base.activityTypes) || cloneActivities(base.activityTypes),
-    DEFAULT_SETTINGS.activityTypes
+  const fromActivityTypes = normalizeActivities(
+    raw.activityTypes,
+    base.activityTypes
   );
+  const fromLegacySeries = legacySeriesActivities(raw.series, base.activityTypes);
+  let activityTypes;
+  if (fromActivityTypes) {
+    activityTypes = fromActivityTypes;
+  } else if (fromLegacySeries) {
+    activityTypes = appendMissingBuiltInHobbies(
+      fromLegacySeries,
+      DEFAULT_SETTINGS.activityTypes
+    );
+  } else {
+    activityTypes = cloneActivities(base.activityTypes);
+  }
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
@@ -2929,10 +3201,32 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
+var ConfirmDeleteActivityModal = class extends import_obsidian4.Modal {
+  constructor(app, options) {
+    super(app);
+    this.message = options.message;
+    this.confirmLabel = options.confirmLabel;
+    this.cancelLabel = options.cancelLabel;
+    this.onConfirm = options.onConfirm;
+  }
+  onOpen() {
+    this.contentEl.empty();
+    this.contentEl.createEl("p", { text: this.message });
+    new import_obsidian4.Setting(this.contentEl).addButton(
+      (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
+    ).addButton(
+      (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
+        this.onConfirm();
+        this.close();
+      })
+    );
+  }
+};
 var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
+    this.pendingHobbyName = "";
     this.plugin = plugin;
   }
   display() {
@@ -2969,6 +3263,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       })
     );
     this.renderExerciseTypes(containerEl);
+    this.renderHobbyTypes(containerEl);
     new import_obsidian4.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
         this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
@@ -3001,8 +3296,8 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       text: t("settings.exerciseTypesDesc", language),
       cls: "setting-item-description"
     });
-    for (const activity of exerciseActivities(this.plugin.settings.activityTypes)) {
-      this.renderExerciseType(containerEl, activity);
+    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
+      this.renderActivityRows(containerEl, activity, { showCues: true });
     }
     new import_obsidian4.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
@@ -3027,9 +3322,48 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
       })
     );
   }
-  renderExerciseType(containerEl, activity) {
+  renderHobbyTypes(containerEl) {
     const language = this.plugin.settings.language;
-    new import_obsidian4.Setting(containerEl).setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addText(
+    containerEl.createEl("h3", { text: t("settings.hobbyTypes", language) });
+    containerEl.createEl("p", {
+      text: t("settings.hobbyTypesDesc", language),
+      cls: "setting-item-description"
+    });
+    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
+      this.renderActivityRows(containerEl, activity, { showCues: false });
+    }
+    new import_obsidian4.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+      (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
+        this.pendingHobbyName = value;
+      })
+    ).addButton(
+      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
+        const name = this.pendingHobbyName.trim();
+        if (!name) {
+          new import_obsidian4.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
+          return;
+        }
+        const activity = createHobbyActivityType(name);
+        activity.id = this.uniqueActivityId(activity.id);
+        this.plugin.settings.activityTypes = [
+          ...this.plugin.settings.activityTypes,
+          activity
+        ];
+        this.pendingHobbyName = "";
+        await this.saveAndRefresh();
+        this.display();
+      })
+    );
+  }
+  renderActivityRows(containerEl, activity, options) {
+    const language = this.plugin.settings.language;
+    const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
+    const row = new import_obsidian4.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+      (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
+        activity.enabled = value;
+        await this.saveAndRefresh();
+      })
+    ).addText(
       (text) => text.setPlaceholder(t("settings.labelPlaceholder", language)).setValue(activity.label).onChange(async (value) => {
         const label = value.trim();
         if (!label) return;
@@ -3037,7 +3371,7 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
         await this.saveAndRefresh();
       })
     ).addText(
-      (text) => text.setPlaceholder(t("settings.exerciseFolderPlaceholder", language)).setValue(activity.folder).onChange(async (value) => {
+      (text) => text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
           new import_obsidian4.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
@@ -3046,22 +3380,61 @@ var FitnessSettingTab = class extends import_obsidian4.PluginSettingTab {
         activity.folder = folder;
         await this.saveAndRefresh();
       })
-    ).addToggle(
-      (toggle) => toggle.setTooltip(t("settings.enableCuesTooltip", language)).setValue(activity.supportsCues).onChange(async (value) => {
-        activity.supportsCues = value;
-        await this.saveAndRefresh();
+    );
+    if (options.showCues) {
+      row.addToggle(
+        (toggle) => toggle.setTooltip(t("settings.enableCuesTooltip", language)).setValue(activity.supportsCues).onChange(async (value) => {
+          activity.supportsCues = value;
+          await this.saveAndRefresh();
+        })
+      );
+    }
+    row.addButton(
+      (button) => button.setButtonText(t("settings.delete", language)).setWarning().onClick(() => {
+        this.confirmDeleteActivity(activity);
       })
     );
-    new import_obsidian4.Setting(containerEl).setName(t("settings.colors", language, { label: activity.label })).setDesc(t("settings.colorsDesc", language)).addText((text) => this.bindColorText(text, activity, 0)).addText((text) => this.bindColorText(text, activity, 1)).addText((text) => this.bindColorText(text, activity, 2)).addText((text) => this.bindColorText(text, activity, 3));
+    const colorSetting = new import_obsidian4.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+      (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
+        activity.baseColor = value;
+        activity.colors = shadesFromBaseColor(value);
+        await this.saveAndRefresh();
+        this.renderColorSwatches(colorSetting.controlEl, activity);
+      })
+    );
+    this.renderColorSwatches(colorSetting.controlEl, activity);
   }
-  bindColorText(text, activity, index) {
+  renderColorSwatches(controlEl, activity) {
+    controlEl.querySelectorAll(".atomic-color-swatch-row").forEach((node) => node.remove());
+    const row = controlEl.createDiv({ cls: "atomic-color-swatch-row" });
+    for (const color of activity.colors) {
+      const swatch = row.createDiv({ cls: "atomic-color-swatch" });
+      swatch.style.backgroundColor = color;
+      swatch.title = color;
+    }
+  }
+  confirmDeleteActivity(activity) {
     const language = this.plugin.settings.language;
-    text.setPlaceholder(t("settings.colorPlaceholder", language, { number: index + 1 })).setValue(activity.colors[index]).onChange(async (value) => {
-      const color = value.trim();
-      if (!color) return;
-      activity.colors[index] = color;
-      await this.saveAndRefresh();
-    });
+    new ConfirmDeleteActivityModal(this.app, {
+      message: t("settings.deleteConfirm", language, { label: activity.label }),
+      confirmLabel: t("settings.delete", language),
+      cancelLabel: t("modal.cancel", language),
+      onConfirm: () => {
+        void this.deleteActivity(activity);
+      }
+    }).open();
+  }
+  async deleteActivity(activity) {
+    this.plugin.settings.activityTypes = this.plugin.settings.activityTypes.filter(
+      (candidate) => candidate.id !== activity.id
+    );
+    await this.saveAndRefresh();
+    this.display();
+    new import_obsidian4.Notice(
+      t("notice.activityDeleted", this.plugin.settings.language, {
+        label: activity.label
+      })
+    );
   }
   async ensureParentFolder(path) {
     const normalized = (0, import_obsidian4.normalizePath)(path);
@@ -3172,9 +3545,20 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       }
     });
     this.addCommand({
+      id: "atomic-new-hobby-item",
+      name: t("command.newHobbyItem", this.settings.language),
+      callback: () => {
+        void this.createHobbyItem();
+      }
+    });
+    this.addCommand({
       id: "atomic-ensure-reading-bookshelf",
       name: t("command.ensureReadingBookshelf", this.settings.language),
       callback: () => {
+        if (!this.hobbyActivityById("reading")) {
+          new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+          return;
+        }
         void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
       }
     });
@@ -3182,6 +3566,10 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       id: "atomic-open-reading-bookshelf",
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
+        if (!this.hobbyActivityById("reading")) {
+          new import_obsidian5.Notice(t("notice.noReadingHobby", this.settings.language));
+          return;
+        }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
       }
     });
@@ -3272,10 +3660,9 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       (activity) => activity.id === id
     );
   }
-  chooseExerciseActivity() {
-    const activities = exerciseActivities(this.settings.activityTypes);
+  chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian5.Notice(t("notice.noExerciseActivities", this.settings.language));
+      new import_obsidian5.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
@@ -3298,9 +3685,23 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
           resolve(null);
         }
       }(this.app);
-      modal.setPlaceholder(t("modal.exerciseTypePlaceholder", this.settings.language));
+      modal.setPlaceholder(t(placeholderKey, this.settings.language));
       modal.open();
     });
+  }
+  chooseExerciseActivity() {
+    return this.chooseActivity(
+      exerciseActivities(this.settings.activityTypes),
+      "notice.noExerciseActivities",
+      "modal.exerciseTypePlaceholder"
+    );
+  }
+  chooseHobbyActivity() {
+    return this.chooseActivity(
+      hobbyActivities(this.settings.activityTypes),
+      "notice.noHobbyActivities",
+      "modal.hobbyTypePlaceholder"
+    );
   }
   async createExerciseSession(activity) {
     const picked = activity ?? await this.chooseExerciseActivity();
@@ -3348,6 +3749,11 @@ var FitnessPlugin = class extends import_obsidian5.Plugin {
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
+  }
+  async createHobbyItem() {
+    const picked = await this.chooseHobbyActivity();
+    if (!picked) return;
+    await createHobbyItem(this.app, this.data, picked, this.settings.language);
   }
   async openDashboard() {
     const path = this.settings.dashboardPath;

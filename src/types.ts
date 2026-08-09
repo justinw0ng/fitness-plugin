@@ -19,6 +19,8 @@ export interface ActivityType {
   domain: Domain;
   label: string;
   folder: string;
+  enabled: boolean;
+  baseColor: string;
   colors: [string, string, string, string];
   noteModel: NoteModel;
   supportsCues: boolean;
@@ -86,6 +88,8 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
     domain: "exercise",
     label: "🏋️ Gym / 健身",
     folder: "atomics/exercise/Gym",
+    enabled: true,
+    baseColor: GREEN[2],
     colors: GREEN,
     noteModel: "dailySession",
     supportsCues: true,
@@ -97,6 +101,8 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
     domain: "exercise",
     label: "⛳ Golf / 高爾夫",
     folder: "atomics/exercise/Golf",
+    enabled: true,
+    baseColor: ORANGE[2],
     colors: ORANGE,
     noteModel: "dailySession",
     supportsCues: true,
@@ -106,8 +112,10 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
   {
     id: "reading",
     domain: "hobby",
-    label: "Reading",
+    label: "Reading / 睇書",
     folder: "atomics/hobbies/Reading",
+    enabled: true,
+    baseColor: BLUE[2],
     colors: BLUE,
     noteModel: "item",
     supportsCues: false,
