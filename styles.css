@@ -378,16 +378,9 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
-  opacity: 1;
-  transition: opacity 180ms ease;
 }
 
-/* Open cover: never keep the outer cover art/spine face in view. */
-.fitness-plugin .atomic-book:hover .atomic-book-cover-face,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-cover-face {
-  opacity: 0;
-}
-
+/* Inside flap only while open — avoids a cream flash/line while the cover closes. */
 .fitness-plugin .atomic-book-cover-inside {
   position: absolute;
   inset: 0;
@@ -398,6 +391,14 @@
   transform: rotateY(180deg) translateZ(3px);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  opacity: 0;
+  transition: opacity 90ms ease;
+}
+
+.fitness-plugin .atomic-book:hover .atomic-book-cover-inside,
+.fitness-plugin .atomic-book:focus-visible .atomic-book-cover-inside {
+  opacity: 1;
+  transition: opacity 180ms ease 140ms;
 }
 
 .fitness-plugin .atomic-book-cover-sleeve {
@@ -461,10 +462,10 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 8px;
-  width: 12px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.34), transparent);
-  opacity: 0.55;
+  left: 0;
+  width: 10px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent);
+  opacity: 0.35;
   pointer-events: none;
 }
 

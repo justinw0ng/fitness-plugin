@@ -2215,58 +2215,9 @@ var STATUS_ORDER = /* @__PURE__ */ new Map([
   ["finished", 3]
 ]);
 var BOOK_WIDTH_PX = 86;
-var BOOK_HEIGHT_PX = 142;
-var BOOK_MAX_WIDTH_PX = 120;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 16;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
-function coverBookWidth(naturalWidth, naturalHeight, bookHeight = BOOK_HEIGHT_PX, minWidth = BOOK_WIDTH_PX, maxWidth = BOOK_MAX_WIDTH_PX) {
-  if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0 || !Number.isFinite(bookHeight) || bookHeight <= 0) {
-    return minWidth;
-  }
-  const width = Math.round(bookHeight * (naturalWidth / naturalHeight));
-  return Math.min(maxWidth, Math.max(minWidth, width));
-}
-function packRowSizes(widths, containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
-  if (!widths.length) return [0];
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return [widths.length];
-  const available = Math.max(0, containerWidth - padding);
-  const rows = [];
-  let count = 0;
-  let used = 0;
-  for (const width of widths) {
-    const bookWidth = Math.max(1, width);
-    const next = count === 0 ? bookWidth : used + gap + bookWidth;
-    if (count > 0 && next > available) {
-      rows.push(count);
-      count = 1;
-      used = bookWidth;
-    } else {
-      count += 1;
-      used = next;
-    }
-  }
-  if (count > 0) rows.push(count);
-  return rows;
-}
-function applyBookWidth(el, width) {
-  const px = `${Math.round(width)}px`;
-  el.style.width = px;
-  el.style.flexBasis = px;
-}
-function chunkByRowSizes(items, rowSizes) {
-  if (!items.length) return [[]];
-  const rows = [];
-  let index = 0;
-  for (const size of rowSizes) {
-    const count = Math.max(0, Math.floor(size));
-    if (count <= 0) continue;
-    rows.push(items.slice(index, index + count));
-    index += count;
-  }
-  if (index < items.length) rows.push(items.slice(index));
-  return rows.length ? rows : [[]];
-}
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -2339,13 +2290,28 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
+function booksPerRow(containerWidth, bookWidth = BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
+  const available = Math.max(0, containerWidth - padding);
+  const per = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(1, per);
+}
+function chunkItems(items, size) {
+  const rowSize = Math.max(1, Math.floor(size));
+  if (!items.length) return [[]];
+  const rows = [];
+  for (let index = 0; index < items.length; index += rowSize) {
+    rows.push(items.slice(index, index + rowSize));
+  }
+  return rows;
+}
 function titleLengthClass(title) {
   const length = title.trim().length;
   if (length > 36) return "is-title-xs";
   if (length > 22) return "is-title-sm";
   return "";
 }
-function createBook(parent, item, data, language, widthPx, onCoverWidth) {
+function createBook(parent, item, data, language) {
   const button = parent.createEl("button", {
     cls: "atomic-book",
     attr: {
@@ -2354,7 +2320,6 @@ function createBook(parent, item, data, language, widthPx, onCoverWidth) {
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
-  applyBookWidth(button, widthPx);
   button.addEventListener("click", (event) => {
     event.preventDefault();
     void data.openPath(item.path);
@@ -2374,20 +2339,10 @@ function createBook(parent, item, data, language, widthPx, onCoverWidth) {
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const image = face.createEl("img", {
+    face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" }
     });
-    const applyFromImage = () => {
-      const next = coverBookWidth(image.naturalWidth, image.naturalHeight);
-      applyBookWidth(button, next);
-      onCoverWidth?.(item.path, next);
-    };
-    if (image.complete && image.naturalWidth > 0) {
-      applyFromImage();
-    } else {
-      image.addEventListener("load", applyFromImage, { once: true });
-    }
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
@@ -2415,15 +2370,9 @@ function createBook(parent, item, data, language, widthPx, onCoverWidth) {
     });
   }
 }
-function paintRows(frame, items, widths, data, language, onCoverWidth) {
+function paintRows(frame, items, perRow, data, language) {
   frame.empty();
-  const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
-  const rowSizes = items.length ? packRowSizes(
-    items.map((_, index) => widths[index] ?? BOOK_WIDTH_PX),
-    containerWidth
-  ) : [0];
-  const rows = items.length ? chunkByRowSizes(items, rowSizes) : [[]];
-  let offset = 0;
+  const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
     const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
     const books = row.createDiv({ cls: "atomic-book-row-books" });
@@ -2433,17 +2382,7 @@ function paintRows(frame, items, widths, data, language, onCoverWidth) {
         text: t("view.bookShelf.empty", language)
       });
     } else {
-      for (const item of rowItems) {
-        createBook(
-          books,
-          item,
-          data,
-          language,
-          widths[offset] ?? BOOK_WIDTH_PX,
-          onCoverWidth
-        );
-        offset += 1;
-      }
+      for (const item of rowItems) createBook(books, item, data, language);
     }
     row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
@@ -2469,25 +2408,14 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   }
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  const widths = items.map(() => BOOK_WIDTH_PX);
-  let lastSignature = "";
-  let relayoutQueued = false;
+  let lastPerRow = -1;
   const layout = () => {
-    const containerWidth = frame.clientWidth || frame.getBoundingClientRect().width;
-    const signature = `${Math.round(containerWidth)}:${widths.join(",")}`;
-    if (signature === lastSignature && frame.childElementCount > 0) return;
-    lastSignature = signature;
-    paintRows(frame, items, widths, data, language, (path, width) => {
-      const index = items.findIndex((item) => item.path === path);
-      if (index < 0 || widths[index] === width) return;
-      widths[index] = width;
-      if (relayoutQueued) return;
-      relayoutQueued = true;
-      queueMicrotask(() => {
-        relayoutQueued = false;
-        layout();
-      });
-    });
+    const perRow = booksPerRow(
+      frame.clientWidth || frame.getBoundingClientRect().width
+    );
+    if (perRow === lastPerRow && frame.childElementCount > 0) return;
+    lastPerRow = perRow;
+    paintRows(frame, items, perRow, data, language);
   };
   layout();
   if (typeof ResizeObserver !== "undefined") {
