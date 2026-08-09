@@ -37,6 +37,6 @@ export function mergeSettings(
       (raw.gymCuesPath && raw.gymCuesPath.trim()) || base.gymCuesPath,
     deprecatedFitnessCuesEnabled:
       raw.deprecatedFitnessCuesEnabled === false ? false : true,
-    series: sanitizeSeries(raw.series, base.series),
+    series: [...sanitizeSeries(raw.series, base.series)],
   };
 }
