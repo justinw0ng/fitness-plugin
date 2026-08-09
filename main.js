@@ -1899,6 +1899,10 @@ var STATUS_ORDER = /* @__PURE__ */ new Map([
   ["to-read-again", 2],
   ["finished", 3]
 ]);
+var BOOK_WIDTH_PX = 86;
+var BOOK_GAP_PX = 8;
+var ROW_PADDING_PX = 16;
+var resizeObservers = /* @__PURE__ */ new WeakMap();
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -1952,13 +1956,37 @@ function buildBookShelfItems(files) {
     (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
   );
 }
-function isImageUrl(value) {
-  return /^https?:\/\//i.test(value) || /^app:\/\//i.test(value);
+function parseCoverRef(raw) {
+  const value = raw.trim();
+  if (!value) return { kind: "none" };
+  if (/^https?:\/\//i.test(value) || /^app:\/\//i.test(value) || /^data:image\//i.test(value)) {
+    return { kind: "url", src: value };
+  }
+  let path = value;
+  const wiki = value.match(/^\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]$/);
+  if (wiki) path = wiki[1].trim();
+  path = path.replace(/^\.\//, "").trim();
+  if (!path) return { kind: "none" };
+  return { kind: "vault", path };
+}
+function resolveCoverSrc(cover, data, sourcePath) {
+  const ref = parseCoverRef(cover ?? "");
+  if (ref.kind === "none") return null;
+  if (ref.kind === "url") return ref.src;
+  return data.resolveResourcePath(ref.path, sourcePath);
+}
+function booksPerRow(containerWidth, bookWidth = BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
+  const available = Math.max(0, containerWidth - padding);
+  const per = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(1, per);
 }
 function chunkItems(items, size) {
+  const rowSize = Math.max(1, Math.floor(size));
+  if (!items.length) return [[]];
   const rows = [];
-  for (let index = 0; index < items.length; index += size) {
-    rows.push(items.slice(index, index + size));
+  for (let index = 0; index < items.length; index += rowSize) {
+    rows.push(items.slice(index, index + rowSize));
   }
   return rows;
 }
@@ -1983,15 +2011,19 @@ function createBook(parent, item, data, language) {
     text: item.authors[0] || item.status
   });
   const cover = volume.createDiv({ cls: "atomic-book-cover" });
-  if (item.cover && isImageUrl(item.cover)) {
-    cover.createEl("img", {
+  const face = cover.createDiv({ cls: "atomic-book-cover-face" });
+  const coverSrc = resolveCoverSrc(item.cover, data, item.path);
+  if (coverSrc) {
+    face.createEl("img", {
       cls: "atomic-book-cover-image",
-      attr: { src: item.cover, alt: "" }
+      attr: { src: coverSrc, alt: "" }
     });
   } else {
-    cover.createDiv({ cls: "atomic-book-cover-title", text: item.title });
+    face.createDiv({ cls: "atomic-book-cover-title", text: item.title });
   }
-  cover.createDiv({ cls: "atomic-book-cover-shine" });
+  cover.createDiv({ cls: "atomic-book-cover-inside" });
+  cover.createDiv({ cls: "atomic-book-cover-sleeve" });
+  face.createDiv({ cls: "atomic-book-cover-shine" });
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
   spine.createDiv({ cls: "atomic-book-spine-title", text: item.title });
   const detail = button.createDiv({ cls: "atomic-book-detail" });
@@ -2001,10 +2033,32 @@ function createBook(parent, item, data, language) {
     text: item.authors.join(", ") || item.status
   });
   if (item.description) {
-    detail.createDiv({ cls: "atomic-book-detail-description", text: item.description });
+    detail.createDiv({
+      cls: "atomic-book-detail-description",
+      text: item.description
+    });
+  }
+}
+function paintRows(frame, items, perRow, data, language) {
+  frame.empty();
+  const rows = items.length ? chunkItems(items, perRow) : [[]];
+  for (const rowItems of rows) {
+    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
+    const books = row.createDiv({ cls: "atomic-book-row-books" });
+    if (!rowItems.length) {
+      books.createDiv({
+        cls: "atomic-book-empty",
+        text: t("view.bookShelf.empty", language)
+      });
+    } else {
+      for (const item of rowItems) createBook(books, item, data, language);
+    }
+    row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
 }
 function renderBookShelf(el, data, activityTypes, options, language) {
+  resizeObservers.get(el)?.disconnect();
+  resizeObservers.delete(el);
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";
@@ -2021,19 +2075,18 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   root.createEl("h3", { text: t("view.bookShelf.title", language) });
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  const rows = items.length ? chunkItems(items, 8) : [[]];
-  for (const rowItems of rows) {
-    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
-    const books = row.createDiv({ cls: "atomic-book-row-books" });
-    if (!rowItems.length) {
-      books.createDiv({
-        cls: "atomic-book-empty",
-        text: t("view.bookShelf.empty", language)
-      });
-    } else {
-      for (const item of rowItems) createBook(books, item, data, language);
-    }
-    row.createDiv({ cls: "atomic-book-shelf-plank" });
+  let lastPerRow = -1;
+  const layout = () => {
+    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
+    if (perRow === lastPerRow && frame.childElementCount > 0) return;
+    lastPerRow = perRow;
+    paintRows(frame, items, perRow, data, language);
+  };
+  layout();
+  if (typeof ResizeObserver !== "undefined") {
+    const observer = new ResizeObserver(() => layout());
+    observer.observe(frame);
+    resizeObservers.set(el, observer);
   }
 }
 
@@ -2591,6 +2644,22 @@ var VaultDataSource = class {
   getFolder(path) {
     const af = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(path));
     return af instanceof import_obsidian3.TFolder ? af : null;
+  }
+  /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
+  resolveResourcePath(linkOrPath, sourcePath = "") {
+    const trimmed = linkOrPath.trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed) || /^app:\/\//i.test(trimmed) || /^data:image\//i.test(trimmed)) {
+      return trimmed;
+    }
+    const fromLink = this.app.metadataCache.getFirstLinkpathDest(
+      trimmed,
+      sourcePath
+    );
+    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian3.normalizePath)(trimmed));
+    const file = fromLink instanceof import_obsidian3.TFile ? fromLink : fromPath instanceof import_obsidian3.TFile ? fromPath : null;
+    if (!file) return null;
+    return this.app.vault.getResourcePath(file);
   }
 };
 

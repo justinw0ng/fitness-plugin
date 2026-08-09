@@ -211,12 +211,14 @@
 
 .fitness-plugin .atomic-book-row-books {
   display: flex;
+  flex-wrap: nowrap;
   align-items: flex-end;
+  justify-content: flex-start;
   gap: 8px;
   min-height: 168px;
   padding: 0 8px;
-  perspective: 1200px;
-  overflow-x: auto;
+  perspective: 1400px;
+  overflow: visible;
 }
 
 .fitness-plugin .atomic-book-shelf-plank {
@@ -234,6 +236,7 @@
 .fitness-plugin .atomic-book {
   --atomic-book-color: #374151;
   position: relative;
+  flex: 0 0 86px;
   width: 86px;
   height: 142px;
   padding: 0;
@@ -243,19 +246,28 @@
   color: var(--text-normal);
   cursor: pointer;
   transform: translateY(0);
-  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  z-index: 1;
 }
 
 .fitness-plugin .atomic-book:hover,
 .fitness-plugin .atomic-book:focus-visible {
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   outline: none;
+  z-index: 3;
 }
 
 .fitness-plugin .atomic-book-volume {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
+  transform: rotateY(0deg);
+  transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+.fitness-plugin .atomic-book:hover .atomic-book-volume,
+.fitness-plugin .atomic-book:focus-visible .atomic-book-volume {
+  transform: rotateY(-10deg);
 }
 
 .fitness-plugin .atomic-book-pages,
@@ -263,8 +275,7 @@
 .fitness-plugin .atomic-book-spine {
   position: absolute;
   inset: 0;
-  border-radius: 4px;
-  overflow: hidden;
+  border-radius: 3px 4px 4px 3px;
 }
 
 .fitness-plugin .atomic-book-pages {
@@ -273,6 +284,7 @@
   justify-content: center;
   gap: 8px;
   padding: 12px;
+  overflow: hidden;
   background:
     repeating-linear-gradient(
       90deg,
@@ -281,7 +293,18 @@
       #efe3c7 5px
     );
   color: #3f3422;
-  box-shadow: inset -8px 0 10px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset -8px 0 10px rgba(0, 0, 0, 0.12),
+    0 8px 14px rgba(0, 0, 0, 0.16);
+  transform: translateZ(0);
+  transition: box-shadow 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+.fitness-plugin .atomic-book:hover .atomic-book-pages,
+.fitness-plugin .atomic-book:focus-visible .atomic-book-pages {
+  box-shadow:
+    inset -12px 0 16px rgba(0, 0, 0, 0.18),
+    6px 10px 20px rgba(0, 0, 0, 0.22);
 }
 
 .fitness-plugin .atomic-book-page-title {
@@ -295,24 +318,62 @@
   color: #6b5a3a;
 }
 
+/* Cover board hinged at the spine — sleeve edge + inside face for a roll-open feel. */
 .fitness-plugin .atomic-book-cover {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 32%),
-    var(--atomic-book-color);
-  color: white;
   transform-origin: left center;
+  transform-style: preserve-3d;
   transform: rotateY(0deg);
-  transition:
-    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 600ms cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
-  backface-visibility: hidden;
+  background: transparent;
+  overflow: visible;
+  transition: transform 760ms cubic-bezier(0.18, 0.9, 0.22, 1);
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book:hover .atomic-book-cover,
 .fitness-plugin .atomic-book:focus-visible .atomic-book-cover {
-  transform: rotateY(-70deg);
-  box-shadow: 14px 14px 28px rgba(0, 0, 0, 0.28);
+  transform: rotateY(-118deg);
+}
+
+.fitness-plugin .atomic-book-cover-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 4px 4px 3px;
+  overflow: hidden;
+  color: white;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 32%),
+    var(--atomic-book-color);
+  transform: translateZ(3px);
+  backface-visibility: hidden;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
+}
+
+.fitness-plugin .atomic-book-cover-inside {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 4px 4px 3px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1), transparent 22%),
+    linear-gradient(180deg, #f7f0e2, #ebe1cb);
+  transform: rotateY(180deg) translateZ(3px);
+  backface-visibility: hidden;
+}
+
+.fitness-plugin .atomic-book-cover-sleeve {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--atomic-book-color), white 10%),
+      color-mix(in srgb, var(--atomic-book-color), black 28%)
+    );
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.12);
 }
 
 .fitness-plugin .atomic-book-cover-image {
@@ -338,15 +399,17 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 10px;
-  width: 10px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), transparent);
-  opacity: 0.6;
+  left: 8px;
+  width: 12px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.34), transparent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book-spine {
   width: 14px;
   right: auto;
+  overflow: hidden;
   background: color-mix(in srgb, var(--atomic-book-color), black 24%);
   transform: translateX(-7px) rotateY(90deg);
   transform-origin: right center;
@@ -410,7 +473,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .fitness-plugin .atomic-book,
+  .fitness-plugin .atomic-book-volume,
   .fitness-plugin .atomic-book-cover,
+  .fitness-plugin .atomic-book-pages,
   .fitness-plugin .atomic-book-detail {
     transition: none;
   }
@@ -420,6 +485,8 @@
     transform: none;
   }
 
+  .fitness-plugin .atomic-book:hover .atomic-book-volume,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-volume,
   .fitness-plugin .atomic-book:hover .atomic-book-cover,
   .fitness-plugin .atomic-book:focus-visible .atomic-book-cover {
     transform: none;

@@ -144,4 +144,31 @@ export class VaultDataSource {
     const af = this.app.vault.getAbstractFileByPath(normalizePath(path));
     return af instanceof TFolder ? af : null;
   }
+
+  /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
+  resolveResourcePath(linkOrPath: string, sourcePath = ""): string | null {
+    const trimmed = linkOrPath.trim();
+    if (!trimmed) return null;
+    if (
+      /^https?:\/\//i.test(trimmed) ||
+      /^app:\/\//i.test(trimmed) ||
+      /^data:image\//i.test(trimmed)
+    ) {
+      return trimmed;
+    }
+
+    const fromLink = this.app.metadataCache.getFirstLinkpathDest(
+      trimmed,
+      sourcePath,
+    );
+    const fromPath = this.app.vault.getAbstractFileByPath(normalizePath(trimmed));
+    const file =
+      fromLink instanceof TFile
+        ? fromLink
+        : fromPath instanceof TFile
+          ? fromPath
+          : null;
+    if (!file) return null;
+    return this.app.vault.getResourcePath(file);
+  }
 }

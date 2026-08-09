@@ -15,12 +15,23 @@ export type BookShelfItem = {
   description?: string;
 };
 
+export type CoverRef =
+  | { kind: "url"; src: string }
+  | { kind: "vault"; path: string }
+  | { kind: "none" };
+
 const STATUS_ORDER = new Map([
   ["reading", 0],
   ["to-read", 1],
   ["to-read-again", 2],
   ["finished", 3],
 ]);
+
+const BOOK_WIDTH_PX = 86;
+const BOOK_GAP_PX = 8;
+const ROW_PADDING_PX = 16;
+
+const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -93,14 +104,56 @@ export function buildBookShelfItems(files: HobbyItemMeta[]): BookShelfItem[] {
     );
 }
 
-function isImageUrl(value: string): boolean {
-  return /^https?:\/\//i.test(value) || /^app:\/\//i.test(value);
+/** Normalize frontmatter cover values into URL or vault path refs. */
+export function parseCoverRef(raw: string): CoverRef {
+  const value = raw.trim();
+  if (!value) return { kind: "none" };
+  if (
+    /^https?:\/\//i.test(value) ||
+    /^app:\/\//i.test(value) ||
+    /^data:image\//i.test(value)
+  ) {
+    return { kind: "url", src: value };
+  }
+
+  let path = value;
+  const wiki = value.match(/^\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]$/);
+  if (wiki) path = wiki[1].trim();
+  path = path.replace(/^\.\//, "").trim();
+  if (!path) return { kind: "none" };
+  return { kind: "vault", path };
 }
 
-function chunkItems(items: BookShelfItem[], size: number): BookShelfItem[][] {
-  const rows: BookShelfItem[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    rows.push(items.slice(index, index + size));
+export function resolveCoverSrc(
+  cover: string | undefined,
+  data: Pick<VaultDataSource, "resolveResourcePath">,
+  sourcePath: string,
+): string | null {
+  const ref = parseCoverRef(cover ?? "");
+  if (ref.kind === "none") return null;
+  if (ref.kind === "url") return ref.src;
+  return data.resolveResourcePath(ref.path, sourcePath);
+}
+
+/** How many upright books fit on one plank for the current editor width. */
+export function booksPerRow(
+  containerWidth: number,
+  bookWidth = BOOK_WIDTH_PX,
+  gap = BOOK_GAP_PX,
+  padding = ROW_PADDING_PX,
+): number {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
+  const available = Math.max(0, containerWidth - padding);
+  const per = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(1, per);
+}
+
+export function chunkItems<T>(items: T[], size: number): T[][] {
+  const rowSize = Math.max(1, Math.floor(size));
+  if (!items.length) return [[]];
+  const rows: T[][] = [];
+  for (let index = 0; index < items.length; index += rowSize) {
+    rows.push(items.slice(index, index + rowSize));
   }
   return rows;
 }
@@ -133,15 +186,19 @@ function createBook(
   });
 
   const cover = volume.createDiv({ cls: "atomic-book-cover" });
-  if (item.cover && isImageUrl(item.cover)) {
-    cover.createEl("img", {
+  const face = cover.createDiv({ cls: "atomic-book-cover-face" });
+  const coverSrc = resolveCoverSrc(item.cover, data, item.path);
+  if (coverSrc) {
+    face.createEl("img", {
       cls: "atomic-book-cover-image",
-      attr: { src: item.cover, alt: "" },
+      attr: { src: coverSrc, alt: "" },
     });
   } else {
-    cover.createDiv({ cls: "atomic-book-cover-title", text: item.title });
+    face.createDiv({ cls: "atomic-book-cover-title", text: item.title });
   }
-  cover.createDiv({ cls: "atomic-book-cover-shine" });
+  cover.createDiv({ cls: "atomic-book-cover-inside" });
+  cover.createDiv({ cls: "atomic-book-cover-sleeve" });
+  face.createDiv({ cls: "atomic-book-cover-shine" });
 
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
   spine.createDiv({ cls: "atomic-book-spine-title", text: item.title });
@@ -153,7 +210,34 @@ function createBook(
     text: item.authors.join(", ") || item.status,
   });
   if (item.description) {
-    detail.createDiv({ cls: "atomic-book-detail-description", text: item.description });
+    detail.createDiv({
+      cls: "atomic-book-detail-description",
+      text: item.description,
+    });
+  }
+}
+
+function paintRows(
+  frame: HTMLElement,
+  items: BookShelfItem[],
+  perRow: number,
+  data: VaultDataSource,
+  language: Language,
+): void {
+  frame.empty();
+  const rows = items.length ? chunkItems(items, perRow) : [[]];
+  for (const rowItems of rows) {
+    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
+    const books = row.createDiv({ cls: "atomic-book-row-books" });
+    if (!rowItems.length) {
+      books.createDiv({
+        cls: "atomic-book-empty",
+        text: t("view.bookShelf.empty", language),
+      });
+    } else {
+      for (const item of rowItems) createBook(books, item, data, language);
+    }
+    row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
 }
 
@@ -164,7 +248,10 @@ export function renderBookShelf(
   options: Record<string, string>,
   language: Language,
 ): void {
+  resizeObservers.get(el)?.disconnect();
+  resizeObservers.delete(el);
   el.empty();
+
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
@@ -181,18 +268,20 @@ export function renderBookShelf(
   const items = buildBookShelfItems(data.listHobbyItems(activity));
   root.createEl("h3", { text: t("view.bookShelf.title", language) });
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  const rows = items.length ? chunkItems(items, 8) : [[]];
-  for (const rowItems of rows) {
-    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
-    const books = row.createDiv({ cls: "atomic-book-row-books" });
-    if (!rowItems.length) {
-      books.createDiv({
-        cls: "atomic-book-empty",
-        text: t("view.bookShelf.empty", language),
-      });
-    } else {
-      for (const item of rowItems) createBook(books, item, data, language);
-    }
-    row.createDiv({ cls: "atomic-book-shelf-plank" });
+
+  let lastPerRow = -1;
+  const layout = (): void => {
+    const perRow = booksPerRow(frame.clientWidth || frame.getBoundingClientRect().width);
+    if (perRow === lastPerRow && frame.childElementCount > 0) return;
+    lastPerRow = perRow;
+    paintRows(frame, items, perRow, data, language);
+  };
+
+  layout();
+
+  if (typeof ResizeObserver !== "undefined") {
+    const observer = new ResizeObserver(() => layout());
+    observer.observe(frame);
+    resizeObservers.set(el, observer);
   }
 }

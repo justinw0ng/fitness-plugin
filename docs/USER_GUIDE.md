@@ -266,7 +266,7 @@ authors:
   - ""
 description: ""
 pages:
-cover: ""
+cover: "[[atomics/hobbies/Reading/Covers/title.jpg]]"
 tags:
   - books
 spine_color:
@@ -274,6 +274,8 @@ total_min: 0
 timer_started_at:
 related_canvas:
 ```
+
+`cover` accepts a vault wikilink, vault-relative path, or `http(s):` / `app://` image URL. Put local art under `atomics/hobbies/Reading/Covers/` (or any vault path). If `cover` is empty, the shelf paints a solid `spine_color` / hashed color face with the title.
 
 Use the **Remarks** section for notes. The **Time log** section is managed by the timer.
 
@@ -306,7 +308,7 @@ activity: reading
 ```
 ````
 
-The shelf is a plugin-rendered bookshelf scene. Books stand on planks, hover/focus opens the cover with local CSS 3D transforms, and click opens the book note. There is no Framer runtime or remote script.
+The shelf is a plugin-rendered bookshelf scene. Books stand on planks; the editor width decides how many books sit on each plank (rows reflow on resize). Hover/focus rolls the cover open on a spine hinge (local CSS 3D — sleeve edge + inside face), and click opens the book note. There is no Framer runtime or remote script.
 
 `related_canvas` is a plain frontmatter field. You can drag Reading item notes onto Obsidian Canvas or link Canvas notes with normal wikilinks.
 
