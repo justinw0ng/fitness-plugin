@@ -1,6 +1,6 @@
 # obsidian-atomic
 
-Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic habit tracking. Default plugin-created content lives under `atomics/**`; see `README.md` for feature and data-layout details. Built-in domains are exercise (Gym/Golf sessions and cues) and Reading (item notes, timers, Bases bookshelf, book shelf).
+Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic habit tracking. Default plugin-created content lives under `atomics/**`; see `README.md` for feature and data-layout details. Built-in domains are exercise (Gym/Golf sessions and cues) and general habits (Reading by default: item notes, timers, Bases bookshelf, book shelf). Activities support `enabled`, `baseColor` (one picker → four heatmap shades), and settings delete. `atomic-heatmap` accepts `activity: all|id|id1, id2`.
 
 ## Cursor Cloud specific instructions
 
@@ -18,10 +18,12 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic habit tr
   1. Enable the plugin in a demo vault
   2. Open notes with `atomic-golf-cues`, `atomic-gym-cues`, `atomic-cues`, `atomic-timer`, and `atomic-bookshelf`
   3. Create a Reading item, start/stop its timer, and confirm Reading minutes appear in `atomic-heatmap`
-  4. Run **Open reading bookshelf** with Bases enabled; with Bases disabled, confirm the command shows a Notice
-  5. Confirm legacy `fitness-*` aliases work while **Allow legacy `fitness-*` blocks** is on
-  6. Run **Migrate from Fitness → Atomic** on demo notes and confirm the legacy toggle turns off
-- When Obsidian is not available (typical Cursor Cloud VM), skip GUI E2E and screenshots; note that in the PR/summary.
+  4. In Settings, confirm one color picker + shade swatches, enable/disable, Delete, and Add general habit
+  5. Confirm `atomic-heatmap` with `activity: reading` and `activity: gym, golf` filters correctly
+  6. Run **Open reading bookshelf** with Bases enabled; with Bases disabled or Reading disabled, confirm the command shows a Notice
+  7. Confirm legacy `fitness-*` aliases work while **Allow legacy `fitness-*` blocks** is on
+  8. Run **Migrate from Fitness → Atomic** on demo notes and confirm the legacy toggle turns off
+- When Obsidian is not available (typical Cursor Cloud VM), skip Obsidian GUI E2E; prefer HTML mockups under `docs/mockups/` for review screenshots/recordings, and note that in the PR/summary.
 - When capturing Obsidian screenshots for docs:
   1. Disable **Readable line length** (Settings → Editor)
   2. Use **fullscreen** Obsidian

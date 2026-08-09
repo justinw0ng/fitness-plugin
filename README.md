@@ -1,6 +1,6 @@
 # Atomic
 
-Obsidian plugin for habit tracking under `atomics/**`: gym and golf sessions, Reading item timers, heatmaps, yearly dashboard, golf and gym cue rollups (`atomic-golf-cues`, `atomic-gym-cues`, or `atomic-cues`), and quick creation commands.
+Obsidian plugin for habit tracking under `atomics/**`: exercise sessions (Gym/Golf plus custom types), general habits with item timers (Reading by default), heatmaps, yearly dashboard, golf and gym cue rollups (`atomic-golf-cues`, `atomic-gym-cues`, or `atomic-cues`), and quick creation commands.
 
 Settings → Atomic → Language has two UI modes: Traditional Chinese & English (`zh-Hant-en`, default) and English (`en`). No Simplified Chinese. Changing language never rewrites existing notes.
 
@@ -44,9 +44,15 @@ Use **Settings → Atomic → Migrate from Fitness to Atomic**. It moves the leg
 
 ![Book shelf](docs/images/atomic-book-shelf.png)
 
-## Reading hobby tracker
+## Exercise + general habits
 
-Reading is the built-in hobby. Use **Atomic: New reading item** for `atomics/hobbies/Reading/Items/<Book>.md` with book properties, remarks, a time log, and an `atomic-timer` block. Timer-log minutes feed the Reading heatmap and dashboard hobby summary.
+In **Settings → Atomic**, each exercise and general habit has enable/disable, delete, and a **single color picker** (four heatmap shades are generated for you). Disabled habits leave vault notes alone but drop out of heatmaps, dashboard, and commands.
+
+## Reading and other general habits
+
+Reading is the default general habit (item + timer). Use **Atomic: New reading item** or **Atomic: New hobby item** for `atomics/hobbies/<Name>/Items/<Title>.md` with properties, remarks, a time log, and an `atomic-timer` block. Timer-log minutes feed heatmaps and the dashboard hobby summary.
+
+`atomic-heatmap` defaults to all enabled habits. Filter with `activity: reading` or `activity: gym, golf`.
 
 Use **Atomic: Ensure/Open reading bookshelf** for `Bookshelf.base` (Obsidian Bases Cards + Table). Bases must be enabled for those commands.
 

@@ -145,13 +145,16 @@ The screenshot may show a demo path under `/tmp/...`. On your machine use `<your
 | Language | Traditional Chinese & English (`zh-Hant-en`) | Plugin UI language. Options are Traditional Chinese & English or English; existing notes are not rewritten |
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
-| Golf cues path | `atomics/exercise/Golf/Cues.md` | Golf cue rollup note |
-| Gym cues path | `atomics/exercise/Gym/Cues.md` | Gym cue rollup note |
-| Reading hobby | `atomics/hobbies/Reading` | Built-in timer-backed hobby |
+| Exercise types | Gym, Golf | Enable/disable, label, folder, cues, **one color**, delete; add custom exercises |
+| General habits | Reading | Enable/disable, label, folder, **one color**, delete; add custom item+timer habits |
 | Allow legacy `fitness-*` blocks | On | Keep old Fitness codeblock names until migration |
 | Migrate from Fitness to Atomic | (button) | One-click vault + fence migrate (see [Upgrade from Fitness](#upgrade-from-fitness)) |
 
-![Atomic settings](./images/07-settings-atomic.png)
+![Atomic settings — exercise + general habits](./images/07-settings-atomic.png)
+
+> Screenshot from the settings mockup (`docs/mockups/atomic/01-settings.html`) because Obsidian desktop is not available in the docs VM. In the live plugin each row uses Obsidian’s color picker plus enable/delete controls.
+
+Each habit has a single color picker. Atomic derives the four heatmap shades (light → dark) automatically; a small swatch row previews them. Disable a habit to hide it from heatmaps, dashboard, and commands without deleting vault notes. Delete removes it from settings only (Reading is not force-added back afterward).
 
 Exercise folders default to `atomics/exercise/Gym` and `atomics/exercise/Golf`. Reading defaults to `atomics/hobbies/Reading` with item notes under `Items/`.
 
@@ -220,6 +223,24 @@ year: 2026
 ```
 ````
 
+`atomic-heatmap` shows **all enabled** habits by default. Narrow it with `activity:`:
+
+````markdown
+```atomic-heatmap
+activity: reading
+year: 2026
+```
+
+```atomic-heatmap
+activity: gym, golf
+year: 2026
+```
+````
+
+Use `activity: all` (or omit the field) for every enabled exercise + general habit. Unknown or disabled ids show a short notice; valid ids in the list still render.
+
+![Heatmap activity filter examples](./images/atomic-heatmap-activity-filter.png)
+
 ### Cue note examples
 
 `atomics/exercise/Golf/Cues.md`:
@@ -264,13 +285,15 @@ Gym notes store sets in a markdown table and reminders under a **Reminders** hea
 
 ---
 
-## 9. Track Reading
+## 9. Track Reading and other general habits
 
-### Create a book item
+Reading is the default general habit (item notes + timer). You can disable or delete it in settings, and add other general habits the same way (for example Chess under `atomics/hobbies/Chess`).
 
-1. Run **Atomic: New reading item**.
-2. Enter the book title.
-3. Atomic creates or opens `atomics/hobbies/Reading/Items/<Title>.md`.
+### Create a book or hobby item
+
+1. Run **Atomic: New reading item** (Reading only), or **Atomic: New hobby item** and pick an enabled general habit.
+2. Enter the item title.
+3. Atomic creates or opens `<hobby-folder>/Items/<Title>.md`.
 
 Frontmatter is ready for Bases:
 
@@ -351,9 +374,12 @@ Optional YAML inside a codeblock body:
 
 ```text
 year: 2026
+activity: all
 ```
 
-or for today:
+`activity` accepts `all`, one activity id (`reading`, `gym`, …), or a comma-separated list (`gym, golf, reading`).
+
+For today blocks:
 
 ```text
 date: 2026-08-08
@@ -365,9 +391,11 @@ date: 2026-08-08
 
 | Command | Action |
 |---------|--------|
-| Atomic: New gym session | Create or open `atomics/exercise/Gym/YYYY/YYYY-MM-DD.md` |
-| Atomic: New golf session | Create or open `atomics/exercise/Golf/YYYY/YYYY-MM-DD.md` |
-| Atomic: New reading item | Create or open `atomics/hobbies/Reading/Items/<Book>.md` |
+| Atomic: New gym session | Create or open `atomics/exercise/Gym/YYYY/YYYY-MM-DD.md` (Gym must be enabled) |
+| Atomic: New golf session | Create or open `atomics/exercise/Golf/YYYY/YYYY-MM-DD.md` (Golf must be enabled) |
+| Atomic: New exercise session | Pick an enabled exercise type, then create/open its daily note |
+| Atomic: New reading item | Create or open `atomics/hobbies/Reading/Items/<Book>.md` (Reading must be enabled) |
+| Atomic: New hobby item | Pick an enabled general habit, then create/open an item note |
 | Atomic: Ensure reading bookshelf | Create `atomics/hobbies/Reading/Bookshelf.base` if missing |
 | Atomic: Open reading bookshelf | Ensure and open `atomics/hobbies/Reading/Bookshelf.base` |
 | Atomic: Ensure book shelf | Create `atomics/hobbies/Reading/Book Shelf.md` if missing |
@@ -382,8 +410,9 @@ date: 2026-08-08
 |---------|-----|
 | Plugin not listed | Confirm files are under `.obsidian/plugins/obsidian-atomic/` and reload plugins |
 | Restricted mode | Turn on community plugins in Settings |
-| Empty heatmap / dashboard | Add exercise sessions with `date` / duration, or stop a Reading timer so the item has Time log entries |
-| Reading bookshelf does not open | Enable Bases, then rerun **Atomic: Open reading bookshelf** |
+| Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / duration, or stop a hobby timer so the item has Time log entries |
+| Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic |
+| Reading bookshelf does not open | Enable Reading in settings, enable Bases, then rerun **Atomic: Open reading bookshelf** |
 | Wrong “today” | Set **Timezone** in Atomic settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
 | Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |
