@@ -27,7 +27,9 @@ export interface FitnessSettings {
   timezone: string;
   series: SeriesConfig[];
   dashboardPath: string;
-  cuesPath: string;
+  golfCuesPath: string;
+  gymCuesPath: string;
+  deprecatedFitnessCuesEnabled: boolean;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -49,7 +51,9 @@ export const EMPTY_CELL = "#ebedf0";
 export const DEFAULT_SETTINGS: FitnessSettings = {
   timezone: "Asia/Hong_Kong",
   dashboardPath: "Fitness/Dashboard.md",
-  cuesPath: "Golf/Cues.md",
+  golfCuesPath: "Golf/Cues.md",
+  gymCuesPath: "Gym/Cues.md",
+  deprecatedFitnessCuesEnabled: true,
   series: [
     {
       id: "gym",

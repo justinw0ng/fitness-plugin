@@ -1,34 +1,8 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type FitnessPlugin from "./main";
-import { DEFAULT_SETTINGS, type FitnessSettings, type SeriesConfig } from "./types";
-import { isSafeVaultFolder } from "./util/vault-path";
+import { DEFAULT_SETTINGS } from "./types";
 
-function sanitizeSeries(
-  series: SeriesConfig[] | undefined,
-  fallback: SeriesConfig[],
-): SeriesConfig[] {
-  if (!Array.isArray(series) || series.length === 0) return fallback;
-  const safe = series.filter(
-    (s) =>
-      s != null &&
-      typeof s.folder === "string" &&
-      isSafeVaultFolder(s.folder),
-  );
-  return safe.length > 0 ? safe : fallback;
-}
-
-export function mergeSettings(
-  raw: Partial<FitnessSettings> | null | undefined,
-): FitnessSettings {
-  const base = { ...DEFAULT_SETTINGS };
-  if (!raw) return base;
-  return {
-    timezone: raw.timezone || base.timezone,
-    dashboardPath: raw.dashboardPath || base.dashboardPath,
-    cuesPath: raw.cuesPath || base.cuesPath,
-    series: sanitizeSeries(raw.series, base.series),
-  };
-}
+export { mergeSettings } from "./util/merge-settings";
 
 export class FitnessSettingTab extends PluginSettingTab {
   plugin: FitnessPlugin;
@@ -77,10 +51,10 @@ export class FitnessSettingTab extends PluginSettingTab {
       .addText((text) =>
         text
           .setPlaceholder("Golf/Cues.md")
-          .setValue(this.plugin.settings.cuesPath)
+          .setValue(this.plugin.settings.golfCuesPath)
           .onChange(async (value) => {
-            this.plugin.settings.cuesPath =
-              value.trim() || DEFAULT_SETTINGS.cuesPath;
+            this.plugin.settings.golfCuesPath =
+              value.trim() || DEFAULT_SETTINGS.golfCuesPath;
             await this.plugin.saveSettings();
           }),
       );
