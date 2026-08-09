@@ -533,3 +533,37 @@
     transform: none;
   }
 }
+
+/* Settings tab: keep long bilingual labels from collapsing beside dense controls. */
+.atomic-setting-exercise-type,
+.atomic-setting-colors {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+}
+
+.atomic-setting-exercise-type .setting-item-info,
+.atomic-setting-colors .setting-item-info {
+  flex: 1 1 100%;
+  min-width: 0;
+  padding-right: 0;
+}
+
+.atomic-setting-exercise-type .setting-item-control,
+.atomic-setting-colors .setting-item-control {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.atomic-setting-exercise-type .setting-item-control input[type="text"] {
+  min-width: 0;
+  width: min(100%, 18rem);
+}
+
+.atomic-setting-colors .setting-item-control input[type="text"] {
+  width: 6.5em;
+  min-width: 0;
+  flex: 0 0 auto;
+}

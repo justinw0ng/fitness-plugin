@@ -174,6 +174,7 @@ export class FitnessSettingTab extends PluginSettingTab {
   private renderExerciseType(containerEl: HTMLElement, activity: ActivityType): void {
     const language = this.plugin.settings.language;
     new Setting(containerEl)
+      .setClass("atomic-setting-exercise-type")
       .setName(activity.label)
       .setDesc(t("settings.activityId", language, { id: activity.id }))
       .addText((text) =>
@@ -212,6 +213,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setClass("atomic-setting-colors")
       .setName(t("settings.colors", language, { label: activity.label }))
       .setDesc(t("settings.colorsDesc", language))
       .addText((text) => this.bindColorText(text, activity, 0))
