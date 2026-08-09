@@ -6,11 +6,11 @@ import {
   type Cue,
 } from "../core";
 import {
-  monthLongEn,
-  monthLongZh,
+  formatMonthLabel,
   nowMonth,
   nowYear,
 } from "../dates";
+import { t, type Language } from "../i18n";
 import type { ActivityType } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
 
@@ -32,6 +32,7 @@ export async function renderCues(
   year: number,
   timezone: string,
   activity: string,
+  language: Language,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
@@ -39,7 +40,7 @@ export async function renderCues(
   const activityType = resolveCueActivityType(activityTypes, activity);
   if (!activityType) {
     root.createEl("p", {
-      text: `No cue-enabled ${activity} exercise activity configured.`,
+      text: t("view.cues.noCueActivity", language, { activity }),
       cls: "fitness-muted",
     });
     return;
@@ -47,10 +48,7 @@ export async function renderCues(
 
   const currentYear = nowYear(timezone);
   const month = year === currentYear ? nowMonth(timezone) : 12;
-  const monthLabel =
-    year === currentYear
-      ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}`
-      : `December ${year} / ${year}年12月`;
+  const monthLabel = formatMonthLabel(year, month, language);
 
   const cues: Cue[] = [];
   for (const p of data.listSessions(activityType.folder, year)) {
@@ -67,11 +65,11 @@ export async function renderCues(
   const keepers = buildKeepers(cues, year);
 
   root.createEl("h2", {
-    text: `📅 This month / 本月 — ${monthLabel}`,
+    text: t("view.cues.thisMonth", language, { month: monthLabel }),
   });
   if (!thisMonth.length) {
     root.createEl("p", {
-      text: "No reminders this month / 本月尚無提醒",
+      text: t("view.cues.noReminders", language),
       cls: "fitness-muted",
     });
   } else {
@@ -83,11 +81,11 @@ export async function renderCues(
   }
 
   root.createEl("h2", {
-    text: `⭐ Keepers / 常駐提醒 (≥2 in ${year})`,
+    text: t("view.cues.keepers", language, { year }),
   });
   if (!keepers.length) {
     root.createEl("p", {
-      text: "No keepers yet / 尚無常駐提醒",
+      text: t("view.cues.noKeepers", language),
       cls: "fitness-muted",
     });
   } else {
@@ -97,7 +95,11 @@ export async function renderCues(
       const li = ul.createEl("li");
       li.createEl("strong", { text: k.text });
       li.appendText(
-        ` (×${k.count}, last / 最近 ${k.lastSeen}${focusBit})`,
+        t("view.cues.lastSeen", language, {
+          count: k.count,
+          lastSeen: k.lastSeen,
+          focus: focusBit,
+        }),
       );
     }
   }

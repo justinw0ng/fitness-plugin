@@ -123,6 +123,7 @@ The screenshot shows a demo vault under `/tmp/...`. On your machine the folder i
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
+| Language | Traditional Chinese & English (`zh-Hant-en`) | Plugin UI language. Options are Traditional Chinese & English or English; existing notes and frontmatter are not rewritten |
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
 | Golf cues path | `atomics/exercise/Golf/Cues.md` | Golf cue rollup note |
@@ -134,6 +135,8 @@ The screenshot shows a demo vault under `/tmp/...`. On your machine the folder i
 ![Fitness plugin settings](./images/07-settings-fitness.png)
 
 Exercise folders default to `atomics/exercise/Gym` and `atomics/exercise/Golf`. Reading defaults to `atomics/hobbies/Reading` with item notes under `Items/`.
+
+Language only changes plugin chrome, prompts, notices, command names after plugin reload, and templates created after the setting changes. Atomic does not provide Simplified Chinese or Chinese-only modes.
 
 If you still have notes using old `fitness-*` block names or the old `Fitness/`, `Gym/`, and `Golf/` layout, leave **Allow legacy `fitness-*` blocks** on until you are ready to migrate. Use **Migrate from Fitness → Atomic** to move paths where the Atomic destination is empty, rewrite codeblock fences across the vault, update settings, and turn off the legacy aliases.
 

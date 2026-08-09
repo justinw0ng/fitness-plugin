@@ -1,5 +1,6 @@
 import type { App } from "obsidian";
 import type { VaultDataSource } from "../data/vault-source";
+import { t, type Language } from "../i18n";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
@@ -12,11 +13,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function readingBookshelfBaseYaml(
   itemsFolder = READING_ITEMS_FOLDER,
+  language: Language = "en",
 ): string {
   if (!isSafeVaultFolder(itemsFolder)) {
     throw new Error("Reading items folder must be a safe vault-relative folder");
   }
-  return `# Atomic reading bookshelf v1
+  return `# ${t("template.readingBookshelfTitle", language)}
 filters:
   and:
     - file.inFolder("${itemsFolder}")
@@ -24,22 +26,22 @@ filters:
     - activity == "reading"
 properties:
   file.name:
-    displayName: Title
+    displayName: ${t("template.base.title", language)}
   authors:
-    displayName: Authors
+    displayName: ${t("template.base.authors", language)}
   description:
-    displayName: Description
+    displayName: ${t("template.base.description", language)}
   pages:
-    displayName: Pages
+    displayName: ${t("template.base.pages", language)}
   status:
-    displayName: Status
+    displayName: ${t("template.base.status", language)}
   tags:
-    displayName: Tags
+    displayName: ${t("template.base.tags", language)}
   total_min:
-    displayName: Total minutes
+    displayName: ${t("template.base.totalMinutes", language)}
 views:
   - type: cards
-    name: Cards
+    name: ${t("template.base.cards", language)}
     image: cover
     fields:
       - file.name
@@ -50,7 +52,7 @@ views:
       - tags
       - total_min
   - type: table
-    name: Table
+    name: ${t("template.base.table", language)}
     columns:
       - file.name
       - authors
@@ -86,6 +88,7 @@ export function isBasesCorePluginEnabled(app: App): boolean {
 export async function ensureReadingBookshelfFile(
   data: VaultDataSource,
   itemsFolder = READING_ITEMS_FOLDER,
+  language: Language = "en",
 ): Promise<{ path: string; created: boolean }> {
   if (!shouldCreateReadingBookshelf(data.exists(READING_BOOKSHELF_REL))) {
     return { path: READING_BOOKSHELF_REL, created: false };
@@ -93,7 +96,7 @@ export async function ensureReadingBookshelfFile(
 
   await data.createNote(
     READING_BOOKSHELF_REL,
-    readingBookshelfBaseYaml(itemsFolder),
+    readingBookshelfBaseYaml(itemsFolder, language),
   );
   return { path: READING_BOOKSHELF_REL, created: true };
 }
@@ -101,31 +104,33 @@ export async function ensureReadingBookshelfFile(
 export async function ensureReadingBookshelfCommand(
   app: App,
   data: VaultDataSource,
+  language: Language,
 ): Promise<void> {
   const { Notice } = await import("obsidian");
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice("Enable the Bases core plugin to use the Reading bookshelf.");
+    new Notice(t("notice.enableBases", language));
     return;
   }
 
-  const result = await ensureReadingBookshelfFile(data);
+  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
   new Notice(
     result.created
-      ? `Created Reading bookshelf: ${result.path}`
-      : `Reading bookshelf already exists: ${result.path}`,
+      ? t("notice.createdReadingBookshelf", language, { path: result.path })
+      : t("notice.readingBookshelfExists", language, { path: result.path }),
   );
 }
 
 export async function openReadingBookshelfCommand(
   app: App,
   data: VaultDataSource,
+  language: Language,
 ): Promise<void> {
   const { Notice } = await import("obsidian");
   if (!isBasesCorePluginEnabled(app)) {
-    new Notice("Enable the Bases core plugin to use the Reading bookshelf.");
+    new Notice(t("notice.enableBases", language));
     return;
   }
 
-  const result = await ensureReadingBookshelfFile(data);
+  const result = await ensureReadingBookshelfFile(data, READING_ITEMS_FOLDER, language);
   await data.openPath(result.path);
 }

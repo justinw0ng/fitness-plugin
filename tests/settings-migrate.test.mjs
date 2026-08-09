@@ -168,6 +168,10 @@ test("mergeSettings respects deprecatedFitnessBlocksEnabled false", () => {
   assert.equal(s.deprecatedFitnessBlocksEnabled, false);
 });
 
+test("mergeSettings keeps language en when set", () => {
+  assert.equal(mergeSettings({ language: "en" }).language, "en");
+});
+
 test("mergeSettings maps legacy cue flag false to fitness block aliases off", () => {
   const s = mergeSettings({ deprecatedFitnessCuesEnabled: false });
   assert.equal(s.deprecatedFitnessBlocksEnabled, false);

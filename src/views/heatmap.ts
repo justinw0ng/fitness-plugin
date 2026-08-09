@@ -4,16 +4,20 @@ import { minutesByDate, parseTimeLog } from "../core/hobby";
 import {
   addDays,
   formatYmd,
-  fullDateZh,
-  monthShortZh,
+  fullDateForLanguage,
+  monthShortForLanguage,
   parseYmd,
   weekdaySun0,
   ymdInZone,
 } from "../dates";
+import { t, type Language } from "../i18n";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
 import { exerciseActivities, hobbyActivities } from "../util/activity-types";
 
-const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
+const DAY_NAMES: Record<Language, string[]> = {
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "zh-Hant-en": ["日", "一", "二", "三", "四", "五", "六"],
+};
 
 function colorFor(activity: ActivityType, level: number): string {
   if (!level) return EMPTY_CELL;
@@ -60,21 +64,22 @@ async function renderOneHeatmap(
   activity: ActivityType,
   year: number,
   timezone: string,
+  language: Language,
 ): Promise<void> {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
 
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
-  legend.createSpan({ text: "Less / 少" });
+  legend.createSpan({ text: t("view.heatmap.less", language) });
   legend.createDiv({ cls: "fitness-legend-swatch" }).style.background =
     EMPTY_CELL;
   for (const c of activity.colors) {
     const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
     sw.style.background = c;
   }
-  legend.createSpan({ text: "More / 多" });
+  legend.createSpan({ text: t("view.heatmap.more", language) });
   legend.createSpan({
-    text: "by duration / 按時長",
+    text: t("view.heatmap.byDuration", language),
     attr: { style: "margin-left:8px" },
   });
 
@@ -115,7 +120,7 @@ async function renderOneHeatmap(
         minutes,
         level: durationToLevel(minutes),
         path: entry?.path ?? null,
-        fullDate: fullDateZh(cursor.y, cursor.m, cursor.d),
+        fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
         isCurrentYear: cursor.y === year,
         isToday: dateStr === todayStr,
         y: cursor.y,
@@ -133,7 +138,7 @@ async function renderOneHeatmap(
   for (const week of weeks) {
     if (!week.length) continue;
     const first = week[0];
-    const monthName = monthShortZh(first.y, first.m, first.d);
+    const monthName = monthShortForLanguage(first.y, first.m, first.d, language);
     if (monthName !== lastMonth && first.d <= 7 && first.isCurrentYear) {
       monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
       lastMonth = monthName;
@@ -147,7 +152,7 @@ async function renderOneHeatmap(
 
   const gridWrap = wrap.createDiv({ cls: "fitness-grid-wrap" });
   const dayLabels = gridWrap.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES) {
+  for (const d of DAY_NAMES[language]) {
     dayLabels.createDiv({ cls: "fitness-day-label", text: d });
   }
 
@@ -167,8 +172,14 @@ async function renderOneHeatmap(
       });
       cell.style.backgroundColor = color;
       const tip = day.path
-        ? `${day.fullDate}: ${day.minutes} min / 分鐘 — click to open / 點擊開啟`
-        : `${day.fullDate}: ${day.minutes} min / 分鐘`;
+        ? t("view.heatmap.tooltipOpen", language, {
+            date: day.fullDate,
+            minutes: day.minutes,
+          })
+        : t("view.heatmap.tooltip", language, {
+            date: day.fullDate,
+            minutes: day.minutes,
+          });
       cell.setAttr("title", tip);
       if (day.path) {
         const path = day.path;
@@ -187,6 +198,7 @@ export async function renderHeatmaps(
   activityTypes: ActivityType[],
   year: number,
   timezone: string,
+  language: Language,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
@@ -194,7 +206,7 @@ export async function renderHeatmaps(
     ...exerciseActivities(activityTypes),
     ...hobbyActivities(activityTypes),
   ]) {
-    await renderOneHeatmap(root, data, activity, year, timezone);
+    await renderOneHeatmap(root, data, activity, year, timezone, language);
   }
 }
 

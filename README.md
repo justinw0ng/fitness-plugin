@@ -2,6 +2,8 @@
 
 Obsidian plugin for habit tracking under `atomics/**`: gym and golf sessions, Reading item timers, heatmaps, yearly dashboard, golf and gym cue rollups (`atomic-golf-cues`, `atomic-gym-cues`, or `atomic-cues`), and quick creation commands.
 
+Atomic has a Settings → Atomic → Language dropdown with two UI modes: Traditional Chinese & English (`zh-Hant-en`, the default) and English (`en`). It does not include Simplified Chinese, and changing the language never rewrites existing notes.
+
 **Install:** download `obsidian-atomic-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases) and unzip it into `<vault>/.obsidian/plugins/` (so you get `obsidian-atomic/main.js`, `manifest.json`, and `styles.css`).
 
 **Setup guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)

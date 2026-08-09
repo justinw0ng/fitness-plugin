@@ -1,4 +1,5 @@
 import type { VaultDataSource } from "../data/vault-source";
+import { t, type Language } from "../i18n";
 import type { ActivityType, HobbyItemMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
@@ -103,10 +104,18 @@ function chunkItems(items: BookShelfItem[], size: number): BookShelfItem[][] {
   return rows;
 }
 
-function createBook(parent: HTMLElement, item: BookShelfItem, data: VaultDataSource): void {
+function createBook(
+  parent: HTMLElement,
+  item: BookShelfItem,
+  data: VaultDataSource,
+  language: Language,
+): void {
   const button = parent.createEl("button", {
     cls: "atomic-book",
-    attr: { type: "button", "aria-label": `Open ${item.title}` },
+    attr: {
+      type: "button",
+      "aria-label": t("view.bookShelf.open", language, { title: item.title }),
+    },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
   button.addEventListener("click", (event) => {
@@ -152,6 +161,7 @@ export function renderBookShelf(
   data: VaultDataSource,
   activityTypes: ActivityType[],
   options: Record<string, string>,
+  language: Language,
 ): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
@@ -162,13 +172,13 @@ export function renderBookShelf(
   if (!activity) {
     root.createEl("p", {
       cls: "fitness-muted",
-      text: `No timer-backed hobby activity configured for ${activityId}.`,
+      text: t("view.bookShelf.noActivity", language, { activity: activityId }),
     });
     return;
   }
 
   const items = buildBookShelfItems(data.listHobbyItems(activity));
-  root.createEl("h3", { text: "Atomic book shelf" });
+  root.createEl("h3", { text: t("view.bookShelf.title", language) });
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
   const rows = items.length ? chunkItems(items, 8) : [[]];
   for (const rowItems of rows) {
@@ -177,10 +187,10 @@ export function renderBookShelf(
     if (!rowItems.length) {
       books.createDiv({
         cls: "atomic-book-empty",
-        text: "No Reading items yet. Run Atomic: New reading item.",
+        text: t("view.bookShelf.empty", language),
       });
     } else {
-      for (const item of rowItems) createBook(books, item, data);
+      for (const item of rowItems) createBook(books, item, data, language);
     }
     row.createDiv({ cls: "atomic-book-shelf-plank" });
   }

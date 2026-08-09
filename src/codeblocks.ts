@@ -16,6 +16,7 @@ import {
   resolveCodeblockKind,
   resolveCueActivity,
 } from "./util/codeblock-languages";
+import { t } from "./i18n";
 
 export type LiveBlock = {
   kind: string;
@@ -45,6 +46,7 @@ export async function renderBlock(
   const settings = plugin.settings;
   const activityTypes = settings.activityTypes;
   const tz = settings.timezone;
+  const language = settings.language;
   const resolvedKind = resolveCodeblockKind(kind);
 
   try {
@@ -52,7 +54,7 @@ export async function renderBlock(
       el.empty();
       const root = el.createDiv({ cls: "fitness-plugin" });
       root.createEl("p", {
-        text: "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
+        text: t("view.legacyDisabled", language),
         cls: "fitness-muted",
       });
       return;
@@ -61,12 +63,12 @@ export async function renderBlock(
     switch (resolvedKind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
-        await renderHeatmaps(el, data, activityTypes, year, tz);
+        await renderHeatmaps(el, data, activityTypes, year, tz, language);
         break;
       }
       case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, activityTypes, dateStr);
+        renderTodaySessions(el, data, activityTypes, dateStr, language);
         break;
       }
       case "atomic-dashboard": {
@@ -80,6 +82,7 @@ export async function renderBlock(
           data,
           activityTypes,
           year,
+          language,
         );
         break;
       }
@@ -91,7 +94,7 @@ export async function renderBlock(
           el.empty();
           const root = el.createDiv({ cls: "fitness-plugin" });
           root.createEl("p", {
-            text: "atomic-cues requires an activity option, for example activity: golf.",
+            text: t("view.atomicCuesRequiresActivity", language),
             cls: "fitness-muted",
           });
           break;
@@ -108,6 +111,7 @@ export async function renderBlock(
           year,
           tz,
           activity,
+          language,
         );
         break;
       }
@@ -120,17 +124,21 @@ export async function renderBlock(
         break;
       }
       case "atomic-bookshelf": {
-        renderBookShelf(el, data, activityTypes, opts);
+        renderBookShelf(el, data, activityTypes, opts, language);
         break;
       }
       default:
-        el.createEl("p", { text: `Unknown Atomic block: ${kind}` });
+        el.createEl("p", {
+          text: t("view.unknownAtomicBlock", language, { kind }),
+        });
     }
   } catch (err) {
     console.error("Atomic block error", kind, err);
     el.empty();
     el.createEl("p", {
-      text: `Atomic error: ${err instanceof Error ? err.message : String(err)}`,
+      text: t("view.atomicError", language, {
+        message: err instanceof Error ? err.message : String(err),
+      }),
       cls: "mod-warning",
     });
   }

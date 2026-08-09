@@ -9,6 +9,7 @@ import {
 import type FitnessPlugin from "./main";
 import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import { isLanguage, t } from "./i18n";
 import {
   planFitnessMigration,
   rewriteFitnessFences,
@@ -29,12 +30,31 @@ export class FitnessSettingTab extends PluginSettingTab {
 
   display(): void {
     const { containerEl } = this;
+    const language = this.plugin.settings.language;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Atomic" });
+    containerEl.createEl("h2", { text: t("settings.title", language) });
 
     new Setting(containerEl)
-      .setName("Timezone")
-      .setDesc("IANA timezone for “today” and session dates (e.g. Asia/Hong_Kong).")
+      .setName(t("settings.language", language))
+      .setDesc(t("settings.languageDesc", language))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language))
+          .addOption("en", t("settings.languageOption.en", language))
+          .setValue(language)
+          .onChange(async (value) => {
+            if (!isLanguage(value)) return;
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            this.display();
+            await this.plugin.refreshAll();
+            new Notice(t("notice.reloadForCommands", value));
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName(t("settings.timezone", language))
+      .setDesc(t("settings.timezoneDesc", language))
       .addText((text) =>
         text
           .setPlaceholder("Asia/Hong_Kong")
@@ -47,8 +67,8 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Dashboard path")
-      .setDesc("Vault-relative path opened by “Open dashboard”.")
+      .setName(t("settings.dashboardPath", language))
+      .setDesc(t("settings.dashboardPathDesc", language))
       .addText((text) =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.dashboardPath)
@@ -63,10 +83,8 @@ export class FitnessSettingTab extends PluginSettingTab {
     this.renderExerciseTypes(containerEl);
 
     new Setting(containerEl)
-      .setName("Allow legacy `fitness-*` blocks")
-      .setDesc(
-        "Keep supporting old Fitness codeblock names. Turn off after migrating notes (or use Migrate).",
-      )
+      .setName(t("settings.legacyBlocks", language))
+      .setDesc(t("settings.legacyBlocksDesc", language))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled)
@@ -74,20 +92,16 @@ export class FitnessSettingTab extends PluginSettingTab {
             this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
             await this.plugin.saveSettings();
             this.plugin.refreshAll();
-            new Notice(
-              "Legacy fitness-* setting saved. Reload the plugin (or Obsidian) to apply registration.",
-            );
+            new Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
           }),
       );
 
     new Setting(containerEl)
-      .setName("Migrate from Fitness → Atomic")
-      .setDesc(
-        "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases.",
-      )
+      .setName(t("settings.migrateFitness", language))
+      .setDesc(t("settings.migrateFitnessDesc", language))
       .addButton((button) =>
         button
-          .setButtonText("Migrate from Fitness → Atomic")
+          .setButtonText(t("settings.migrateFitness", language))
           .setCta()
           .onClick(() => {
             void this.migrateFromFitnessToAtomic();
@@ -110,9 +124,10 @@ export class FitnessSettingTab extends PluginSettingTab {
   }
 
   private renderExerciseTypes(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: "Exercise types" });
+    const language = this.plugin.settings.language;
+    containerEl.createEl("h3", { text: t("settings.exerciseTypes", language) });
     containerEl.createEl("p", {
-      text: "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name>.",
+      text: t("settings.exerciseTypesDesc", language),
       cls: "setting-item-description",
     });
 
@@ -121,21 +136,21 @@ export class FitnessSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName("Add exercise type")
-      .setDesc("Creates a daily-session exercise with cues enabled and no set table.")
+      .setName(t("settings.addExerciseType", language))
+      .setDesc(t("settings.addExerciseTypeDesc", language))
       .addText((text) =>
         text
-          .setPlaceholder("Running")
+          .setPlaceholder(t("settings.exerciseNamePlaceholder", language))
           .setValue(this.pendingExerciseName)
           .onChange((value) => {
             this.pendingExerciseName = value;
           }),
       )
       .addButton((button) =>
-        button.setButtonText("Add").onClick(async () => {
+        button.setButtonText(t("settings.add", language)).onClick(async () => {
           const name = this.pendingExerciseName.trim();
           if (!name) {
-            new Notice("Enter an exercise type name first.");
+            new Notice(t("notice.enterExerciseType", this.plugin.settings.language));
             return;
           }
           const activity = createExerciseActivityType(name);
@@ -152,12 +167,13 @@ export class FitnessSettingTab extends PluginSettingTab {
   }
 
   private renderExerciseType(containerEl: HTMLElement, activity: ActivityType): void {
+    const language = this.plugin.settings.language;
     new Setting(containerEl)
       .setName(activity.label)
-      .setDesc(`Activity id: ${activity.id}`)
+      .setDesc(t("settings.activityId", language, { id: activity.id }))
       .addText((text) =>
         text
-          .setPlaceholder("Label")
+          .setPlaceholder(t("settings.labelPlaceholder", language))
           .setValue(activity.label)
           .onChange(async (value) => {
             const label = value.trim();
@@ -168,12 +184,12 @@ export class FitnessSettingTab extends PluginSettingTab {
       )
       .addText((text) =>
         text
-          .setPlaceholder("atomics/exercise/Name")
+          .setPlaceholder(t("settings.exerciseFolderPlaceholder", language))
           .setValue(activity.folder)
           .onChange(async (value) => {
             const folder = value.trim();
             if (!isSafeVaultFolder(folder)) {
-              new Notice("Folder must be a safe vault-relative path.");
+              new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
               return;
             }
             activity.folder = folder;
@@ -182,7 +198,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       )
       .addToggle((toggle) =>
         toggle
-          .setTooltip("Enable reminder/cue rollups for this exercise")
+          .setTooltip(t("settings.enableCuesTooltip", language))
           .setValue(activity.supportsCues)
           .onChange(async (value) => {
             activity.supportsCues = value;
@@ -191,8 +207,8 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName(`${activity.label} colors`)
-      .setDesc("Heatmap colors from low to high intensity.")
+      .setName(t("settings.colors", language, { label: activity.label }))
+      .setDesc(t("settings.colorsDesc", language))
       .addText((text) => this.bindColorText(text, activity, 0))
       .addText((text) => this.bindColorText(text, activity, 1))
       .addText((text) => this.bindColorText(text, activity, 2))
@@ -204,8 +220,9 @@ export class FitnessSettingTab extends PluginSettingTab {
     activity: ActivityType,
     index: 0 | 1 | 2 | 3,
   ): void {
+    const language = this.plugin.settings.language;
     text
-      .setPlaceholder(`#${index + 1}`)
+      .setPlaceholder(t("settings.colorPlaceholder", language, { number: index + 1 }))
       .setValue(activity.colors[index])
       .onChange(async (value) => {
         const color = value.trim();
@@ -267,12 +284,23 @@ export class FitnessSettingTab extends PluginSettingTab {
       this.plugin.refreshAll();
       this.display();
       new Notice(
-        `Migrated Fitness → Atomic: moved ${movedPaths} path${movedPaths === 1 ? "" : "s"}, skipped ${skippedPaths} existing destination${skippedPaths === 1 ? "" : "s"}, rewrote ${replacements} block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-* aliases disabled; reload the plugin (or Obsidian) to drop registered legacy processors.`,
+        t("notice.migrationComplete", this.plugin.settings.language, {
+          movedPaths,
+          pathWord: movedPaths === 1 ? "path" : "paths",
+          skippedPaths,
+          destinationWord: skippedPaths === 1 ? "destination" : "destinations",
+          replacements,
+          blockWord: replacements === 1 ? "block" : "blocks",
+          changedFiles,
+          fileWord: changedFiles === 1 ? "file" : "files",
+        }),
       );
     } catch (err) {
       console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new Notice(`Failed to migrate from Fitness to Atomic: ${message}`);
+      new Notice(
+        t("notice.migrationFailed", this.plugin.settings.language, { message }),
+      );
     }
   }
 }

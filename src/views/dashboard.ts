@@ -1,9 +1,10 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { parseSetTable, rowVolumeKg } from "../core";
 import { parseTimeLog } from "../core/hobby";
-import { nowYear } from "../dates";
+import { monthShortForLanguage, nowYear } from "../dates";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
 import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
+import { t, type Language } from "../i18n";
 import type { ActivityType, SessionMeta } from "../types";
 import {
   cuePathForActivity,
@@ -44,21 +45,8 @@ function sparkline(
   parent: HTMLElement,
   values: number[],
   color: string,
+  language: Language,
 ): void {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
   const max = Math.max(1, ...values);
   const span = parent.createSpan({ cls: "fitness-sparkline" });
   for (let i = 0; i < values.length; i++) {
@@ -67,7 +55,7 @@ function sparkline(
     const bar = span.createSpan({ cls: "fitness-spark-bar" });
     bar.style.height = `${h}px`;
     bar.style.background = color;
-    bar.setAttr("title", `${months[i]}: ${v}`);
+    bar.setAttr("title", `${monthShortForLanguage(2000, i + 1, 1, language)}: ${v}`);
   }
 }
 
@@ -87,6 +75,7 @@ export async function renderDashboard(
   data: VaultDataSource,
   activityTypes: ActivityType[],
   year: number,
+  language: Language,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
@@ -149,22 +138,13 @@ export async function renderDashboard(
 
   recent.sort((a, b) => b.date.localeCompare(a.date));
   const recent10 = recent.slice(0, 10);
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const monthNames = Array.from({ length: 12 }, (_, index) =>
+    monthShortForLanguage(year, index + 1, 1, language),
+  );
 
-  root.createEl("h2", { text: `📊 ${year} overview / 總覽` });
+  root.createEl("h2", {
+    text: t("view.dashboard.overview", language, { year }),
+  });
 
   const cueActivities = activities.filter((activity) => activity.supportsCues);
   if (cueActivities.length) {
@@ -173,7 +153,7 @@ export async function renderDashboard(
       if (index > 0) cuesP.appendText(" · ");
       const cuesA = cuesP.createEl("a", {
         cls: "fitness-link",
-        text: `💡 ${activity.label} cues / 提醒彙整`,
+        text: t("view.dashboard.cues", language, { activity: activity.label }),
       });
       cuesA.addEventListener("click", (e) => {
         e.preventDefault();
@@ -185,23 +165,23 @@ export async function renderDashboard(
   const ul = root.createEl("ul");
   for (const stat of activityStats) {
     const li = ul.createEl("li");
-    li.appendText(`${stat.activity.label} sessions / 次數: `);
+    li.appendText(t("view.dashboard.sessions", language, { activity: stat.activity.label }));
     li.createEl("strong", { text: String(stat.pages.length) });
-    li.appendText(`, ${stat.duration} min / 分鐘`);
+    li.appendText(t("view.dashboard.durationSuffix", language, { minutes: stat.duration }));
   }
   const durLi = ul.createEl("li");
-  durLi.appendText("Total exercise duration / 運動總時長: ");
+  durLi.appendText(t("view.dashboard.totalExerciseDuration", language));
   durLi.createEl("strong", { text: String(totalDuration) });
-  durLi.appendText(" min / 分鐘");
+  durLi.appendText(t("view.dashboard.minuteUnit", language));
   if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
     const volLi = ul.createEl("li");
-    volLi.appendText("Total set-table volume / 總訓練量: ");
+    volLi.appendText(t("view.dashboard.totalVolume", language));
     volLi.createEl("strong", { text: fmtKg(totalVolumeKg) });
     volLi.appendText(" kg");
   }
   if (activities.some((activity) => activity.id === "golf")) {
     ul.createEl("li").setText(
-      `Golf felt / 高爾夫感覺 — good / 好: ${feltCounts.good}, ok / 一般: ${feltCounts.ok}, bad / 差: ${feltCounts.bad}`,
+      t("view.dashboard.golfFelt", language, feltCounts),
     );
   }
 
@@ -225,19 +205,19 @@ export async function renderDashboard(
   }
 
   if (hobbyStats.length) {
-    root.createEl("h3", { text: "Hobbies / 興趣" });
+    root.createEl("h3", { text: t("view.dashboard.hobbies", language) });
     const hobbyUl = root.createEl("ul");
     for (const stat of hobbyStats) {
       const li = hobbyUl.createEl("li");
-      li.appendText(`${stat.activity.label} items / 項目: `);
+      li.appendText(t("view.dashboard.items", language, { activity: stat.activity.label }));
       li.createEl("strong", { text: String(stat.itemCount) });
-      li.appendText(`, ${stat.minutes} min / 分鐘`);
+      li.appendText(t("view.dashboard.hobbyMinutesSuffix", language, { minutes: stat.minutes }));
     }
     if (hobbyStats.some((stat) => stat.activity.id === "reading")) {
       const links = root.createEl("p");
       const baseLink = links.createEl("a", {
         cls: "fitness-link",
-        text: "Reading bookshelf",
+        text: t("view.dashboard.readingBookshelf", language),
       });
       baseLink.addEventListener("click", (event) => {
         event.preventDefault();
@@ -246,7 +226,7 @@ export async function renderDashboard(
       links.appendText(" · ");
       const shelfLink = links.createEl("a", {
         cls: "fitness-link",
-        text: "Atomic book shelf",
+        text: t("view.dashboard.bookShelf", language),
       });
       shelfLink.addEventListener("click", (event) => {
         event.preventDefault();
@@ -255,27 +235,29 @@ export async function renderDashboard(
     }
   }
 
-  root.createEl("h3", { text: "Monthly / 每月" });
+  root.createEl("h3", { text: t("view.dashboard.monthly", language) });
   const sparks = root.createDiv({ cls: "fitness-monthly-sparks" });
   for (const stat of activityStats) {
     const sessions = sparks.createDiv();
-    sessions.appendText(`${stat.activity.label} sessions / 次數 `);
-    sparkline(sessions, stat.sessionsByMonth, stat.activity.colors[2]);
+    sessions.appendText(t("view.dashboard.sparkSessions", language, { activity: stat.activity.label }));
+    sparkline(sessions, stat.sessionsByMonth, stat.activity.colors[2], language);
     if (stat.activity.supportsSetTable) {
       const volume = sparks.createDiv();
-      volume.appendText(`${stat.activity.label} volume / 訓練量 `);
-      sparkline(volume, stat.volumeByMonth, stat.activity.colors[1]);
+      volume.appendText(t("view.dashboard.sparkVolume", language, { activity: stat.activity.label }));
+      sparkline(volume, stat.volumeByMonth, stat.activity.colors[1], language);
     }
   }
 
   const monthTable = root.createEl("table");
   const thead = monthTable.createEl("thead");
   const hr = thead.createEl("tr");
-  hr.createEl("th", { text: "Month / 月" });
+  hr.createEl("th", { text: t("view.dashboard.month", language) });
   for (const stat of activityStats) {
     hr.createEl("th", { text: stat.activity.label });
     if (stat.activity.supportsSetTable) {
-      hr.createEl("th", { text: `${stat.activity.label} volume / 訓練量 (kg)` });
+      hr.createEl("th", {
+        text: t("view.dashboard.volumeHeader", language, { activity: stat.activity.label }),
+      });
     }
   }
   const tbody = monthTable.createEl("tbody");
@@ -291,10 +273,14 @@ export async function renderDashboard(
   }
 
   if (activityStats.some((stat) => stat.activity.supportsSetTable)) {
-    root.createEl("h3", { text: "Muscles / 肌群" });
+    root.createEl("h3", { text: t("view.dashboard.muscles", language) });
     const mTable = root.createEl("table");
     const mHead = mTable.createEl("thead").createEl("tr");
-    for (const h of ["Muscle / 肌群", "Sets / 組數", "Volume / 訓練量 (kg)"]) {
+    for (const h of [
+      t("view.dashboard.muscle", language),
+      t("view.dashboard.sets", language),
+      t("view.dashboard.volumeKg", language),
+    ]) {
       mHead.createEl("th", { text: h });
     }
     const mBody = mTable.createEl("tbody");
@@ -310,7 +296,7 @@ export async function renderDashboard(
     if (!muscleRows.length) {
       const tr = mBody.createEl("tr");
       tr.createEl("td", {
-        text: "No set data / 尚無組數資料",
+        text: t("view.dashboard.noSetData", language),
         attr: { colspan: "3" },
       }).addClass("fitness-muted");
     } else {
@@ -324,12 +310,12 @@ export async function renderDashboard(
   }
 
   if (activities.some((activity) => activity.id === "golf")) {
-    root.createEl("h3", { text: "Golf focus / 高爾夫重點" });
+    root.createEl("h3", { text: t("view.dashboard.golfFocus", language) });
     const focusUl = root.createEl("ul");
     const focuses = sortMapDesc(focusCounts);
     if (!focuses.length) {
       focusUl.createEl("li", {
-        text: "No focus tags / 尚無重點標籤",
+        text: t("view.dashboard.noFocusTags", language),
         cls: "fitness-muted",
       });
     } else {
@@ -339,11 +325,11 @@ export async function renderDashboard(
     }
   }
 
-  root.createEl("h3", { text: "Recent sessions / 最近訓練" });
+  root.createEl("h3", { text: t("view.dashboard.recentSessions", language) });
   const recentUl = root.createEl("ul");
   if (!recent10.length) {
     recentUl.createEl("li", {
-      text: "No sessions yet / 尚未記錄",
+      text: t("view.dashboard.noSessions", language),
       cls: "fitness-muted",
     });
   } else {

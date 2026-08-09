@@ -4,6 +4,7 @@ import {
   parseYmd,
   ymdInZone,
 } from "../dates";
+import { t, type Language } from "../i18n";
 import type { ActivityType } from "../types";
 import { exerciseActivities } from "../util/activity-types";
 
@@ -23,11 +24,12 @@ export function renderTodaySessions(
   data: VaultDataSource,
   activityTypes: ActivityType[],
   dateStr: string,
+  language: Language,
 ): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const box = root.createDiv();
-  box.createEl("strong", { text: "🗂️ Today’s sessions / 今日訓練" });
+  box.createEl("strong", { text: t("view.today.title", language) });
   const ul = box.createEl("ul");
   const year = Number(dateStr.slice(0, 4));
 
@@ -47,7 +49,7 @@ export function renderTodaySessions(
     } else {
       li.createEl("em", {
         cls: "fitness-muted",
-        text: "no session yet / 尚未記錄",
+        text: t("view.today.noSession", language),
       });
     }
   }

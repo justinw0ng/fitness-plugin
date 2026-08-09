@@ -16,6 +16,7 @@ import {
   openReadingBookshelfCommand,
 } from "./hobbies/reading-bookshelf";
 import { FitnessSettingTab, mergeSettings } from "./settings";
+import { t } from "./i18n";
 import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { exerciseActivities, hobbyActivities } from "./util/activity-types";
@@ -35,7 +36,7 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "fitness-new-gym-session",
-      name: "New gym session",
+      name: t("command.newGymSession", this.settings.language),
       callback: () => {
         void this.createGymSession();
       },
@@ -43,7 +44,7 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "fitness-new-golf-session",
-      name: "New golf session",
+      name: t("command.newGolfSession", this.settings.language),
       callback: () => {
         void this.createGolfSession();
       },
@@ -51,7 +52,7 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "atomic-new-exercise-session",
-      name: "New exercise session",
+      name: t("command.newExerciseSession", this.settings.language),
       callback: () => {
         void this.createExerciseSession();
       },
@@ -59,7 +60,7 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "atomic-new-reading-item",
-      name: "New reading item",
+      name: t("command.newReadingItem", this.settings.language),
       callback: () => {
         void this.createReadingItem();
       },
@@ -67,39 +68,39 @@ export default class FitnessPlugin extends Plugin {
 
     this.addCommand({
       id: "atomic-ensure-reading-bookshelf",
-      name: "Ensure reading bookshelf",
+      name: t("command.ensureReadingBookshelf", this.settings.language),
       callback: () => {
-        void ensureReadingBookshelfCommand(this.app, this.data);
+        void ensureReadingBookshelfCommand(this.app, this.data, this.settings.language);
       },
     });
 
     this.addCommand({
       id: "atomic-open-reading-bookshelf",
-      name: "Open reading bookshelf",
+      name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
-        void openReadingBookshelfCommand(this.app, this.data);
+        void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
       },
     });
 
     this.addCommand({
       id: "atomic-ensure-book-shelf",
-      name: "Ensure book shelf",
+      name: t("command.ensureBookShelf", this.settings.language),
       callback: () => {
-        void ensureBookShelfHostCommand(this.data);
+        void ensureBookShelfHostCommand(this.data, this.settings.language);
       },
     });
 
     this.addCommand({
       id: "atomic-open-book-shelf",
-      name: "Open book shelf",
+      name: t("command.openBookShelf", this.settings.language),
       callback: () => {
-        void openBookShelfHostCommand(this.data);
+        void openBookShelfHostCommand(this.data, this.settings.language);
       },
     });
 
     this.addCommand({
       id: "fitness-open-dashboard",
-      name: "Open dashboard",
+      name: t("command.openDashboard", this.settings.language),
       callback: () => {
         void this.openDashboard();
       },
@@ -170,7 +171,7 @@ export default class FitnessPlugin extends Plugin {
   private chooseExerciseActivity(): Promise<ActivityType | null> {
     const activities = exerciseActivities(this.settings.activityTypes);
     if (!activities.length) {
-      new Notice("No exercise activities configured");
+      new Notice(t("notice.noExerciseActivities", this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
@@ -196,7 +197,7 @@ export default class FitnessPlugin extends Plugin {
           resolve(null);
         }
       })(this.app);
-      modal.setPlaceholder("Exercise type / 運動類型");
+      modal.setPlaceholder(t("modal.exerciseTypePlaceholder", this.settings.language));
       modal.open();
     });
   }
@@ -209,13 +210,14 @@ export default class FitnessPlugin extends Plugin {
       this.data,
       picked,
       this.settings.timezone,
+      this.settings.language,
     );
   }
 
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new Notice("No gym activity configured");
+      new Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
@@ -223,13 +225,14 @@ export default class FitnessPlugin extends Plugin {
       this.data,
       activity,
       this.settings.timezone,
+      this.settings.language,
     );
   }
 
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new Notice("No golf activity configured");
+      new Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
@@ -237,22 +240,23 @@ export default class FitnessPlugin extends Plugin {
       this.data,
       activity,
       this.settings.timezone,
+      this.settings.language,
     );
   }
 
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new Notice("No Reading hobby configured");
+      new Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
-    await createReadingItem(this.app, this.data, activity);
+    await createReadingItem(this.app, this.data, activity, this.settings.language);
   }
 
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new Notice(`Dashboard not found: ${path}`);
+      new Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);

@@ -1,5 +1,6 @@
 import { Notice } from "obsidian";
 import type FitnessPlugin from "../main";
+import { t } from "../i18n";
 import {
   readTimerFrontmatter,
   stopTimer,
@@ -13,7 +14,7 @@ async function modifyCurrentNote(
 ): Promise<void> {
   const file = plugin.data.getFileByPath(sourcePath);
   if (!file) {
-    new Notice("Atomic timer can only update a saved note.");
+    new Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
     return;
   }
   const original = await plugin.app.vault.read(file);
@@ -31,7 +32,7 @@ export async function renderAtomicTimer(
   if (!sourcePath) {
     root.createEl("p", {
       cls: "fitness-muted",
-      text: "Atomic timer can only run from a saved Reading item note.",
+      text: t("view.timer.needsReadingItem", plugin.settings.language),
     });
     return;
   }
@@ -39,7 +40,9 @@ export async function renderAtomicTimer(
   const markdown = await plugin.data.readBody(sourcePath);
   const frontmatter = readTimerFrontmatter(markdown);
   root.createEl("p", {
-    text: `Total: ${frontmatter.totalMin} min`,
+    text: t("view.timer.total", plugin.settings.language, {
+      minutes: frontmatter.totalMin,
+    }),
     cls: "atomic-timer-total",
   });
 
@@ -47,35 +50,41 @@ export async function renderAtomicTimer(
   if (frontmatter.timerStartedAt) {
     root.createEl("p", {
       cls: "atomic-timer-running",
-      text: `Timer running since ${frontmatter.timerStartedAt}`,
+      text: t("view.timer.runningSince", plugin.settings.language, {
+        time: frontmatter.timerStartedAt,
+      }),
     });
     actions
-      .createEl("button", { text: "Stop" })
+      .createEl("button", { text: t("view.timer.stop", plugin.settings.language) })
       .addEventListener("click", () => {
         void modifyCurrentNote(plugin, sourcePath, (latest) => {
           const latestFrontmatter = readTimerFrontmatter(latest);
           if (!latestFrontmatter.timerStartedAt) {
-            new Notice("Timer is not running.");
+            new Notice(t("notice.timerNotRunning", plugin.settings.language));
             return latest;
           }
-          const note = window.prompt("Time log note", "") ?? "";
+          const note = window.prompt(t("modal.timeLogNote", plugin.settings.language), "") ?? "";
           const result = stopTimer({
             markdown: latest,
             startedAtIso: latestFrontmatter.timerStartedAt,
             stoppedAtIso: new Date().toISOString(),
             note,
           });
-          new Notice(`Logged ${result.minutes} min.`);
+          new Notice(
+            t("notice.timerLogged", plugin.settings.language, {
+              minutes: result.minutes,
+            }),
+          );
           return result.markdown;
         });
       });
     actions
-      .createEl("button", { text: "Resume" })
+      .createEl("button", { text: t("view.timer.resume", plugin.settings.language) })
       .addEventListener("click", () => {
-        new Notice("Timer is already running.");
+        new Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
       });
     actions
-      .createEl("button", { text: "Discard" })
+      .createEl("button", { text: t("view.timer.discard", plugin.settings.language) })
       .addEventListener("click", () => {
         void modifyCurrentNote(plugin, sourcePath, (latest) =>
           updateTimerFrontmatter(latest, { timerStartedAtIso: null }),
@@ -85,7 +94,7 @@ export async function renderAtomicTimer(
   }
 
   actions
-    .createEl("button", { text: "Start" })
+    .createEl("button", { text: t("view.timer.start", plugin.settings.language) })
     .addEventListener("click", () => {
       void modifyCurrentNote(plugin, sourcePath, (latest) =>
         updateTimerFrontmatter(latest, {

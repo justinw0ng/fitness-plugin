@@ -1,5 +1,7 @@
 import type { ActivityType, FitnessSettings } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { DEFAULT_LANGUAGE, isLanguage } from "../i18n/index.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { DEFAULT_SETTINGS } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.ts";
@@ -77,6 +79,7 @@ export function mergeSettings(
     );
 
   return {
+    language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
     golfCuesPath,

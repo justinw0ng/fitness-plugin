@@ -1,3 +1,5 @@
+import type { Language } from "./i18n/types";
+
 export type SeriesKind = "gym" | "golf" | "generic";
 
 export interface SeriesConfig {
@@ -46,6 +48,7 @@ export interface DayActivity {
 }
 
 export interface FitnessSettings {
+  language: Language;
   timezone: string;
   activityTypes: ActivityType[];
   dashboardPath: string;
@@ -114,6 +117,7 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
 ];
 
 export const DEFAULT_SETTINGS: FitnessSettings = {
+  language: "zh-Hant-en",
   timezone: "Asia/Hong_Kong",
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
