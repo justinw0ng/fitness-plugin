@@ -19,7 +19,7 @@ export class FitnessSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Fitness" });
+    containerEl.createEl("h2", { text: "Atomic" });
 
     new Setting(containerEl)
       .setName("Timezone")
@@ -40,7 +40,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       .setDesc("Vault-relative path opened by “Open dashboard”.")
       .addText((text) =>
         text
-          .setPlaceholder("Fitness/Dashboard.md")
+          .setPlaceholder(DEFAULT_SETTINGS.dashboardPath)
           .setValue(this.plugin.settings.dashboardPath)
           .onChange(async (value) => {
             this.plugin.settings.dashboardPath =
@@ -54,7 +54,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       .setDesc("Vault-relative path for golf cue rollup note.")
       .addText((text) =>
         text
-          .setPlaceholder("Golf/Cues.md")
+          .setPlaceholder(DEFAULT_SETTINGS.golfCuesPath)
           .setValue(this.plugin.settings.golfCuesPath)
           .onChange(async (value) => {
             this.plugin.settings.golfCuesPath =
@@ -68,7 +68,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       .setDesc("Vault-relative path for gym cue rollup note.")
       .addText((text) =>
         text
-          .setPlaceholder("Gym/Cues.md")
+          .setPlaceholder(DEFAULT_SETTINGS.gymCuesPath)
           .setValue(this.plugin.settings.gymCuesPath)
           .onChange(async (value) => {
             this.plugin.settings.gymCuesPath =
@@ -110,7 +110,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     containerEl.createEl("p", {
-      text: "Series (folders, labels, colors) use defaults: Gym + Golf. Edit plugin data.json advanced series later if needed.",
+      text: "Series (folders, labels, colors) use Atomic defaults under atomics/exercise/Gym and atomics/exercise/Golf. Edit plugin data.json advanced series later if needed.",
       cls: "setting-item-description",
     });
   }

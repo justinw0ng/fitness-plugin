@@ -95,7 +95,7 @@ jobs:
       - name: Upload plugin artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: obsidian-fitness-build
+          name: obsidian-atomic-build
           path: |
             main.js
             manifest.json
