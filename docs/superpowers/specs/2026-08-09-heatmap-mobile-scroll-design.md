@@ -1,7 +1,7 @@
 # Design: Heatmap horizontal scroll + default to today
 
 Date: 2026-08-09  
-Status: implementation complete (pending manual E2E validation)  
+Status: implemented (E2E validated)  
 Related: `src/views/heatmap.ts`, `styles.css`
 
 ## Goal
