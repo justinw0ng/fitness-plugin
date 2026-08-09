@@ -1,14 +1,16 @@
 # User journey — base colors, general habits, heatmap filters
 
-Review walkthrough for the habits settings / heatmap work. Obsidian desktop was not available in the docs VM, so this journey uses HTML mockups that mirror the shipped settings UX.
+Review walkthrough for the habits settings / heatmap work.
 
 ## Artifacts
 
 | Artifact | Path |
 |----------|------|
+| **E2E recording (Obsidian)** | `/opt/cursor/artifacts/atomic-habits-e2e-user-journey.mp4` |
+| Demo vault | `/workspace/obsidian-demo` (plugin installed under `.obsidian/plugins/obsidian-atomic/`) |
 | Click-through mockup | [`docs/mockups/atomic/07-habits-user-journey.html`](./mockups/atomic/07-habits-user-journey.html) |
 | Settings mockup | [`docs/mockups/atomic/01-settings.html`](./mockups/atomic/01-settings.html) |
-| Recorded journey | `/opt/cursor/artifacts/habits-user-journey.mp4` (attached on the PR) |
+| Earlier mockup recording | `/opt/cursor/artifacts/habits-user-journey.mp4` |
 | Settings screenshot | [`docs/images/07-settings-atomic.png`](./images/07-settings-atomic.png) |
 | Heatmap filter screenshot | [`docs/images/atomic-heatmap-activity-filter.png`](./images/atomic-heatmap-activity-filter.png) |
 
@@ -20,9 +22,9 @@ Review walkthrough for the habits settings / heatmap work. Obsidian desktop was 
 4. **Rendered heatmaps** — Only the requested enabled habits render, each with its own palette.
 5. **Disable path** — Turn Reading off. Commands Notice; `activity: reading` shows an inline unknown/disabled message.
 
-## Live Obsidian checklist (when desktop is available)
+## E2E checklist (run in `/workspace/obsidian-demo`)
 
-1. Confirm the color picker + swatches match the mockup.
-2. Add a general habit, create an item with **New hobby item**, start/stop the timer.
-3. Confirm `activity: gym, reading` on a dashboard note.
-4. Disable Reading and confirm Reading commands Notice.
+1. Confirm color picker + shade swatches on Gym/Golf/Reading.
+2. Add a general habit (e.g. Chess), create an item with **New hobby item**, start/stop the timer.
+3. Confirm Dashboard heatmaps for all / `activity: reading` / `activity: gym, golf`.
+4. Open Book Shelf; disable Reading and confirm Reading commands Notice; re-enable.
