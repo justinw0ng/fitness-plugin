@@ -1,7 +1,7 @@
 # Design: `fitness-golf-cues` / `fitness-gym-cues` blocks
 
 Date: 2026-08-09  
-Status: draft for review
+Status: approved
 
 ## Goal
 
