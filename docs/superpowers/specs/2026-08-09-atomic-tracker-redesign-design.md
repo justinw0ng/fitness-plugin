@@ -37,9 +37,10 @@ Tagline intent: *visualize habits so they stick* (Atomic Habits–inspired namin
 | Bases trigger | Commands create/open `.base` **on demand** |
 | Bases default path | `atomics/hobbies/Reading/Bookshelf.base` |
 | Bases dependency | Soft-require Bases core plugin for those commands only |
-| Atomic book shelf | Custom plugin-rendered **Atomic book shelf** (`atomic-bookshelf`); click book → open book note |
+| Atomic book shelf | Custom plugin-rendered **Atomic book shelf** (`atomic-bookshelf`); books stand **on a bookshelf**; click book → open book note |
+| Book shelf layout | Framer [Interactive 3D Books](https://www.framer.com/marketplace/components/interactive-3d-books/)–style shelf scene (shelf boards + upright books), not a floating card grid |
 | Book shelf host path | `atomics/hobbies/Reading/Book Shelf.md` |
-| Book shelf motion | Framer Book–style 3D cover open on hover (see animation spec); CSS only, no Framer runtime |
+| Book shelf motion | Per-book Framer Book–style 3D cover open on hover; CSS only, no Framer runtime |
 | Canvas | Ordinary vault notes + wikilinks; no custom canvas format |
 | Legacy codeblocks | `fitness-*` aliases until migrate turns them off |
 
@@ -216,7 +217,7 @@ Optional later: embed `![[Bookshelf.base]]` / `![[Bookshelf.base#Cards]]` into `
 
 #### Atomic book shelf (custom, on demand)
 
-Second Reading surface: the **Atomic book shelf**. Plugin-rendered 3D books on a shelf. Hover opens the cover (Framer Book–style). Click opens the book’s item note.
+Second Reading surface: the **Atomic book shelf**. A **bookshelf scene** (books standing on shelf boards), in the spirit of Framer’s [Interactive 3D Books](https://www.framer.com/marketplace/components/interactive-3d-books/). Hover opens a book’s cover (Framer Book–style). Click opens the book’s item note.
 
 Bases remains the property/cover database. Atomic book shelf is the atmospheric picker.
 
@@ -237,32 +238,40 @@ activity: reading
 ```
 ```
 
+**Scene layout (bookshelf, not a card grid)**
+
+1. Outer **bookshelf frame** (side rails + back panel optional; theme-aware wood/matte board).
+2. One or more **horizontal shelves** with a visible ledge/plank; books rest **on** the ledge (baseline aligned to the shelf top), not floating mid-air.
+3. Books stand **upright** in a row per shelf; wrap to the next shelf when the row is full.
+4. Optional subtle grid/depth on the back panel (keep quiet; no purple glow).
+5. Optional hover **detail chip** near the active book: title, author, short `description` (does not replace click-to-note).
+
 **Renderer behavior**
 
 1. Resolve Reading activity folder → scan `Items/**/*.md` with `type: atomic-item` / `activity: reading`.
-2. Lay out books in one or more horizontal shelf rows (wrap by width).
-3. Each book is a 3D card (cover + page stack), not a flat spine strip only:
+2. Distribute books across shelf rows by available width.
+3. Each book is a 3D volume on the shelf (cover + page stack + thin spine edge):
    - Cover face uses `cover` image when present; else solid `spine_color` / hashed color with title
-   - Page face shows title + primary author
-4. **Hover / focus (desktop):** play the open-book animation (below).
+   - Page face shows title + primary author when the cover opens
+4. **Hover / focus (desktop):** open-book animation (below); only one book “active” at a time is fine.
 5. **Click / keyboard activate** → open the item note path (same as a wikilink).
 6. Live refresh with other Atomic blocks when vault files change.
-7. Empty state: short message + tip to create a book item.
-8. `prefers-reduced-motion: reduce` → skip 3D motion; show static cover + still open note on click.
+7. Empty state: empty shelves + tip to create a book item.
+8. `prefers-reduced-motion: reduce` → skip 3D motion; static covers on shelves; click still opens the note.
 
-**Animation spec (match [Framer Book](https://framer.com/m/Book-AFRs.js@mxOP9zughWqzCr7yH17p))**
+**Animation spec (match [Framer Book](https://framer.com/m/Book-AFRs.js@mxOP9zughWqzCr7yH17p) while books stay on the shelf)**
 
 Implement with CSS 3D + modest JS class toggles only. Do **not** ship Framer/React Motion.
 
 | State | Motion |
 |-------|--------|
-| Rest | Cover closed (`rotateY: 0`); light shadow; `transform-style: preserve-3d`; perspective ~1200px |
-| Hover / focus-within | Cover opens around the bound edge: `rotateY: -70deg`, `transform-origin: left center`; book lifts slightly (`translateZ`); shadow deepens |
-| Timing | Spring-like ease ~600ms (`cubic-bezier(0.22, 1, 0.36, 1)` or equivalent); no bounce overshoot required |
+| Rest | Book upright on shelf ledge; cover closed (`rotateY: 0`); light contact shadow on the plank |
+| Hover / focus-within | Cover opens on bound edge: `rotateY: -70deg`, `transform-origin: left center`; slight lift; shadow deepens; book remains seated on the shelf |
+| Timing | ~600ms ease (`cubic-bezier(0.22, 1, 0.36, 1)` or equivalent) |
 | Cover overlays | Soft vertical light streak on cover edge (subtle, theme-aware) |
 | Pages | Visible under opening cover with title + author |
 
-Reference intent only; Obsidian theme colors and vault `cover` images replace Framer demo assets.
+Layout reference: [Interactive 3D Books](https://www.framer.com/marketplace/components/interactive-3d-books/) (books on a bookshelf). Motion reference: Framer Book open-on-hover. Vault `cover` images replace demo art.
 
 **Book frontmatter**
 
@@ -275,16 +284,18 @@ spine_color: "#8B3A2A"   # optional fallback when no cover
 
 | Approach | Notes |
 |----------|--------|
-| A. `atomic-bookshelf` codeblock (recommended) | Embeddable; CSS 3D animation; click → note |
-| B. Bases-only Cards | Good for fields; no Framer-like open animation |
-| C. Embed Framer runtime | Rejected (network, React, not vault-native) |
+| A. `atomic-bookshelf` shelf scene (recommended) | Books on planks; CSS 3D open; click → note |
+| B. Floating 3D book row only | Rejected for product UX; user wants bookshelf seating |
+| C. Bases-only Cards | Good for fields; not a 3D shelf scene |
+| D. Embed Framer runtime | Rejected (network, React, not vault-native) |
 
 Keep **A + Bases**: “Open reading bookshelf” (Bases) and “Open book shelf” (Atomic book shelf).
 
 **Visual direction (plugin CSS)**
 
-- Shelf board from theme vars + subtle depth (avoid purple glow / emoji)
+- Readable shelf furniture from theme vars + quiet depth
 - Real titles/authors from notes; cover images when available
+- No emoji on books; avoid generic purple/glow AI aesthetics
 
 ### Codeblocks
 
@@ -444,6 +455,6 @@ Product questions closed by approver:
 ### Follow-up (same day): Reading bookshelf surfaces
 
 1. **Bases bookshelf** on demand (Cards + Table) for cover/property gallery.
-2. **Atomic book shelf** on demand: `atomic-bookshelf` codeblock; Framer Book–style 3D cover-open on hover; click opens the book note.
+2. **Atomic book shelf** on demand: `atomic-bookshelf` codeblock; books stand on a bookshelf (Interactive 3D Books–style scene); Framer Book–style cover-open on hover; click opens the book note.
 
-Both locked into this spec; Phase C plan updated. Product wording uses **Atomic book shelf** (not “Stripe spine shelf”).
+Both locked into this spec; Phase C plan updated. Product wording uses **Atomic book shelf**.

@@ -9,7 +9,7 @@ Open these HTML files in a browser (design references for the proposed Atomic tr
 | [03-hobby-item-note.html](./03-hobby-item-note.html) | Reading item note with Start/Stop timer and remarks |
 | [04-canvas.html](./04-canvas.html) | Obsidian Canvas linking via normal wikilinks |
 | [05-reading-bookshelf-base.html](./05-reading-bookshelf-base.html) | Reading Bases bookshelf (command-triggered Cards + Table) |
-| [06-atomic-book-shelf.html](./06-atomic-book-shelf.html) | Atomic book shelf; 3D cover-open hover; click → book note |
+| [06-atomic-book-shelf.html](./06-atomic-book-shelf.html) | Atomic book shelf: books on shelf planks; 3D cover-open hover; click → note |
 
 Specs:
 

@@ -18,7 +18,7 @@
 - Cue blocks: dedicated `atomic-golf-cues` / `atomic-gym-cues` **plus** generic `atomic-cues`
 - Hobby heatmaps: timer-log minutes
 - Reading Bases bookshelf: `.base` file (Cards + Table), on-demand commands; path `atomics/hobbies/Reading/Bookshelf.base`; soft-require Bases
-- Atomic book shelf: `atomic-bookshelf` codeblock; host `atomics/hobbies/Reading/Book Shelf.md`; Framer Book–style 3D cover-open on hover; click → book note; CSS only (no Framer runtime)
+- Atomic book shelf: `atomic-bookshelf` codeblock; host `atomics/hobbies/Reading/Book Shelf.md`; books stand on shelf boards (Interactive 3D Books–style scene); Framer Book–style cover-open on hover; click → book note; CSS only (no Framer runtime)
 - Book properties: `cover`, `authors`, `description`, `pages`, `status`, `tags`, optional `spine_color` (+ timer fields)
 - Migrate conflicts: skip destination if it already exists (no merge/overwrite)
 - One-click Settings migrate: folders + fences + settings + disable legacy aliases; idempotent
@@ -437,8 +437,10 @@ export function buildBookShelfItems(
 Renderer:
 
 - Register `atomic-bookshelf`
-- Shelf rows of 3D books: cover layer + page layer (`preserve-3d`, perspective ~1200)
-- Hover/focus: cover `rotateY(-70deg)` origin left, ~600ms ease, lift + deeper shadow (Framer Book parity)
+- Build a **bookshelf scene**: frame + one or more planks; books upright, baseline on the ledge (not a floating card grid)
+- Each book: cover + pages + thin spine edge (`preserve-3d`, perspective ~1200)
+- Hover/focus: cover `rotateY(-70deg)` origin left, ~600ms ease, lift + deeper shadow; book stays on the shelf
+- Optional detail chip: title / author / description
 - `prefers-reduced-motion`: no rotate; still clickable
 - Click → open note at `path`
 - Commands: open/ensure `atomics/hobbies/Reading/Book Shelf.md`
