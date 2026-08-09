@@ -367,13 +367,15 @@
 
 .fitness-plugin .atomic-book-cover-face {
   position: absolute;
-  inset: 0;
+  /* Overlap the hinge slightly so cream pages never flash as a white edge. */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: -1px;
   border-radius: 3px 4px 4px 3px;
   overflow: hidden;
   color: white;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 32%),
-    var(--atomic-book-color);
+  background: var(--atomic-book-color);
   transform: translateZ(3px);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -409,12 +411,15 @@
   width: 6px;
   transform-origin: left center;
   transform: rotateY(-90deg);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--atomic-book-color), white 6%),
-      color-mix(in srgb, var(--atomic-book-color), black 28%)
-    );
+  background: color-mix(in srgb, var(--atomic-book-color), black 18%);
+  opacity: 0;
+  transition: opacity 90ms ease;
+}
+
+.fitness-plugin .atomic-book:hover .atomic-book-cover-sleeve,
+.fitness-plugin .atomic-book:focus-visible .atomic-book-cover-sleeve {
+  opacity: 1;
+  transition: opacity 160ms ease 120ms;
 }
 
 /* Beat Obsidian's preview `img { height: auto }` so covers fill the face. */
@@ -455,17 +460,6 @@
   font-size: 7.5px;
   line-height: 1.1;
   inset: 7px 5px;
-}
-
-.fitness-plugin .atomic-book-cover-shine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 8px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
-  opacity: 0.22;
-  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book-spine {

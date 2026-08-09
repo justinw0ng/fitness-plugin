@@ -2351,7 +2351,6 @@ function createBook(parent, item, data, language) {
   }
   cover.createDiv({ cls: "atomic-book-cover-inside" });
   cover.createDiv({ cls: "atomic-book-cover-sleeve" });
-  face.createDiv({ cls: "atomic-book-cover-shine" });
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
   spine.createDiv({
     cls: ["atomic-book-spine-title", titleClass].filter(Boolean).join(" "),

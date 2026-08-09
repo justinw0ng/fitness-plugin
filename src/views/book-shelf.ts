@@ -213,7 +213,6 @@ function createBook(
   }
   cover.createDiv({ cls: "atomic-book-cover-inside" });
   cover.createDiv({ cls: "atomic-book-cover-sleeve" });
-  face.createDiv({ cls: "atomic-book-cover-shine" });
 
   const spine = volume.createDiv({ cls: "atomic-book-spine" });
   spine.createDiv({
