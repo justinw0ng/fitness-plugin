@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atomic — Atomic book shelf mockup</title>
+  <style>
+    :root {
+      --bg: #171512;
+      --shelf: #2c241c;
+      --ink: #f4ede4;
+      --muted: #b7a892;
+      --edge: #463929;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      background: radial-gradient(ellipse at top, #2a221a, var(--bg));
+      color: var(--ink);
+    }
+    h1 { margin: 0 0 6px; font-size: 1.35rem; }
+    .lead { color: var(--muted); max-width: 64ch; margin: 0 0 14px; }
+    .note {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 8px 10px;
+      border: 1px solid var(--edge);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .board {
+      max-width: 980px;
+      padding: 36px 24px 20px;
+      background: linear-gradient(180deg, #3a3127, #211b15);
+      border: 1px solid var(--edge);
+      perspective: 1200px;
+    }
+    .shelf {
+      display: flex;
+      gap: 22px;
+      align-items: flex-end;
+      min-height: 240px;
+      padding: 0 8px 18px;
+      margin-bottom: 28px;
+      border-bottom: 12px solid #4a3f33;
+    }
+    .book {
+      width: 120px;
+      height: 180px;
+      position: relative;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+    }
+    .book:focus-visible { outline: 2px solid #e7d3b0; outline-offset: 4px; }
+    .pages, .cover {
+      position: absolute;
+      inset: 0;
+      border-radius: 2px;
+      backface-visibility: hidden;
+    }
+    .pages {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: linear-gradient(239deg, #fff 0%, #e0e0e0 100%);
+      color: #222;
+      z-index: 0;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+    .pages strong { font-size: 0.95rem; line-height: 1.2; }
+    .pages span { font-size: 0.75rem; opacity: 0.55; }
+    .cover {
+      z-index: 1;
+      transform-origin: left center;
+      transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 600ms cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px;
+      color: #f7f0e6;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .cover::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 14px;
+      background: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(255,255,255,0.25), transparent);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .book:hover .cover,
+    .book:focus-visible .cover {
+      transform: rotateY(-70deg) translateZ(8px);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+    }
+    .c1 { background: linear-gradient(160deg, #7a2f28, #3e1512); }
+    .c2 { background: linear-gradient(160deg, #1f4d3a, #10281e); }
+    .c3 { background: linear-gradient(160deg, #2c3e6b, #151e35); }
+    .c4 { background: linear-gradient(160deg, #6b4a1f, #35240f); }
+    .hint { color: var(--muted); font-size: 0.9rem; max-width: 980px; }
+    code { color: #e7d3b0; }
+    @media (prefers-reduced-motion: reduce) {
+      .cover { transition: none; }
+      .book:hover .cover, .book:focus-visible .cover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Atomic book shelf</h1>
+  <p class="lead">Plugin-rendered shelf of 3D books. Hover opens the cover (Framer Book–style <code>rotateY(-70deg)</code>, ~600ms). Click opens the book note in Obsidian.</p>
+  <div class="note">Command: <strong>Atomic: Open book shelf</strong> → <code>atomics/hobbies/Reading/Book Shelf.md</code> with <code>atomic-bookshelf</code></div>
+
+  <div class="board">
+    <div class="shelf">
+      <button class="book" type="button" title="Open Atomic Habits">
+        <div class="pages"><strong>Atomic Habits</strong><span>James Clear</span></div>
+        <div class="cover c1">Atomic Habits</div>
+      </button>
+      <button class="book" type="button" title="Open Thinking, Fast and Slow">
+        <div class="pages"><strong>Thinking, Fast and Slow</strong><span>Daniel Kahneman</span></div>
+        <div class="cover c2">Thinking, Fast and Slow</div>
+      </button>
+      <button class="book" type="button" title="Open Building a Second Brain">
+        <div class="pages"><strong>Building a Second Brain</strong><span>Tiago Forte</span></div>
+        <div class="cover c3">Building a Second Brain</div>
+      </button>
+      <button class="book" type="button" title="Open Make Time">
+        <div class="pages"><strong>Make Time</strong><span>Jake Knapp</span></div>
+        <div class="cover c4">Make Time</div>
+      </button>
+    </div>
+  </div>
+
+  <p class="hint">Motion reference: <a href="https://framer.com/m/Book-AFRs.js@mxOP9zughWqzCr7yH17p" style="color:#e7d3b0">Framer Book</a>. Ship CSS 3D only (no Framer runtime). Respect <code>prefers-reduced-motion</code>.</p>
+</body>
+</html>

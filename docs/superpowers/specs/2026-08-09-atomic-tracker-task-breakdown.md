@@ -13,7 +13,7 @@ This is the **phased work map** for multi-agent execution after design approval.
 - Default content root: `atomics/**`
 - One-click **Migrate from Fitness → Atomic** (skip if destination exists)
 - Reading Bases bookshelf: Cards + Table on demand (`Bookshelf.base`); soft-require Bases
-- Reading spine shelf: Stripe Press–style `atomic-spine-shelf`; click spine → book note (`Spine Shelf.md`)
+- **Atomic book shelf:** `atomic-bookshelf` in `Book Shelf.md`; Framer Book–style 3D cover-open on hover; click → book note; CSS only
 
 ## Parallelism map
 
@@ -52,17 +52,17 @@ This is the **phased work map** for multi-agent execution after design approval.
 - [ ] Default Reading at `atomics/hobbies/Reading` (`noteModel: item`)
 - [ ] Book item notes: `cover`, `authors`, `description`, `pages`, `status`, `tags` + timer fields
 - [ ] TDD timer core + `atomic-timer` UI
-- [ ] Commands: **Open / Ensure reading bookshelf** → `Bookshelf.base` (Bases); create if missing; never clobber; soft-require Bases
-- [ ] `atomic-spine-shelf` + **Open / Ensure reading spine shelf**; click spine opens book note
+- [ ] Commands: **Open / Ensure reading bookshelf** → `Bookshelf.base` (Bases); soft-require Bases
+- [ ] `atomic-bookshelf` + **Open / Ensure book shelf**; 3D cover-open hover; click opens book note
 - [ ] Hobby minutes → heatmap; optional Library embed; Canvas docs
-- [ ] Security tests: path + log injection + bookshelf path
+- [ ] Security tests: path + log injection + bookshelf paths
 
 ## Track D — docs, E2E, security review
 
-- [ ] USER_GUIDE / README / AGENTS (include Bases bookshelf)
+- [ ] USER_GUIDE / README / AGENTS (Bases + Atomic book shelf)
 - [ ] `npm test` / typecheck / build
 - [ ] Security-review agent
-- [ ] Manual E2E (or Cloud skip), including bookshelf with Bases enabled
+- [ ] Manual E2E (or Cloud skip), including book shelf hover/click
 
 ## Definition of done
 
@@ -71,9 +71,9 @@ This is the **phased work map** for multi-agent execution after design approval.
 3. Exercise: Gym, Golf, custom types with cues/dashboard/heatmaps
 4. Reading: item notes, remarks, Start/Stop timer
 5. Reading Bases bookshelf opens on demand (Cards + Table)
-6. Reading spine shelf opens on demand; clicking a spine opens the book note
-6. Notes remain Canvas-linkable markdown
-7. Language PR sequenced; tests/docs green
+6. Atomic book shelf opens on demand; hover opens cover; click opens book note
+7. Notes remain Canvas-linkable markdown
+8. Language PR sequenced; tests/docs green
 
 ## Agent execution rules
 
