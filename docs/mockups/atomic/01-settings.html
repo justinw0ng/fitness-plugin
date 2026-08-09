@@ -96,9 +96,9 @@
       <div class="row">
         <div>
           <div class="label">Dashboard path</div>
-          <div class="desc">Default <code>Atomic/Dashboard.md</code>.</div>
+          <div class="desc">Default <code>atomics/Dashboard.md</code>. Plugin-created content stays under <code>atomics/**</code> unless overridden.</div>
         </div>
-        <input value="Atomic/Dashboard.md" readonly />
+        <input value="atomics/Dashboard.md" readonly />
       </div>
 
       <section>
@@ -106,9 +106,9 @@
         <table>
           <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
           <tbody>
-            <tr><td>Gym / 健身</td><td><code>Gym</code></td><td><span class="pill">on</span></td><td>daily session + sets</td></tr>
-            <tr><td>Golf / 高爾夫</td><td><code>Golf</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
-            <tr><td>Running</td><td><code>Exercise/Running</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
+            <tr><td>Gym / 健身</td><td><code>atomics/exercise/Gym</code></td><td><span class="pill">on</span></td><td>daily session + sets</td></tr>
+            <tr><td>Golf / 高爾夫</td><td><code>atomics/exercise/Golf</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
+            <tr><td>Running</td><td><code>atomics/exercise/Running</code></td><td><span class="pill">on</span></td><td>daily session</td></tr>
           </tbody>
         </table>
         <button class="btn primary">Add exercise type</button>
@@ -119,17 +119,26 @@
         <table>
           <thead><tr><th>Label</th><th>Folder</th><th>Cues</th><th>Model</th></tr></thead>
           <tbody>
-            <tr><td>Reading</td><td><code>Hobbies/Reading</code></td><td>off</td><td>item + timer</td></tr>
+            <tr><td>Reading</td><td><code>atomics/hobbies/Reading</code></td><td>off</td><td>item + timer</td></tr>
           </tbody>
         </table>
         <button class="btn primary">Add hobby type</button>
       </section>
 
       <section>
+        <h3>Migrate from Fitness</h3>
+        <div class="legacy">
+          One click moves <code>Fitness/Dashboard.md</code>, <code>Gym/**</code>, and <code>Golf/**</code> into <code>atomics/**</code>,
+          rewrites <code>fitness-*</code> fences to <code>atomic-*</code>, updates settings, and turns off legacy aliases.
+          Skips destinations that already exist. Idempotent.
+          <div><button class="btn primary">Migrate from Fitness → Atomic</button></div>
+        </div>
+      </section>
+
+      <section>
         <h3>Legacy Fitness blocks</h3>
         <div class="legacy">
-          Allow <code>fitness-*</code> aliases while migrating vaults.
-          <div><button class="btn">Migrate fitness-* → atomic-*</button></div>
+          Allow <code>fitness-*</code> aliases only until migration completes.
         </div>
       </section>
     </main>
