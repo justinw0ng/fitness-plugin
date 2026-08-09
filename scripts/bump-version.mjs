@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { bumpSemver } from "./semver.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -21,29 +22,6 @@ function readJson(name) {
 
 function writeJson(name, value) {
   writeFileSync(join(root, name), `${JSON.stringify(value, null, 2)}\n`);
-}
-
-function bumpSemver(version, level) {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
-  if (!match) {
-    throw new Error(`Expected x.y.z semver, got: ${version}`);
-  }
-  let major = Number(match[1]);
-  let minor = Number(match[2]);
-  let patch = Number(match[3]);
-  if (level === "major") {
-    major += 1;
-    minor = 0;
-    patch = 0;
-  } else if (level === "minor") {
-    minor += 1;
-    patch = 0;
-  } else if (level === "patch") {
-    patch += 1;
-  } else {
-    throw new Error(`Unknown bump level: ${level}`);
-  }
-  return `${major}.${minor}.${patch}`;
 }
 
 const level = process.argv[2] ?? "print";
