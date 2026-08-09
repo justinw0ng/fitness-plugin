@@ -58,5 +58,8 @@ export function rewriteFitnessCuesFences(markdown: string): {
     return line;
   });
 
-  return { markdown: out.join("\n"), replacements };
+  return {
+    markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
+    replacements,
+  };
 }
