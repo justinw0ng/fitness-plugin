@@ -1,7 +1,7 @@
 # Design: Base colors, general habits CRUD, heatmap activity filter
 
 Date: 2026-08-09  
-Status: draft (written for user review before implementation plan)  
+Status: approved (implementation in progress)  
 Related: `2026-08-09-atomic-tracker-redesign-design.md`
 
 ## Goal

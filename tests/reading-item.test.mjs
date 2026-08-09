@@ -44,3 +44,8 @@ test("readingItemMarkdown includes Bases fields, timer fields, and atomic-timer 
   assert.match(markdown, /## Time log\n\n/);
   assert.match(markdown, /```atomic-timer\n```\n/);
 });
+
+test("readingItemMarkdown parameterizes activity id for general hobbies", () => {
+  const markdown = readingItemMarkdown("Sicilian Defense", "en", "chess");
+  assert.match(markdown, /activity: chess\n/);
+});

@@ -533,3 +533,46 @@
     transform: none;
   }
 }
+
+/* Settings tab: stack dense bilingual activity rows and show shade previews. */
+.atomic-setting-exercise-type,
+.atomic-setting-colors {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+}
+
+.atomic-setting-exercise-type .setting-item-info,
+.atomic-setting-colors .setting-item-info {
+  flex: 1 1 100%;
+  min-width: 0;
+  padding-right: 0;
+}
+
+.atomic-setting-exercise-type .setting-item-control,
+.atomic-setting-colors .setting-item-control {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.atomic-setting-exercise-type .setting-item-control input[type="text"] {
+  min-width: 0;
+  width: min(100%, 18rem);
+}
+
+.atomic-color-swatch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.atomic-color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--background-modifier-border);
+  flex: 0 0 auto;
+}

@@ -29,15 +29,21 @@ export function buildReadingItemPath(activityFolder: string, title: string): str
   return `${base}/Items/${cleanBookTitle(title)}.md`;
 }
 
+export function buildHobbyItemPath(activityFolder: string, title: string): string {
+  return buildReadingItemPath(activityFolder, title);
+}
+
 export function readingItemMarkdown(
   title: string,
   language: Language = "en",
+  activityId = "reading",
 ): string {
   const cleanedTitle = cleanBookTitle(title);
+  const activity = activityId.trim() || "reading";
   return `---
 type: atomic-item
 domain: hobby
-activity: reading
+activity: ${activity}
 status: to-read
 authors:
   - ""
@@ -63,15 +69,18 @@ related_canvas:
 `;
 }
 
-export async function createReadingItem(
+export async function createHobbyItem(
   app: App,
   data: VaultDataSource,
-  readingActivity: ActivityType,
+  hobbyActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  const title = window.prompt(t("modal.readingItemTitle", language), "");
+  const title = window.prompt(
+    t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
+    "",
+  );
   if (title === null) return;
-  const path = buildReadingItemPath(readingActivity.folder, title);
+  const path = buildHobbyItemPath(hobbyActivity.folder, title);
   const { Notice } = await import("obsidian");
 
   if (data.exists(path)) {
@@ -80,8 +89,20 @@ export async function createReadingItem(
     return;
   }
 
-  await data.createNote(path, readingItemMarkdown(title, language));
+  await data.createNote(
+    path,
+    readingItemMarkdown(title, language, hobbyActivity.id),
+  );
   await data.openPath(path);
   new Notice(t("notice.createdReadingItem", language, { path }));
   void app;
+}
+
+export async function createReadingItem(
+  app: App,
+  data: VaultDataSource,
+  readingActivity: ActivityType,
+  language: Language,
+): Promise<void> {
+  await createHobbyItem(app, data, readingActivity, language);
 }
