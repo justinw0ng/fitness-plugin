@@ -26,14 +26,11 @@ jobs:
   release:
     name: Build and publish GitHub Release
     runs-on: ubuntu-latest
-    # Avoid recursive releases when this workflow pushes a build commit.
-    if: github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -70,22 +67,6 @@ jobs:
             echo "This usually means main was updated without bumping the plugin version above the last release."
             exit 1
           fi
-
-      - name: Commit built assets
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add main.js
-          if git diff --cached --quiet; then
-            echo "No build changes to commit (release will still be created)."
-          else
-            git commit -m "chore(release): ${VERSION}"
-            git push origin HEAD:main
-          fi
-          git tag "${VERSION}"
-          git push origin "refs/tags/${VERSION}"
 
       - name: Package plugin zip
         id: package
