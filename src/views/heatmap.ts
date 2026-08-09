@@ -28,30 +28,36 @@ function colorFor(activity: ActivityType, level: number): string {
 
 function wireHeatmapScroll(scrollEl: HTMLElement): void {
   let userHasScrolled = false;
-  let programmaticScroll = false;
+  let expectedScrollLeft: number | null = null;
 
   const applyTodayAlign = () => {
     const todayWeek = scrollEl.querySelector<HTMLElement>(".is-today-week");
     if (!todayWeek) return;
 
-    const targetRightPx = todayWeek.offsetLeft + todayWeek.offsetWidth;
+    const targetRightPx =
+      todayWeek.getBoundingClientRect().right -
+      scrollEl.getBoundingClientRect().left +
+      scrollEl.scrollLeft;
     const nextScrollLeft = scrollLeftToAlignRight(
       scrollEl.scrollWidth,
       scrollEl.clientWidth,
       targetRightPx,
     );
 
-    programmaticScroll = true;
+    expectedScrollLeft = nextScrollLeft;
     scrollEl.scrollLeft = nextScrollLeft;
-    requestAnimationFrame(() => {
-      programmaticScroll = false;
-    });
   };
 
   scrollEl.addEventListener(
     "scroll",
     () => {
-      if (programmaticScroll) return;
+      if (
+        expectedScrollLeft !== null &&
+        Math.abs(scrollEl.scrollLeft - expectedScrollLeft) < 1
+      ) {
+        expectedScrollLeft = null;
+        return;
+      }
       userHasScrolled = true;
     },
     { passive: true },
@@ -211,7 +217,7 @@ async function renderOneHeatmap(
 
   const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
   for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday);
+    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
     const col = weeksEl.createDiv({
       cls: "fitness-week" + (isTodayWeek ? " is-today-week" : ""),
     });
