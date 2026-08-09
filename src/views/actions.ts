@@ -1,6 +1,5 @@
 import type FitnessPlugin from "../main";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { actionActivities } from "../util/action-activities.ts";
+import { actionActivities } from "../util/action-activities";
 
 export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
   el.empty();
