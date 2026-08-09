@@ -93,11 +93,11 @@ export function scrollLeftToAlignRight(
 
 **Steps:**
 
-- [x] After mount, if any cell/week is today in-year: measure today’s week `offsetLeft + offsetWidth` as `targetRightPx`, set `scrollLeft` via helper
+- [x] After mount, if any cell/week is today in-year: measure today’s week via getBoundingClientRect relative to scrollport as `targetRightPx`, set `scrollLeft` via helper
 - [x] If no today in year: leave at `0`
 - [x] `ResizeObserver` (or window resize fallback) on scrollport: re-apply while `userHasScrolled === false`
 - [x] On `scroll` event: if delta from programmatic set, set `userHasScrolled = true` and stop re-applying
-- [x] Avoid feedback loops: ignore scroll events caused by the programmatic assign (flag or compare expected)
+- [x] Avoid feedback loops: ignore scroll events matching `expectedScrollLeft`
 - [x] Commit
 
 ---
@@ -111,8 +111,8 @@ export function scrollLeftToAlignRight(
 
 - [x] `npm test`, `npm run typecheck`, `npm run build`
 - [x] Commit built `main.js` if heatmap runtime changed
-- [ ] Manual E2E when Obsidian available (narrow pane / mobile): overflow scroll, today right-aligned, past year left, labels pinned, stacked heatmaps independent
-- [ ] Update PR
+- [x] Manual E2E when Obsidian available (narrow pane / mobile): overflow scroll, today right-aligned, past year left, labels pinned, stacked heatmaps independent
+- [x] Update PR
 
 ---
 
