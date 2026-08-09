@@ -20,7 +20,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | New gym / golf notes | **Atomic: New gym session** / **New golf session** |
 | Reading items | **Atomic: New reading item** |
 | Reading timer | `atomic-timer` in a Reading item note |
-| Reading notes in Bases | **Atomic: Open reading notes in Bases** |
+| Reading notes in Bases | **Atomic: Open Obsidian bases of reading notes** |
 | Book shelf | `atomic-bookshelf`, or **Atomic: Open book shelf** |
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
@@ -334,7 +334,7 @@ In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clear
 
 ### Open the Reading bookshelf (Bases)
 
-Run **Atomic: Open reading notes in Bases**. Atomic creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
+Run **Atomic: Open Obsidian bases of reading notes**. Atomic creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
 
 Soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
 
@@ -410,10 +410,10 @@ date: 2026-08-08
 | Atomic: New exercise session | Pick an enabled exercise type, then create/open its daily note |
 | Atomic: New reading item | Create or open `atomics/hobbies/Reading/Items/<Book>.md` (Reading must be enabled) |
 | Atomic: New hobby item | Pick an enabled general habit, then create/open an item note |
-| Atomic: Ensure reading bookshelf | Create `atomics/hobbies/Reading/Bookshelf.base` if missing |
-| Atomic: Open reading notes in Bases | Ensure and open `atomics/hobbies/Reading/Bookshelf.base` |
-| Atomic: Ensure book shelf | Create `atomics/hobbies/Reading/Book Shelf.md` if missing |
-| Atomic: Open book shelf | Ensure and open `atomics/hobbies/Reading/Book Shelf.md` |
+| Atomic: Create Obsidian bases of reading notes | Create `atomics/hobbies/Reading/Bookshelf.base` if missing (upgrades broken legacy seeds) |
+| Atomic: Open Obsidian bases of reading notes | Create if needed and open `atomics/hobbies/Reading/Bookshelf.base` |
+| Atomic: Create book shelf | Create `atomics/hobbies/Reading/Book Shelf.md` if missing |
+| Atomic: Open book shelf | Create if needed and open `atomics/hobbies/Reading/Book Shelf.md` |
 | Atomic: Open dashboard | Open the configured dashboard path |
 
 ---
@@ -426,7 +426,7 @@ date: 2026-08-08
 | Restricted mode | Turn on community plugins in Settings |
 | Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / duration, or stop a hobby timer so the item has Time log entries |
 | Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic |
-| Reading notes in Bases do not open | Enable Reading in settings, enable Bases, then rerun **Atomic: Open reading notes in Bases** |
+| Reading notes in Bases do not open | Enable Reading in settings, enable Bases, then rerun **Atomic: Open Obsidian bases of reading notes** |
 | Wrong “today” | Set **Timezone** in Atomic settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
 | Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |

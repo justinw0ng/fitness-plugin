@@ -11,7 +11,7 @@ activity: reading
 `;
 }
 
-export async function ensureBookShelfHostFile(
+export async function createBookShelfHostFile(
   data: VaultDataSource,
   language: Language = "en",
 ): Promise<{ path: string; created: boolean }> {
@@ -23,12 +23,12 @@ export async function ensureBookShelfHostFile(
   return { path: BOOK_SHELF_HOST_REL, created: true };
 }
 
-export async function ensureBookShelfHostCommand(
+export async function createBookShelfHostCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
   const { Notice } = await import("obsidian");
-  const result = await ensureBookShelfHostFile(data, language);
+  const result = await createBookShelfHostFile(data, language);
   new Notice(
     result.created
       ? t("notice.createdBookShelf", language, { path: result.path })
@@ -40,6 +40,6 @@ export async function openBookShelfHostCommand(
   data: VaultDataSource,
   language: Language,
 ): Promise<void> {
-  const result = await ensureBookShelfHostFile(data, language);
+  const result = await createBookShelfHostFile(data, language);
   await data.openPath(result.path);
 }

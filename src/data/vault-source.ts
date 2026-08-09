@@ -151,6 +151,16 @@ export class VaultDataSource {
     return this.app.vault.create(norm, content);
   }
 
+  async writeNote(path: string, content: string): Promise<TFile> {
+    const norm = normalizePath(path);
+    const existing = this.app.vault.getAbstractFileByPath(norm);
+    if (existing instanceof TFile) {
+      await this.app.vault.modify(existing, content);
+      return existing;
+    }
+    return this.createNote(norm, content);
+  }
+
   async openPath(path: string): Promise<void> {
     const norm = normalizePath(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
