@@ -1,9 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildHobbyItemPath,
   buildReadingItemPath,
   readingItemMarkdown,
 } from "../src/commands/create-reading-item.ts";
+
+test("buildHobbyItemPath creates safe hobby item paths", () => {
+  assert.equal(
+    buildHobbyItemPath("atomics/hobbies/Chess", "Sicilian Defense"),
+    "atomics/hobbies/Chess/Items/Sicilian Defense.md",
+  );
+  assert.throws(
+    () => buildHobbyItemPath("../Chess", "Sicilian Defense"),
+    /Hobby folder must be a safe vault-relative folder/,
+  );
+});
 
 test("buildReadingItemPath creates safe Reading item paths", () => {
   assert.equal(
@@ -20,7 +32,7 @@ test("buildReadingItemPath creates safe Reading item paths", () => {
   );
   assert.throws(
     () => buildReadingItemPath("../Reading", "Atomic Habits"),
-    /safe vault-relative folder/,
+    /Hobby folder must be a safe vault-relative folder/,
   );
 });
 

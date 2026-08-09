@@ -70,6 +70,8 @@ export const zhHantEn = {
   "notice.invalidDate": "Invalid date / 日期無效",
   "notice.createdReadingItem": "Created Reading item / 已建立閱讀項目: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item / 已開啟現有閱讀項目: {path}",
+  "notice.createdHobbyItem": "Created {label} item / 已建立 {label} 項目: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item / 已開啟現有 {label} 項目: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf / 已建立閱讀 Bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists / 閱讀 Bookshelf 已存在: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / 請啟用 Bases 核心外掛以使用閱讀 Bookshelf。",

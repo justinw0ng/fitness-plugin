@@ -21,16 +21,16 @@ function cleanBookTitle(title: string): string {
   return cleaned || FALLBACK_BOOK_TITLE;
 }
 
-export function buildReadingItemPath(activityFolder: string, title: string): string {
+export function buildHobbyItemPath(activityFolder: string, title: string): string {
   if (!isSafeVaultFolder(activityFolder)) {
-    throw new Error("Reading folder must be a safe vault-relative folder");
+    throw new Error("Hobby folder must be a safe vault-relative folder");
   }
   const base = normalizeSlashes(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
 }
 
-export function buildHobbyItemPath(activityFolder: string, title: string): string {
-  return buildReadingItemPath(activityFolder, title);
+export function buildReadingItemPath(activityFolder: string, title: string): string {
+  return buildHobbyItemPath(activityFolder, title);
 }
 
 export function readingItemMarkdown(
@@ -85,7 +85,12 @@ export async function createHobbyItem(
 
   if (data.exists(path)) {
     await data.openPath(path);
-    new Notice(t("notice.openedExistingReadingItem", language, { path }));
+    new Notice(
+      t("notice.openedExistingHobbyItem", language, {
+        label: hobbyActivity.label,
+        path,
+      }),
+    );
     return;
   }
 
@@ -94,7 +99,12 @@ export async function createHobbyItem(
     readingItemMarkdown(title, language, hobbyActivity.id),
   );
   await data.openPath(path);
-  new Notice(t("notice.createdReadingItem", language, { path }));
+  new Notice(
+    t("notice.createdHobbyItem", language, {
+      label: hobbyActivity.label,
+      path,
+    }),
+  );
   void app;
 }
 

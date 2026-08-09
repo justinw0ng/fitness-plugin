@@ -70,6 +70,8 @@ export const en = {
   "notice.invalidDate": "Invalid date",
   "notice.createdReadingItem": "Created Reading item: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item: {path}",
+  "notice.createdHobbyItem": "Created {label} item: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",

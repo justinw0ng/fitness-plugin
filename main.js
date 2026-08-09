@@ -327,6 +327,8 @@ var en = {
   "notice.invalidDate": "Invalid date",
   "notice.createdReadingItem": "Created Reading item: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item: {path}",
+  "notice.createdHobbyItem": "Created {label} item: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf.",
@@ -502,6 +504,8 @@ var zhHantEn = {
   "notice.invalidDate": "Invalid date / \u65E5\u671F\u7121\u6548",
   "notice.createdReadingItem": "Created Reading item / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
   "notice.openedExistingReadingItem": "Opened existing Reading item / \u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.createdHobbyItem": "Created {label} item / \u5DF2\u5EFA\u7ACB {label} \u9805\u76EE: {path}",
+  "notice.openedExistingHobbyItem": "Opened existing {label} item / \u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
   "notice.createdReadingBookshelf": "Created Reading bookshelf / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bookshelf: {path}",
   "notice.readingBookshelfExists": "Reading bookshelf already exists / \u95B1\u8B80 Bookshelf \u5DF2\u5B58\u5728: {path}",
   "notice.enableBases": "Enable the Bases core plugin to use the Reading bookshelf / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bookshelf\u3002",
@@ -906,15 +910,12 @@ function cleanBookTitle(title) {
   const cleaned = String(title || "").replace(/[\\/:*?"<>|#[\]\r\n\t]/g, " ").replace(/\.+/g, " ").replace(/\s+/g, " ").trim();
   return cleaned || FALLBACK_BOOK_TITLE;
 }
-function buildReadingItemPath(activityFolder, title) {
+function buildHobbyItemPath(activityFolder, title) {
   if (!isSafeVaultFolder(activityFolder)) {
-    throw new Error("Reading folder must be a safe vault-relative folder");
+    throw new Error("Hobby folder must be a safe vault-relative folder");
   }
   const base = normalizeSlashes2(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
-}
-function buildHobbyItemPath(activityFolder, title) {
-  return buildReadingItemPath(activityFolder, title);
 }
 function readingItemMarkdown(title, language = "en", activityId = "reading") {
   const cleanedTitle = cleanBookTitle(title);
@@ -957,7 +958,12 @@ async function createHobbyItem(app, data, hobbyActivity, language) {
   const { Notice: Notice5 } = await import("obsidian");
   if (data.exists(path)) {
     await data.openPath(path);
-    new Notice5(t("notice.openedExistingReadingItem", language, { path }));
+    new Notice5(
+      t("notice.openedExistingHobbyItem", language, {
+        label: hobbyActivity.label,
+        path
+      })
+    );
     return;
   }
   await data.createNote(
@@ -965,7 +971,12 @@ async function createHobbyItem(app, data, hobbyActivity, language) {
     readingItemMarkdown(title, language, hobbyActivity.id)
   );
   await data.openPath(path);
-  new Notice5(t("notice.createdReadingItem", language, { path }));
+  new Notice5(
+    t("notice.createdHobbyItem", language, {
+      label: hobbyActivity.label,
+      path
+    })
+  );
   void app;
 }
 async function createReadingItem(app, data, readingActivity, language) {
