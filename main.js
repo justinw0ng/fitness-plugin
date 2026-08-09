@@ -2511,16 +2511,18 @@ function wireHeatmapScroll(scrollEl) {
     },
     { passive: true }
   );
-  const resizeObserver = new ResizeObserver(() => {
-    if (userHasScrolled) return;
-    requestAnimationFrame(() => {
-      if (!userHasScrolled) applyTodayAlign();
+  if (typeof ResizeObserver !== "undefined") {
+    const resizeObserver = new ResizeObserver(() => {
+      if (userHasScrolled) return;
+      requestAnimationFrame(() => {
+        if (!userHasScrolled) applyTodayAlign();
+      });
     });
-  });
-  resizeObserver.observe(scrollEl);
+    resizeObserver.observe(scrollEl);
+  }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      applyTodayAlign();
+      if (!userHasScrolled) applyTodayAlign();
     });
   });
 }
