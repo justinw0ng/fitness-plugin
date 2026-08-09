@@ -412,10 +412,9 @@
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--atomic-book-color), white 10%),
+      color-mix(in srgb, var(--atomic-book-color), white 6%),
       color-mix(in srgb, var(--atomic-book-color), black 28%)
     );
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.12);
 }
 
 /* Beat Obsidian's preview `img { height: auto }` so covers fill the face. */
@@ -463,9 +462,9 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 10px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent);
-  opacity: 0.35;
+  width: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
+  opacity: 0.22;
   pointer-events: none;
 }
 
