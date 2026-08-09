@@ -87,7 +87,7 @@ Installed from GitHub Releases (not yet from the Community Plugin browser).
 
 ### Option A — Download a release (recommended)
 
-1. Open the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases).
+1. Open the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases).
 2. Download `obsidian-atomic-<version>.zip`.
 3. Unzip into your vault’s plugins folder:
 

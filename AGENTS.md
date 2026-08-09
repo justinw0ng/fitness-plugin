@@ -1,4 +1,4 @@
-# atomic-plugin
+# obsidian-atomic
 
 Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic habit tracking. Default plugin-created content lives under `atomics/**`; see `README.md` for feature and data-layout details. Built-in domains are exercise (Gym/Golf sessions and cues) and Reading (item notes, timers, Bases bookshelf, book shelf).
 

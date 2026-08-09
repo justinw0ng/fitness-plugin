@@ -4,7 +4,7 @@ Obsidian plugin for habit tracking under `atomics/**`: gym and golf sessions, Re
 
 Settings → Atomic → Language has two UI modes: Traditional Chinese & English (`zh-Hant-en`, default) and English (`en`). No Simplified Chinese. Changing language never rewrites existing notes.
 
-**Install:** download `obsidian-atomic-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/fitness-plugin/releases) and unzip into `<vault>/.obsidian/plugins/` (so you get `obsidian-atomic/main.js`, `manifest.json`, and `styles.css`).
+**Install:** download `obsidian-atomic-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases) and unzip into `<vault>/.obsidian/plugins/` (so you get `obsidian-atomic/main.js`, `manifest.json`, and `styles.css`).
 
 **Setup guide (including Fitness → Atomic upgrade):** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 
