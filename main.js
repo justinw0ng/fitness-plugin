@@ -1251,7 +1251,10 @@ function rewriteFitnessCuesFences(markdown) {
     open = { marker, length };
     return line;
   });
-  return { markdown: out.join("\n"), replacements };
+  return {
+    markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
+    replacements
+  };
 }
 
 // src/util/merge-settings.ts
@@ -1272,7 +1275,7 @@ function mergeSettings(raw) {
     golfCuesPath,
     gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
     deprecatedFitnessCuesEnabled: raw.deprecatedFitnessCuesEnabled === false ? false : true,
-    series: sanitizeSeries(raw.series, base.series)
+    series: [...sanitizeSeries(raw.series, base.series)]
   };
 }
 
