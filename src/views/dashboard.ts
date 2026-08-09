@@ -65,7 +65,8 @@ export async function renderDashboard(
   data: VaultDataSource,
   seriesList: SeriesConfig[],
   year: number,
-  cuesPath: string,
+  golfCuesPath: string,
+  gymCuesPath: string,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
@@ -165,7 +166,16 @@ export async function renderDashboard(
   });
   cuesA.addEventListener("click", (e) => {
     e.preventDefault();
-    void data.openPath(cuesPath);
+    void data.openPath(golfCuesPath);
+  });
+  cuesP.appendText(" · ");
+  const gymCuesA = cuesP.createEl("a", {
+    cls: "fitness-link",
+    text: "💡 Gym cue rollup / 健身提醒彙整",
+  });
+  gymCuesA.addEventListener("click", (e) => {
+    e.preventDefault();
+    void data.openPath(gymCuesPath);
   });
 
   const ul = root.createEl("ul");

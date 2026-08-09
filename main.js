@@ -336,6 +336,10 @@ weight_unit: ${weightUnit}
 |  |  |  |  |  |
 |  |  |  |  |  |
 |  |  |  |  |  |
+
+## \u{1F4A1} Reminders / \u63D0\u9192
+
+- 
 `;
 }
 function golfBody(date) {
@@ -455,19 +459,23 @@ function renderActions(el, plugin) {
 }
 
 // src/views/cues.ts
+var CUE_SERIES_FOLDERS = {
+  golf: "Golf",
+  gym: "Gym"
+};
 function resolveCuesYear(opts, frontmatterYear2, timezone) {
   if (opts.year && Number(opts.year)) return Number(opts.year);
   const n = Number(frontmatterYear2);
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderGolfCues(el, data, seriesList, year, timezone) {
+async function renderCues(el, data, seriesList, year, timezone, kind) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const golf = seriesList.find((s) => s.kind === "golf") || seriesList.find((s) => s.folder === "Golf");
-  if (!golf) {
+  const series = seriesList.find((s) => s.kind === kind) || seriesList.find((s) => s.folder === CUE_SERIES_FOLDERS[kind]);
+  if (!series) {
     root.createEl("p", {
-      text: "No golf series configured.",
+      text: `No ${kind} series configured.`,
       cls: "fitness-muted"
     });
     return;
@@ -476,7 +484,7 @@ async function renderGolfCues(el, data, seriesList, year, timezone) {
   const month = year === currentYear ? nowMonth(timezone) : 12;
   const monthLabel = year === currentYear ? `${monthLongEn(year, month)} / ${monthLongZh(year, month)}` : `December ${year} / ${year}\u5E7412\u6708`;
   const cues = [];
-  for (const p of data.listSessions(golf.folder, year)) {
+  for (const p of data.listSessions(series.folder, year)) {
     if (!p.date) continue;
     const md = await data.readBody(p.path);
     const focus = p.focus.join(", ");
@@ -540,7 +548,9 @@ var EMPTY_CELL = "#ebedf0";
 var DEFAULT_SETTINGS = {
   timezone: "Asia/Hong_Kong",
   dashboardPath: "Fitness/Dashboard.md",
-  cuesPath: "Golf/Cues.md",
+  golfCuesPath: "Golf/Cues.md",
+  gymCuesPath: "Gym/Cues.md",
+  deprecatedFitnessCuesEnabled: true,
   series: [
     {
       id: "gym",
@@ -604,7 +614,7 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
   if (Number.isFinite(n) && n >= 1970) return n;
   return nowYear(timezone);
 }
-async function renderDashboard(el, data, seriesList, year, cuesPath) {
+async function renderDashboard(el, data, seriesList, year, golfCuesPath, gymCuesPath) {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
   const gymSeries = seriesList.find((s) => s.kind === "gym") || seriesList[0];
@@ -690,7 +700,16 @@ async function renderDashboard(el, data, seriesList, year, cuesPath) {
   });
   cuesA.addEventListener("click", (e) => {
     e.preventDefault();
-    void data.openPath(cuesPath);
+    void data.openPath(golfCuesPath);
+  });
+  cuesP.appendText(" \xB7 ");
+  const gymCuesA = cuesP.createEl("a", {
+    cls: "fitness-link",
+    text: "\u{1F4A1} Gym cue rollup / \u5065\u8EAB\u63D0\u9192\u5F59\u6574"
+  });
+  gymCuesA.addEventListener("click", (e) => {
+    e.preventDefault();
+    void data.openPath(gymCuesPath);
   });
   const ul = root.createEl("ul");
   const gymLi = ul.createEl("li");
@@ -993,16 +1012,41 @@ async function renderBlock(plugin, kind, source, el, ctx) {
           frontmatterYear(plugin, sourcePath),
           tz
         );
-        await renderDashboard(el, data, series, year, settings.cuesPath);
+        await renderDashboard(
+          el,
+          data,
+          series,
+          year,
+          settings.golfCuesPath,
+          settings.gymCuesPath
+        );
         break;
       }
+      case "fitness-golf-cues":
+      case "fitness-gym-cues":
       case "fitness-cues": {
+        if (kind === "fitness-cues" && !settings.deprecatedFitnessCuesEnabled) {
+          el.empty();
+          const root = el.createDiv({ cls: "fitness-plugin" });
+          root.createEl("p", {
+            text: "Legacy fitness-cues block is disabled. Use fitness-golf-cues.",
+            cls: "fitness-muted"
+          });
+          break;
+        }
         const year = resolveCuesYear(
           opts,
           frontmatterYear(plugin, sourcePath),
           tz
         );
-        await renderGolfCues(el, data, series, year, tz);
+        await renderCues(
+          el,
+          data,
+          series,
+          year,
+          tz,
+          kind === "fitness-gym-cues" ? "gym" : "golf"
+        );
         break;
       }
       case "fitness-actions": {
@@ -1026,9 +1070,13 @@ function registerCodeblocks(plugin) {
     "fitness-heatmap",
     "fitness-today",
     "fitness-dashboard",
-    "fitness-cues",
+    "fitness-golf-cues",
+    "fitness-gym-cues",
     "fitness-actions"
   ];
+  if (plugin.settings.deprecatedFitnessCuesEnabled) {
+    kinds.push("fitness-cues");
+  }
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(
       kind,
@@ -1167,6 +1215,49 @@ var VaultDataSource = class {
 
 // src/settings.ts
 var import_obsidian3 = require("obsidian");
+
+// src/util/migrate-cues.ts
+var OPEN_RE = /^( {0,3})(```+|~~~+)([^\n]*)$/;
+var CLOSE_RE = /^( {0,3})(```+|~~~+)[ \t]*$/;
+function parseInfoLanguage(info) {
+  return info.trim().split(/\s+/, 1)[0] || "";
+}
+function rewriteFitnessCuesFences(markdown) {
+  const lines = String(markdown).split(/\r?\n/);
+  let open = null;
+  let replacements = 0;
+  const out = lines.map((line) => {
+    if (open) {
+      const close = line.match(CLOSE_RE);
+      if (close && close[2][0] === open.marker && close[2].length >= open.length) {
+        open = null;
+      }
+      return line;
+    }
+    const m = line.match(OPEN_RE);
+    if (!m) return line;
+    const indent = m[1];
+    const fence = m[2];
+    const info = m[3] ?? "";
+    const marker = fence[0];
+    const length = fence.length;
+    const lang = parseInfoLanguage(info);
+    if (lang === "fitness-cues") {
+      replacements += 1;
+      const rest = info.replace(/^\s*fitness-cues\b/, "fitness-golf-cues");
+      open = { marker, length };
+      return `${indent}${fence}${rest}`;
+    }
+    open = { marker, length };
+    return line;
+  });
+  return {
+    markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
+    replacements
+  };
+}
+
+// src/util/merge-settings.ts
 function sanitizeSeries(series, fallback) {
   if (!Array.isArray(series) || series.length === 0) return fallback;
   const safe = series.filter(
@@ -1175,15 +1266,20 @@ function sanitizeSeries(series, fallback) {
   return safe.length > 0 ? safe : fallback;
 }
 function mergeSettings(raw) {
-  const base = { ...DEFAULT_SETTINGS };
-  if (!raw) return base;
+  const base = { ...DEFAULT_SETTINGS, series: DEFAULT_SETTINGS.series };
+  if (!raw) return { ...base, series: [...base.series] };
+  const golfCuesPath = raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || base.golfCuesPath;
   return {
     timezone: raw.timezone || base.timezone,
     dashboardPath: raw.dashboardPath || base.dashboardPath,
-    cuesPath: raw.cuesPath || base.cuesPath,
-    series: sanitizeSeries(raw.series, base.series)
+    golfCuesPath,
+    gymCuesPath: raw.gymCuesPath && raw.gymCuesPath.trim() || base.gymCuesPath,
+    deprecatedFitnessCuesEnabled: raw.deprecatedFitnessCuesEnabled === false ? false : true,
+    series: [...sanitizeSeries(raw.series, base.series)]
   };
 }
+
+// src/settings.ts
 var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
@@ -1206,16 +1302,64 @@ var FitnessSettingTab = class extends import_obsidian3.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("Cues path").setDesc("Vault-relative path for golf cue rollup note.").addText(
-      (text) => text.setPlaceholder("Golf/Cues.md").setValue(this.plugin.settings.cuesPath).onChange(async (value) => {
-        this.plugin.settings.cuesPath = value.trim() || DEFAULT_SETTINGS.cuesPath;
+    new import_obsidian3.Setting(containerEl).setName("Golf cues path").setDesc("Vault-relative path for golf cue rollup note.").addText(
+      (text) => text.setPlaceholder("Golf/Cues.md").setValue(this.plugin.settings.golfCuesPath).onChange(async (value) => {
+        this.plugin.settings.golfCuesPath = value.trim() || DEFAULT_SETTINGS.golfCuesPath;
         await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName("Gym cues path").setDesc("Vault-relative path for gym cue rollup note.").addText(
+      (text) => text.setPlaceholder("Gym/Cues.md").setValue(this.plugin.settings.gymCuesPath).onChange(async (value) => {
+        this.plugin.settings.gymCuesPath = value.trim() || DEFAULT_SETTINGS.gymCuesPath;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName("Allow legacy `fitness-cues` block").setDesc(
+      "Keep supporting the old golf cue codeblock name. Turn off after migrating notes (or use Migrate)."
+    ).addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessCuesEnabled).onChange(async (value) => {
+        this.plugin.settings.deprecatedFitnessCuesEnabled = value;
+        await this.plugin.saveSettings();
+        this.plugin.refreshAll();
+        new import_obsidian3.Notice(
+          "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration."
+        );
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName("Migrate legacy cue blocks").setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.").addButton(
+      (button) => button.setButtonText("Migrate `fitness-cues` \u2192 `fitness-golf-cues`").setCta().onClick(() => {
+        void this.migrateFitnessCuesFences();
       })
     );
     containerEl.createEl("p", {
       text: "Series (folders, labels, colors) use defaults: Gym + Golf. Edit plugin data.json advanced series later if needed.",
       cls: "setting-item-description"
     });
+  }
+  async migrateFitnessCuesFences() {
+    let changedFiles = 0;
+    let replacements = 0;
+    try {
+      for (const file of this.app.vault.getMarkdownFiles()) {
+        const original = await this.app.vault.read(file);
+        const result = rewriteFitnessCuesFences(original);
+        if (result.replacements === 0) continue;
+        await this.app.vault.modify(file, result.markdown);
+        changedFiles += 1;
+        replacements += result.replacements;
+      }
+      this.plugin.settings.deprecatedFitnessCuesEnabled = false;
+      await this.plugin.saveSettings();
+      this.plugin.refreshAll();
+      this.display();
+      new import_obsidian3.Notice(
+        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`
+      );
+    } catch (err) {
+      console.error("Fitness cues migration failed", err);
+      const message = err instanceof Error ? err.message : String(err);
+      new import_obsidian3.Notice(`Failed to migrate fitness-cues blocks: ${message}`);
+    }
   }
 };
 

@@ -1,34 +1,9 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type FitnessPlugin from "./main";
-import { DEFAULT_SETTINGS, type FitnessSettings, type SeriesConfig } from "./types";
-import { isSafeVaultFolder } from "./util/vault-path";
+import { DEFAULT_SETTINGS } from "./types";
+import { rewriteFitnessCuesFences } from "./util/migrate-cues";
 
-function sanitizeSeries(
-  series: SeriesConfig[] | undefined,
-  fallback: SeriesConfig[],
-): SeriesConfig[] {
-  if (!Array.isArray(series) || series.length === 0) return fallback;
-  const safe = series.filter(
-    (s) =>
-      s != null &&
-      typeof s.folder === "string" &&
-      isSafeVaultFolder(s.folder),
-  );
-  return safe.length > 0 ? safe : fallback;
-}
-
-export function mergeSettings(
-  raw: Partial<FitnessSettings> | null | undefined,
-): FitnessSettings {
-  const base = { ...DEFAULT_SETTINGS };
-  if (!raw) return base;
-  return {
-    timezone: raw.timezone || base.timezone,
-    dashboardPath: raw.dashboardPath || base.dashboardPath,
-    cuesPath: raw.cuesPath || base.cuesPath,
-    series: sanitizeSeries(raw.series, base.series),
-  };
-}
+export { mergeSettings } from "./util/merge-settings";
 
 export class FitnessSettingTab extends PluginSettingTab {
   plugin: FitnessPlugin;
@@ -72,16 +47,60 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Cues path")
+      .setName("Golf cues path")
       .setDesc("Vault-relative path for golf cue rollup note.")
       .addText((text) =>
         text
           .setPlaceholder("Golf/Cues.md")
-          .setValue(this.plugin.settings.cuesPath)
+          .setValue(this.plugin.settings.golfCuesPath)
           .onChange(async (value) => {
-            this.plugin.settings.cuesPath =
-              value.trim() || DEFAULT_SETTINGS.cuesPath;
+            this.plugin.settings.golfCuesPath =
+              value.trim() || DEFAULT_SETTINGS.golfCuesPath;
             await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Gym cues path")
+      .setDesc("Vault-relative path for gym cue rollup note.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Gym/Cues.md")
+          .setValue(this.plugin.settings.gymCuesPath)
+          .onChange(async (value) => {
+            this.plugin.settings.gymCuesPath =
+              value.trim() || DEFAULT_SETTINGS.gymCuesPath;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Allow legacy `fitness-cues` block")
+      .setDesc(
+        "Keep supporting the old golf cue codeblock name. Turn off after migrating notes (or use Migrate).",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.deprecatedFitnessCuesEnabled)
+          .onChange(async (value) => {
+            this.plugin.settings.deprecatedFitnessCuesEnabled = value;
+            await this.plugin.saveSettings();
+            this.plugin.refreshAll();
+            new Notice(
+              "Legacy fitness-cues setting saved. Reload the plugin (or Obsidian) to apply registration.",
+            );
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Migrate legacy cue blocks")
+      .setDesc("Rewrite vault code fences from fitness-cues to fitness-golf-cues.")
+      .addButton((button) =>
+        button
+          .setButtonText("Migrate `fitness-cues` → `fitness-golf-cues`")
+          .setCta()
+          .onClick(() => {
+            void this.migrateFitnessCuesFences();
           }),
       );
 
@@ -89,5 +108,34 @@ export class FitnessSettingTab extends PluginSettingTab {
       text: "Series (folders, labels, colors) use defaults: Gym + Golf. Edit plugin data.json advanced series later if needed.",
       cls: "setting-item-description",
     });
+  }
+
+  private async migrateFitnessCuesFences(): Promise<void> {
+    let changedFiles = 0;
+    let replacements = 0;
+
+    try {
+      for (const file of this.app.vault.getMarkdownFiles()) {
+        const original = await this.app.vault.read(file);
+        const result = rewriteFitnessCuesFences(original);
+        if (result.replacements === 0) continue;
+
+        await this.app.vault.modify(file, result.markdown);
+        changedFiles += 1;
+        replacements += result.replacements;
+      }
+
+      this.plugin.settings.deprecatedFitnessCuesEnabled = false;
+      await this.plugin.saveSettings();
+      this.plugin.refreshAll();
+      this.display();
+      new Notice(
+        `Migrated ${replacements} fitness-cues block${replacements === 1 ? "" : "s"} in ${changedFiles} file${changedFiles === 1 ? "" : "s"}. Legacy fitness-cues disabled. Reload the plugin (or Obsidian) to drop the legacy processor.`,
+      );
+    } catch (err) {
+      console.error("Fitness cues migration failed", err);
+      const message = err instanceof Error ? err.message : String(err);
+      new Notice(`Failed to migrate fitness-cues blocks: ${message}`);
+    }
   }
 }

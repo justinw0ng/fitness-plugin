@@ -13,7 +13,8 @@ Screenshots live in [`docs/images/`](./images/). They were captured on Linux wit
 | Year heatmaps | `fitness-heatmap` codeblock |
 | Today’s sessions | `fitness-today` codeblock |
 | Yearly dashboard | `fitness-dashboard` codeblock |
-| Golf cue rollup | `fitness-cues` codeblock |
+| Golf cue rollup | `fitness-golf-cues` codeblock (legacy alias: `fitness-cues`) |
+| Gym cue rollup | `fitness-gym-cues` codeblock |
 | Quick actions | `fitness-actions` codeblock, or command palette |
 | New gym / golf notes | Commands **Fitness: New gym session** / **New golf session** |
 
@@ -119,11 +120,16 @@ The screenshot shows a demo vault under `/tmp/...`. On your machine the folder i
 |---------|---------|---------|
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `Fitness/Dashboard.md` | Target of **Open dashboard** |
-| Cues path | `Golf/Cues.md` | Golf cue rollup note |
+| Golf cues path | `Golf/Cues.md` | Golf cue rollup note |
+| Gym cues path | `Gym/Cues.md` | Gym cue rollup note |
+| Allow legacy `fitness-cues` block | On | Keep supporting the old golf cue codeblock name; turn off after migrating notes |
+| Migrate `fitness-cues` → `fitness-golf-cues` | (button) | Rewrite fenced `fitness-cues` blocks in the vault to `fitness-golf-cues`, then turn off the legacy toggle |
 
 ![Fitness plugin settings](./images/07-settings-fitness.png)
 
 Series folders default to `Gym` and `Golf`. Advanced series edits live in the plugin `data.json` if you need custom folders later.
+
+If you still have notes using the old `fitness-cues` block name, leave **Allow legacy `fitness-cues` block** on until you are ready to migrate. Use **Migrate `fitness-cues` → `fitness-golf-cues`** to rewrite codeblock fences across the vault in one step; on success the legacy toggle turns off automatically.
 
 ---
 
@@ -136,6 +142,7 @@ Vault/
 ├── Fitness/
 │   └── Dashboard.md
 ├── Gym/
+│   ├── Cues.md
 │   └── YYYY/
 │       └── YYYY-MM-DD.md
 ├── Golf/
@@ -180,17 +187,29 @@ year: 2026
 ```
 ````
 
-### Cues note example
+### Cue note examples
 
 `Golf/Cues.md`:
 
 ````markdown
 # Golf Cues
 
-```fitness-cues
+```fitness-golf-cues
 year: 2026
 ```
 ````
+
+`Gym/Cues.md`:
+
+````markdown
+# Gym Cues
+
+```fitness-gym-cues
+year: 2026
+```
+````
+
+The legacy block name `fitness-cues` still works as a golf alias while **Allow legacy `fitness-cues` block** is enabled in settings.
 
 ---
 
@@ -208,7 +227,7 @@ Put `fitness-actions` on a note and use the buttons.
 
 ![fitness-actions](./images/fitness-actions.png)
 
-Gym notes store sets in a markdown table. Golf notes store reminders under a **Reminders** heading; those feed the cue rollup.
+Gym notes store sets in a markdown table and reminders under a **Reminders** heading; those feed the gym cue rollup. Golf notes store reminders under a **Reminders** heading; those feed the golf cue rollup.
 
 ---
 
