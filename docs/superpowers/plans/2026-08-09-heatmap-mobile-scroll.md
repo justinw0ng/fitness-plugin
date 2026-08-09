@@ -53,9 +53,9 @@ export function scrollLeftToAlignRight(
 
 **Steps:**
 
-- [ ] Write failing tests: mid-year target, no overflow, clamp past max, clamp below 0, equal widths
-- [ ] Implement helper until green
-- [ ] Commit
+- [x] Write failing tests: mid-year target, no overflow, clamp past max, clamp below 0, equal widths
+- [x] Implement helper until green
+- [x] Commit
 
 ---
 
