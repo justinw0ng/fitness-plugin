@@ -27,7 +27,8 @@ const STATUS_ORDER = new Map([
   ["finished", 3],
 ]);
 
-const BOOK_WIDTH_PX = 86;
+/** Default upright book face; ~2:3 so typical cover art fills the width. */
+const BOOK_WIDTH_PX = 108;
 const BOOK_GAP_PX = 8;
 /** Horizontal inset of the book row: frame 16*2 + row 4*2 + books 8*2. */
 const ROW_PADDING_PX = 56;

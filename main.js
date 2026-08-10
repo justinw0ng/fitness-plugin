@@ -2214,7 +2214,7 @@ var STATUS_ORDER = /* @__PURE__ */ new Map([
   ["to-read-again", 2],
   ["finished", 3]
 ]);
-var BOOK_WIDTH_PX = 86;
+var BOOK_WIDTH_PX = 108;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 56;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
