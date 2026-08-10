@@ -89,6 +89,50 @@ test("buildBookShelfItems filters Reading atomic items and normalizes metadata",
   assert.deepEqual(items[1].authors, ["Author One"]);
 });
 
+test("buildBookShelfItems filters by status when requested", () => {
+  const files = [
+    {
+      path: "atomics/hobbies/Reading/Items/Current.md",
+      basename: "Current",
+      frontmatter: {
+        type: "atomic-item",
+        activity: "reading",
+        status: "reading",
+      },
+    },
+    {
+      path: "atomics/hobbies/Reading/Items/Queue.md",
+      basename: "Queue",
+      frontmatter: {
+        type: "atomic-item",
+        activity: "reading",
+        status: "to-read",
+      },
+    },
+    {
+      path: "atomics/hobbies/Reading/Items/Done.md",
+      basename: "Done",
+      frontmatter: {
+        type: "atomic-item",
+        activity: "reading",
+        status: "finished",
+      },
+    },
+  ];
+
+  assert.deepEqual(
+    buildBookShelfItems(files, "reading", ["reading"]).map((item) => item.title),
+    ["Current"],
+  );
+  assert.deepEqual(
+    buildBookShelfItems(files, "reading", ["reading", "to-read"]).map(
+      (item) => item.title,
+    ),
+    ["Current", "Queue"],
+  );
+  assert.equal(buildBookShelfItems(files, "reading", null).length, 3);
+});
+
 test("parseCoverRef accepts URLs, vault paths, and wikilinks", () => {
   assert.deepEqual(parseCoverRef(""), { kind: "none" });
   assert.deepEqual(parseCoverRef("https://example.invalid/a.jpg"), {

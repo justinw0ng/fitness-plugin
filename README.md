@@ -58,4 +58,6 @@ Reading is the default general habit (item + timer). Use **Atomic: New reading i
 
 Use **Atomic: Create Obsidian bases of reading notes** / **Open Obsidian bases of reading notes** for `Bookshelf.base` (Obsidian Bases Cards + Table). Bases must be enabled for those commands.
 
-Use **Atomic: Create/Open book shelf** for `Book Shelf.md` (`atomic-bookshelf`). The shelf uses local CSS 3D hover; no Framer runtime. Cover images accept vault wikilinks, paths, or URLs.
+Use **Atomic: Create/Open book shelf** for `Book Shelf.md` (`atomic-bookshelf`). The shelf uses local CSS 3D hover; no Framer runtime. Cover images accept vault wikilinks, paths, or URLs. Filter the shelf with `status: reading` (or comma-separated status ids); omit `status` to show all books.
+
+Reading item notes get **property dropdowns** for `status` in Properties and Bases. Golf sessions get dropdowns for `felt` and `location`; gym sessions for `location` and `weight_unit`.

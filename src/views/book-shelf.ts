@@ -3,6 +3,8 @@ import type { VaultDataSource } from "../data/vault-source";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, HobbyItemMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { DEFAULT_READING_STATUS, matchesBookShelfStatus, resolveBookShelfStatuses, statusRank } from "../core/reading-status.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
 
 export type BookShelfItem = {
@@ -19,13 +21,6 @@ export type CoverRef =
   | { kind: "url"; src: string }
   | { kind: "vault"; path: string }
   | { kind: "none" };
-
-const STATUS_ORDER = new Map([
-  ["reading", 0],
-  ["to-read", 1],
-  ["to-read-again", 2],
-  ["finished", 3],
-]);
 
 /** Default upright book face; ~2:3 so typical cover art fills the width. */
 const BOOK_WIDTH_PX = 108;
@@ -68,20 +63,20 @@ export function shelfColorFor(item: {
   return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
 }
 
-function statusRank(status: string): number {
-  return STATUS_ORDER.get(status) ?? 99;
-}
-
-export function buildBookShelfItems(files: HobbyItemMeta[], activityId = "reading"): BookShelfItem[] {
+export function buildBookShelfItems(
+  files: HobbyItemMeta[],
+  activityId = "reading",
+  statusFilter: string[] | null = null,
+): BookShelfItem[] {
   return files
     .filter(
       (file) =>
         file.frontmatter.type === "atomic-item" &&
-        file.frontmatter.activity === "reading",
+        file.frontmatter.activity === activityId,
     )
     .map((file) => {
       const title = asString(file.frontmatter.title) || file.basename;
-      const status = asString(file.frontmatter.status) || "to-read";
+      const status = asString(file.frontmatter.status) || DEFAULT_READING_STATUS;
       const cover = asString(file.frontmatter.cover);
       const description = asString(file.frontmatter.description);
       return {
@@ -98,6 +93,7 @@ export function buildBookShelfItems(files: HobbyItemMeta[], activityId = "readin
         ...(description ? { description } : {}),
       };
     })
+    .filter((item) => matchesBookShelfStatus(item.status, statusFilter))
     .sort(
       (a, b) =>
         statusRank(a.status) - statusRank(b.status) ||
@@ -242,6 +238,7 @@ function paintRows(
   perRow: number,
   data: VaultDataSource,
   language: Language,
+  emptyText: string,
 ): void {
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
@@ -251,7 +248,7 @@ function paintRows(
     if (!rowItems.length) {
       books.createDiv({
         cls: "atomic-book-empty",
-        text: t("view.bookShelf.empty", language),
+        text: emptyText,
       });
     } else {
       for (const item of rowItems) createBook(books, item, data, language);
@@ -288,7 +285,27 @@ export function renderBookShelf(
     return;
   }
 
-  const items = buildBookShelfItems(data.listHobbyItems(activity));
+  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
+  if (invalidStatuses.length > 0) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: t("view.bookShelf.invalidStatuses", language, {
+        statuses: invalidStatuses.join(", "),
+      }),
+    });
+  }
+
+  const items = buildBookShelfItems(
+    data.listHobbyItems(activity),
+    activityId,
+    statuses,
+  );
+  const emptyText =
+    statuses && statuses.length > 0
+      ? t("view.bookShelf.emptyFiltered", language, {
+          statuses: statuses.join(", "),
+        })
+      : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
   let lastPerRow = -1;
 
@@ -298,7 +315,7 @@ export function renderBookShelf(
     );
     if (perRow === lastPerRow && frame.childElementCount > 0) return;
     lastPerRow = perRow;
-    paintRows(frame, items, perRow, data, language);
+    paintRows(frame, items, perRow, data, language, emptyText);
   };
 
   layout();

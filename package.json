@@ -1,6 +1,6 @@
 {
   "name": "obsidian-atomic",
-  "version": "1.0.10",
+  "version": "1.0.13",
   "private": true,
   "type": "module",
   "description": "Obsidian Atomic plugin: habit heatmaps, cues, timers, and dashboards under atomics/",

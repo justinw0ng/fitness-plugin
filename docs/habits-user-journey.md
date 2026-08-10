@@ -28,3 +28,4 @@ Review walkthrough for the habits settings / heatmap work.
 2. Add a general habit (e.g. Chess), create an item with **New hobby item**, start/stop the timer.
 3. Confirm Dashboard heatmaps for all / `activity: reading` / `activity: gym, golf`.
 4. Open Book Shelf; disable Reading and confirm Reading commands Notice; re-enable.
+5. On a Reading item, change `status` via the Properties dropdown; confirm `atomic-bookshelf` with `status: reading` filters correctly.

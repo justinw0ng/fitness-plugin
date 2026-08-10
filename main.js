@@ -23,7 +23,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/commands/create-session.ts
 var import_obsidian2 = require("obsidian");
@@ -43,6 +43,8 @@ var MUSCLES = [
   "Core"
 ];
 var GYM_LOCATIONS = ["Home", "Commercial", "Hotel/Travel", "Other"];
+var GOLF_LOCATIONS = ["Home net", "Driving range", "Course", "Other"];
+var FELT = ["good", "ok", "bad"];
 function isLoadedWeight(weight) {
   if (weight === null || weight === void 0) return false;
   const s = String(weight).trim();
@@ -371,6 +373,21 @@ var en = {
   "template.base.totalMinutes": "Total minutes",
   "template.base.cards": "Cards",
   "template.base.table": "Table",
+  "reading.status.selectLabel": "Reading status",
+  "reading.status.toRead": "To read",
+  "reading.status.reading": "Reading",
+  "reading.status.toReadAgain": "To read again",
+  "reading.status.finished": "Finished",
+  "property.selectLabel": "Select {property} value",
+  "property.felt.good": "Good",
+  "property.felt.ok": "OK",
+  "property.felt.bad": "Bad",
+  "property.golfLocation.homeNet": "Home net",
+  "property.golfLocation.drivingRange": "Driving range",
+  "property.golfLocation.course": "Course",
+  "property.golfLocation.other": "Other",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",
@@ -421,6 +438,8 @@ var en = {
   "view.bookShelf.open": "Open {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
+  "view.bookShelf.emptyFiltered": "No Reading items with status: {statuses}.",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note.",
   "view.timer.total": "Total: {minutes} min",
   "view.timer.runningSince": "Timer running since {time}",
@@ -553,6 +572,21 @@ var zhHantEn = {
   "template.base.totalMinutes": "Total minutes / \u7E3D\u5206\u9418",
   "template.base.cards": "Cards / \u5361\u7247",
   "template.base.table": "Table / \u8868\u683C",
+  "reading.status.selectLabel": "Reading status / \u95B1\u8B80\u72C0\u614B",
+  "reading.status.toRead": "To read / \u5F85\u8B80",
+  "reading.status.reading": "Reading / \u95B1\u8B80\u4E2D",
+  "reading.status.toReadAgain": "To read again / \u91CD\u8B80",
+  "reading.status.finished": "Finished / \u8B80\u5B8C",
+  "property.selectLabel": "Select {property} value / \u9078\u64C7 {property} \u503C",
+  "property.felt.good": "Good / \u597D",
+  "property.felt.ok": "OK / \u4E00\u822C",
+  "property.felt.bad": "Bad / \u5DEE",
+  "property.golfLocation.homeNet": "Home net / \u5BB6\u7528\u7DB2",
+  "property.golfLocation.drivingRange": "Driving range / \u7DF4\u7FD2\u5834",
+  "property.golfLocation.course": "Course / \u7403\u5834",
+  "property.golfLocation.other": "Other / \u5176\u4ED6",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
   "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
@@ -603,6 +637,8 @@ var zhHantEn = {
   "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
+  "view.bookShelf.emptyFiltered": "No Reading items with status / \u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values / \u672A\u77E5\u7684\u66F8\u67B6\u72C0\u614B\u503C: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u95B1\u8B80\u9805\u76EE\u7B46\u8A18\u57F7\u884C\u3002",
   "view.timer.total": "Total / \u7E3D\u8A08: {minutes} min / \u5206\u9418",
   "view.timer.runningSince": "Timer running since / Timer \u958B\u59CB\u65BC {time}",
@@ -876,6 +912,79 @@ function showNotice(message) {
   new Notice5(message);
 }
 
+// src/core/reading-status.ts
+var READING_STATUSES = [
+  "to-read",
+  "reading",
+  "to-read-again",
+  "finished"
+];
+var DEFAULT_READING_STATUS = "to-read";
+var STATUS_ORDER = /* @__PURE__ */ new Map([
+  ["reading", 0],
+  ["to-read", 1],
+  ["to-read-again", 2],
+  ["finished", 3]
+]);
+function statusRank(status) {
+  return STATUS_ORDER.get(status) ?? 99;
+}
+function isReadingItemFrontmatter(frontmatter) {
+  if (!frontmatter) return false;
+  const type = String(frontmatter.type ?? "").trim();
+  const activity = String(frontmatter.activity ?? "").trim();
+  return type === "atomic-item" && activity === "reading";
+}
+function readingStatusLabelKey(status) {
+  switch (status) {
+    case "to-read":
+      return "reading.status.toRead";
+    case "reading":
+      return "reading.status.reading";
+    case "to-read-again":
+      return "reading.status.toReadAgain";
+    case "finished":
+      return "reading.status.finished";
+    default:
+      return status;
+  }
+}
+var KNOWN_STATUSES = new Map(
+  READING_STATUSES.map((status) => [status.toLowerCase(), status])
+);
+function parseStatusTokens(statusOption) {
+  if (statusOption == null) return ["all"];
+  return statusOption.split(",").map((token) => token.trim()).filter((token) => token.length > 0);
+}
+function resolveBookShelfStatuses(statusOption) {
+  const tokens = parseStatusTokens(statusOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+    return { statuses: null, invalidStatuses: [] };
+  }
+  const statuses = [];
+  const invalidStatuses = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const token of tokens) {
+    const key = token.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const canonical = KNOWN_STATUSES.get(key);
+    if (!canonical) {
+      invalidStatuses.push(token);
+      continue;
+    }
+    statuses.push(canonical);
+  }
+  return {
+    statuses: statuses.length > 0 ? statuses : null,
+    invalidStatuses
+  };
+}
+function matchesBookShelfStatus(itemStatus, statuses) {
+  if (!statuses) return true;
+  return statuses.includes(itemStatus);
+}
+
 // src/util/vault-path.ts
 function normalizeSlashes(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
@@ -936,7 +1045,7 @@ function readingItemMarkdown(title, language = "en", activityId = "reading") {
 type: atomic-item
 domain: hobby
 activity: ${activity}
-status: to-read
+status: ${DEFAULT_READING_STATUS}
 authors:
   - ""
 description: ""
@@ -2208,12 +2317,6 @@ async function renderDashboard(el, data, activityTypes, year, language) {
 }
 
 // src/views/book-shelf.ts
-var STATUS_ORDER = /* @__PURE__ */ new Map([
-  ["reading", 0],
-  ["to-read", 1],
-  ["to-read-again", 2],
-  ["finished", 3]
-]);
 var BOOK_WIDTH_PX = 108;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 56;
@@ -2243,15 +2346,12 @@ ${item.path}`;
   const color = hash & 16777215 | 3158064;
   return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
 }
-function statusRank(status) {
-  return STATUS_ORDER.get(status) ?? 99;
-}
-function buildBookShelfItems(files, activityId = "reading") {
+function buildBookShelfItems(files, activityId = "reading", statusFilter = null) {
   return files.filter(
-    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
+    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === activityId
   ).map((file) => {
     const title = asString(file.frontmatter.title) || file.basename;
-    const status = asString(file.frontmatter.status) || "to-read";
+    const status = asString(file.frontmatter.status) || DEFAULT_READING_STATUS;
     const cover = asString(file.frontmatter.cover);
     const description = asString(file.frontmatter.description);
     return {
@@ -2267,7 +2367,7 @@ function buildBookShelfItems(files, activityId = "reading") {
       ...cover ? { cover } : {},
       ...description ? { description } : {}
     };
-  }).sort(
+  }).filter((item) => matchesBookShelfStatus(item.status, statusFilter)).sort(
     (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
   );
 }
@@ -2369,7 +2469,7 @@ function createBook(parent, item, data, language) {
     });
   }
 }
-function paintRows(frame, items, perRow, data, language) {
+function paintRows(frame, items, perRow, data, language, emptyText) {
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
@@ -2378,7 +2478,7 @@ function paintRows(frame, items, perRow, data, language) {
     if (!rowItems.length) {
       books.createDiv({
         cls: "atomic-book-empty",
-        text: t("view.bookShelf.empty", language)
+        text: emptyText
       });
     } else {
       for (const item of rowItems) createBook(books, item, data, language);
@@ -2405,7 +2505,23 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     });
     return;
   }
-  const items = buildBookShelfItems(data.listHobbyItems(activity));
+  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
+  if (invalidStatuses.length > 0) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: t("view.bookShelf.invalidStatuses", language, {
+        statuses: invalidStatuses.join(", ")
+      })
+    });
+  }
+  const items = buildBookShelfItems(
+    data.listHobbyItems(activity),
+    activityId,
+    statuses
+  );
+  const emptyText = statuses && statuses.length > 0 ? t("view.bookShelf.emptyFiltered", language, {
+    statuses: statuses.join(", ")
+  }) : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
   let lastPerRow = -1;
   const layout = () => {
@@ -2414,7 +2530,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     );
     if (perRow === lastPerRow && frame.childElementCount > 0) return;
     lastPerRow = perRow;
-    paintRows(frame, items, perRow, data, language);
+    paintRows(frame, items, perRow, data, language, emptyText);
   };
   layout();
   if (typeof ResizeObserver !== "undefined") {
@@ -3207,8 +3323,349 @@ var VaultDataSource = class {
   }
 };
 
-// src/settings.ts
+// src/properties/property-select.ts
 var import_obsidian5 = require("obsidian");
+
+// src/core/property-options.ts
+var WEIGHT_UNITS = ["kg", "lb"];
+function sessionActivity(frontmatter) {
+  return String(frontmatter?.activity ?? "").trim().toLowerCase();
+}
+function isSession(frontmatter) {
+  return String(frontmatter?.type ?? "").trim() === "session";
+}
+function isGolfSession(context) {
+  return isSession(context.frontmatter) && sessionActivity(context.frontmatter) === "golf";
+}
+function isGymSession(context) {
+  return isSession(context.frontmatter) && sessionActivity(context.frontmatter) === "gym";
+}
+function gymLocationLabelKey(value) {
+  switch (value) {
+    case "Home":
+      return "location.home";
+    case "Commercial":
+      return "location.commercial";
+    case "Hotel/Travel":
+      return "location.hotelTravel";
+    case "Other":
+      return "location.other";
+    default:
+      return value;
+  }
+}
+function golfLocationLabelKey(value) {
+  switch (value) {
+    case "Home net":
+      return "property.golfLocation.homeNet";
+    case "Driving range":
+      return "property.golfLocation.drivingRange";
+    case "Course":
+      return "property.golfLocation.course";
+    case "Other":
+      return "property.golfLocation.other";
+    default:
+      return value;
+  }
+}
+function feltLabelKey(value) {
+  switch (value) {
+    case "good":
+      return "property.felt.good";
+    case "ok":
+      return "property.felt.ok";
+    case "bad":
+      return "property.felt.bad";
+    default:
+      return value;
+  }
+}
+function weightUnitLabelKey(value) {
+  switch (value) {
+    case "kg":
+      return "property.weightUnit.kg";
+    case "lb":
+      return "property.weightUnit.lb";
+    default:
+      return value;
+  }
+}
+var PROPERTY_OPTION_SPECS = [
+  {
+    property: "status",
+    values: READING_STATUSES,
+    matches: (context) => isReadingItemFrontmatter(context.frontmatter),
+    labelKey: readingStatusLabelKey
+  },
+  {
+    property: "felt",
+    values: FELT,
+    matches: isGolfSession,
+    labelKey: feltLabelKey
+  },
+  {
+    property: "location",
+    values: GOLF_LOCATIONS,
+    matches: isGolfSession,
+    labelKey: golfLocationLabelKey
+  },
+  {
+    property: "location",
+    values: GYM_LOCATIONS,
+    matches: isGymSession,
+    labelKey: gymLocationLabelKey
+  },
+  {
+    property: "weight_unit",
+    values: WEIGHT_UNITS,
+    matches: isGymSession,
+    labelKey: weightUnitLabelKey
+  }
+];
+var DROPDOWN_PROPERTY_NAMES = [
+  ...new Set(PROPERTY_OPTION_SPECS.map((spec) => spec.property))
+];
+function resolvePropertyOptions(property, context) {
+  return PROPERTY_OPTION_SPECS.find(
+    (spec) => spec.property === property && spec.matches(context)
+  ) ?? null;
+}
+
+// src/properties/property-select.ts
+var SELECT_CLASS = "atomic-property-select";
+var HIDDEN_CLASS = "atomic-property-native-hidden";
+var SYNC_GRACE_MS = 2e3;
+function frontmatterForFile(app, file) {
+  if (!file) return null;
+  const cache = app.metadataCache.getFileCache(file);
+  return cache?.frontmatter ?? null;
+}
+function getFileFromElement(app, el) {
+  const leafEl = el.closest(".workspace-leaf");
+  if (!leafEl) return app.workspace.getActiveFile();
+  let targetFile = null;
+  app.workspace.iterateAllLeaves((leaf) => {
+    if (leaf.view.containerEl.parentElement === leafEl) {
+      const view = leaf.view;
+      if ("file" in view && view.file instanceof import_obsidian5.TFile) {
+        targetFile = view.file;
+      }
+    }
+  });
+  return targetFile ?? app.workspace.getActiveFile();
+}
+function readNativeValue(valueContainer) {
+  const nativeInput = valueContainer.querySelector("input");
+  if (nativeInput instanceof HTMLInputElement) return nativeInput.value;
+  const nativeEditable = valueContainer.querySelector("[contenteditable]");
+  return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+function optionLabel(spec, value, language) {
+  const labelKey = spec.labelKey?.(value) ?? value;
+  if (labelKey === value) return value;
+  const translated = t(labelKey, language);
+  return translated === labelKey ? value : translated;
+}
+function createPropertySelect(spec, property, getLanguage, currentValue, onChange) {
+  const language = getLanguage();
+  const selectEl = document.createElement("select");
+  selectEl.classList.add(SELECT_CLASS, "dropdown");
+  selectEl.setAttribute(
+    "aria-label",
+    t("property.selectLabel", language, { property })
+  );
+  for (const value of spec.values) {
+    const optionEl = document.createElement("option");
+    optionEl.value = value;
+    optionEl.text = optionLabel(spec, value, language);
+    if (value === currentValue) optionEl.selected = true;
+    selectEl.appendChild(optionEl);
+  }
+  if (currentValue && !spec.values.includes(currentValue)) {
+    const legacy = document.createElement("option");
+    legacy.value = currentValue;
+    legacy.text = currentValue;
+    legacy.selected = true;
+    selectEl.appendChild(legacy);
+  }
+  selectEl.addEventListener("change", (event) => {
+    const newValue = event.target.value;
+    selectEl.dataset.lastChanged = Date.now().toString();
+    onChange(newValue);
+  });
+  return selectEl;
+}
+function writePropertyValue(app, file, key, value, valueContainer) {
+  if (valueContainer) {
+    const nativeInput = valueContainer.querySelector("input");
+    const nativeEditable = valueContainer.querySelector("[contenteditable]");
+    if (nativeInput instanceof HTMLInputElement) {
+      nativeInput.value = value;
+      nativeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      nativeInput.dispatchEvent(new Event("change", { bubbles: true }));
+    } else if (nativeEditable instanceof HTMLElement) {
+      nativeEditable.textContent = value;
+      nativeEditable.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+  }
+  if (!(file instanceof import_obsidian5.TFile)) return;
+  void app.fileManager.processFrontMatter(file, (frontmatter) => {
+    frontmatter[key] = value;
+  });
+}
+function hideNativeEditors(valueContainer) {
+  for (const child of Array.from(valueContainer.children)) {
+    if (child.classList.contains(SELECT_CLASS)) continue;
+    if (child instanceof HTMLElement) {
+      child.addClass(HIDDEN_CLASS);
+    }
+  }
+}
+function syncExistingSelect(selectEl, spec, currentValue, fallbackValue) {
+  const lastChanged = Number.parseInt(selectEl.dataset.lastChanged || "0", 10);
+  if (Date.now() - lastChanged < SYNC_GRACE_MS) return;
+  const valueToSet = currentValue || fallbackValue;
+  if (valueToSet && !spec.values.includes(valueToSet)) {
+    const hasOption = Array.from(selectEl.options).some(
+      (option) => option.value === valueToSet
+    );
+    if (!hasOption) {
+      const legacy = document.createElement("option");
+      legacy.value = valueToSet;
+      legacy.text = valueToSet;
+      selectEl.appendChild(legacy);
+    }
+  }
+  if (selectEl.value !== valueToSet) {
+    selectEl.value = valueToSet;
+  }
+}
+function stopBasesPointerCapture(selectEl) {
+  const stop = (event) => {
+    event.stopPropagation();
+  };
+  for (const type of [
+    "mousedown",
+    "mouseup",
+    "click",
+    "pointerdown",
+    "pointerup",
+    "focusin"
+  ]) {
+    selectEl.addEventListener(type, stop);
+    selectEl.addEventListener(type, stop, { capture: true });
+  }
+}
+function injectPropertySelect(app, getLanguage, property, spec, valueContainer, file, forBases) {
+  const existing = valueContainer.querySelector(
+    `.${SELECT_CLASS}`
+  );
+  const currentValue = forBases ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "").replace(/\s+/g, " ").trim() : readNativeValue(valueContainer);
+  if (existing) {
+    syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
+    return;
+  }
+  if (!forBases) hideNativeEditors(valueContainer);
+  const editableValue = currentValue;
+  const selectEl = createPropertySelect(
+    spec,
+    property,
+    getLanguage,
+    editableValue,
+    (newValue) => {
+      writePropertyValue(app, file, property, newValue, forBases ? void 0 : valueContainer);
+    }
+  );
+  if (forBases) {
+    selectEl.classList.add("mod-base");
+    stopBasesPointerCapture(selectEl);
+  }
+  valueContainer.appendChild(selectEl);
+}
+function registerPropertySelects(plugin, options) {
+  const app = plugin.app;
+  const { getLanguage } = options;
+  const inject = (container) => {
+    container.querySelectorAll(".metadata-property").forEach((propEl) => {
+      const keyEl = propEl.querySelector(
+        ".metadata-property-key-input"
+      );
+      if (!keyEl) return;
+      const property = (keyEl.value || keyEl.textContent || "").trim();
+      if (!property) return;
+      const file = getFileFromElement(app, propEl);
+      const frontmatter = frontmatterForFile(app, file);
+      const spec = resolvePropertyOptions(property, { frontmatter });
+      if (!spec) return;
+      const valueContainer = propEl.querySelector(".metadata-property-value");
+      if (!(valueContainer instanceof HTMLElement)) return;
+      injectPropertySelect(
+        app,
+        getLanguage,
+        property,
+        spec,
+        valueContainer,
+        file,
+        false
+      );
+    });
+    for (const property of DROPDOWN_PROPERTY_NAMES) {
+      container.querySelectorAll(`.bases-td[data-property="note.${property}"]`).forEach((cellEl) => {
+        if (!(cellEl instanceof HTMLElement)) return;
+        const row = cellEl.closest(".bases-tr");
+        if (!(row instanceof HTMLElement)) return;
+        const link = row.querySelector(".internal-link");
+        const href = link?.getAttribute("data-href") ?? "";
+        const file = href ? app.metadataCache.getFirstLinkpathDest(href, "") : null;
+        const frontmatter = frontmatterForFile(
+          app,
+          file instanceof import_obsidian5.TFile ? file : null
+        );
+        const spec = resolvePropertyOptions(property, { frontmatter });
+        if (!spec) return;
+        injectPropertySelect(
+          app,
+          getLanguage,
+          property,
+          spec,
+          cellEl,
+          file instanceof import_obsidian5.TFile ? file : null,
+          true
+        );
+      });
+    }
+  };
+  let injectFrame = null;
+  const scheduleInject = () => {
+    if (injectFrame !== null) return;
+    injectFrame = requestAnimationFrame(() => {
+      injectFrame = null;
+      inject(document.body);
+    });
+  };
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        scheduleInject();
+        return;
+      }
+    }
+  });
+  plugin.register(() => {
+    observer.disconnect();
+    if (injectFrame !== null) {
+      cancelAnimationFrame(injectFrame);
+      injectFrame = null;
+    }
+  });
+  plugin.app.workspace.onLayoutReady(() => {
+    observer.observe(document.body, { childList: true, subtree: true });
+    inject(document.body);
+  });
+}
+
+// src/settings.ts
+var import_obsidian6 = require("obsidian");
 
 // src/util/migrate-fitness.ts
 var MOVE_DEFINITIONS = [
@@ -3402,7 +3859,7 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
-var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
+var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
   constructor(app, options) {
     super(app);
     this.message = options.message;
@@ -3413,7 +3870,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
   onOpen() {
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian5.Setting(this.contentEl).addButton(
+    new import_obsidian6.Setting(this.contentEl).addButton(
       (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
     ).addButton(
       (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
@@ -3423,7 +3880,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
     );
   }
 };
-var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -3435,28 +3892,28 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     const language = this.plugin.settings.language;
     containerEl.empty();
     containerEl.createEl("h2", { text: t("settings.title", language) });
-    new import_obsidian5.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
         this.plugin.settings.language = value;
         await this.plugin.saveSettings();
         this.display();
         await this.plugin.refreshAll();
-        new import_obsidian5.Notice(t("notice.reloadForCommands", value));
+        new import_obsidian6.Notice(t("notice.reloadForCommands", value));
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         if (!isSafeVaultFolder(next)) {
-          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         this.plugin.settings.dashboardPath = next;
@@ -3465,15 +3922,15 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     );
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
-    new import_obsidian5.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
         this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian5.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
+        new import_obsidian6.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
       (button) => button.setButtonText(t("settings.migrateFitness", language)).setCta().onClick(() => {
         void this.migrateFromFitnessToAtomic();
       })
@@ -3500,7 +3957,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
     }
-    new import_obsidian5.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
         this.pendingExerciseName = value;
       })
@@ -3508,7 +3965,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingExerciseName.trim();
         if (!name) {
-          new import_obsidian5.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
           return;
         }
         const activity = createExerciseActivityType(name);
@@ -3533,7 +3990,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
-    new import_obsidian5.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
         this.pendingHobbyName = value;
       })
@@ -3541,7 +3998,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingHobbyName.trim();
         if (!name) {
-          new import_obsidian5.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
           return;
         }
         const activity = createHobbyActivityType(name);
@@ -3559,7 +4016,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
   renderActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
     const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
-    const row = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+    const row = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
       (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
         await this.saveAndRefresh();
@@ -3575,7 +4032,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (text) => text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         activity.folder = folder;
@@ -3595,7 +4052,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
         this.confirmDeleteActivity(activity);
       })
     );
-    const colorSetting = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+    const colorSetting = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
         activity.colors = shadesFromBaseColor(value);
@@ -3631,14 +4088,14 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     );
     await this.saveAndRefresh();
     this.display();
-    new import_obsidian5.Notice(
+    new import_obsidian6.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label
       })
     );
   }
   async ensureParentFolder(path) {
-    const normalized = (0, import_obsidian5.normalizePath)(path);
+    const normalized = (0, import_obsidian6.normalizePath)(path);
     const slash = normalized.lastIndexOf("/");
     if (slash <= 0) return;
     await this.plugin.data.ensureFolder(normalized.slice(0, slash));
@@ -3657,8 +4114,8 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     let replacements = 0;
     try {
       for (const move of plan.moves) {
-        const from = (0, import_obsidian5.normalizePath)(move.from);
-        const to = (0, import_obsidian5.normalizePath)(move.to);
+        const from = (0, import_obsidian6.normalizePath)(move.from);
+        const to = (0, import_obsidian6.normalizePath)(move.to);
         const source = this.app.vault.getAbstractFileByPath(from);
         const destination = this.app.vault.getAbstractFileByPath(to);
         if (!source || destination) {
@@ -3682,7 +4139,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
-      new import_obsidian5.Notice(
+      new import_obsidian6.Notice(
         t("notice.migrationComplete", this.plugin.settings.language, {
           movedPaths,
           pathWord: movedPaths === 1 ? "path" : "paths",
@@ -3697,7 +4154,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     } catch (err) {
       console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian5.Notice(
+      new import_obsidian6.Notice(
         t("notice.migrationFailed", this.plugin.settings.language, { message })
       );
     }
@@ -3705,7 +4162,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
 };
 
 // src/main.ts
-var FitnessPlugin = class extends import_obsidian6.Plugin {
+var FitnessPlugin = class extends import_obsidian7.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -3716,6 +4173,9 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
     this.data = new VaultDataSource(this.app);
     await this.loadSettings();
     registerCodeblocks(this);
+    registerPropertySelects(this, {
+      getLanguage: () => this.settings.language
+    });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.addCommand({
       id: "fitness-new-gym-session",
@@ -3757,7 +4217,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -3768,7 +4228,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -3863,12 +4323,12 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian6.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian7.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
       let settled = false;
-      const modal = new class extends import_obsidian6.FuzzySuggestModal {
+      const modal = new class extends import_obsidian7.FuzzySuggestModal {
         getItems() {
           return activities;
         }
@@ -3918,7 +4378,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
@@ -3932,7 +4392,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
@@ -3946,7 +4406,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
@@ -3959,7 +4419,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian6.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian7.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);
