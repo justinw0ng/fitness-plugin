@@ -22,6 +22,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Reading timer | `atomic-timer` in a Reading item note |
 | Reading notes in Bases | **Atomic: Open Obsidian bases of reading notes** |
 | Book shelf | `atomic-bookshelf`, or **Atomic: Open book shelf** |
+| Property dropdowns | Fixed-value fields in Properties / Bases (Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`) |
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
 
@@ -283,6 +284,20 @@ Put `atomic-actions` on a note and use the buttons. Every **enabled** habit appe
 
 Gym notes store sets in a markdown table and reminders under a **Reminders** heading. Golf notes store reminders under **Reminders**. Those feed the cue rollups.
 
+### Session frontmatter and property dropdowns
+
+Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells) so you pick from a fixed list instead of typing free text.
+
+| Property | Golf sessions (`activity: golf`) | Gym sessions (`activity: gym`) |
+|----------|----------------------------------|--------------------------------|
+| `location` | Home net, Driving range, Course, Other | Home, Commercial, Hotel/Travel, Other |
+| `felt` | good, ok, bad | — |
+| `weight_unit` | — | kg, lb |
+
+Dropdown labels follow **Settings → Atomic → Language**. If a note already has a value outside the list, it still appears as an extra option so nothing is lost.
+
+After updating the plugin, reload Atomic once (toggle off/on under Community plugins) if dropdowns do not appear immediately.
+
 ---
 
 ## 9. Track Reading and other general habits
@@ -302,6 +317,20 @@ type: atomic-item
 domain: hobby
 activity: reading
 status: to-read
+```
+
+`status` is one of four Reading workflow values:
+
+| Value | Meaning |
+|-------|---------|
+| `to-read` | Default for new items; not started yet |
+| `reading` | Currently reading |
+| `to-read-again` | Finished once; plan to revisit |
+| `finished` | Done for now |
+
+On Reading item notes, Atomic shows `status` as a **dropdown** in Properties and in Bases (same four options, localized labels). Other fields (`authors`, `description`, `cover`, …) stay normal text or list properties.
+
+```yaml
 authors:
   - ""
 description: ""
@@ -348,6 +377,22 @@ activity: reading
 ```
 ````
 
+**Filter by status** (optional). Omit `status` or use `status: all` to show every book. Otherwise only items whose frontmatter `status` matches are shown:
+
+````markdown
+```atomic-bookshelf
+activity: reading
+status: reading
+```
+
+```atomic-bookshelf
+activity: reading
+status: reading, to-read
+```
+````
+
+Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknown tokens show a short notice; valid ids in the list still filter correctly.
+
 ![Book shelf](./images/atomic-book-shelf.png)
 
 ![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
@@ -393,6 +438,22 @@ activity: all
 
 `activity` accepts `all`, one activity id (`reading`, `gym`, …), or a comma-separated list (`gym, golf, reading`).
 
+### `atomic-bookshelf`
+
+Renders the 3D book shelf for a timer-backed general habit (Reading by default). Options in the codeblock body:
+
+```text
+activity: reading
+status: all
+```
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `activity` | `reading` | Hobby activity id (must be enabled, item + timer) |
+| `status` | all | `all` or omitted → every book; otherwise one or more status ids (`reading`, `to-read`, …) comma-separated |
+
+Books are sorted by status (reading first), then title. Click a book to open its item note.
+
 For today blocks:
 
 ```text
@@ -430,6 +491,8 @@ date: 2026-08-08
 | Wrong “today” | Set **Timezone** in Atomic settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
 | Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |
+| Property dropdown missing | Reload the Atomic plugin; confirm the note type matches (Reading item vs golf/gym session) |
+| Book shelf empty after `status:` filter | Check item frontmatter `status` values; use `status: all` to show every book |
 
 ---
 
