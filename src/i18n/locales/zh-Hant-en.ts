@@ -133,6 +133,17 @@ export const zhHantEn = {
   "reading.status.toReadAgain": "To read again / 重讀",
   "reading.status.finished": "Finished / 讀完",
 
+  "property.selectLabel": "Select {property} value / 選擇 {property} 值",
+  "property.felt.good": "Good / 好",
+  "property.felt.ok": "OK / 一般",
+  "property.felt.bad": "Bad / 差",
+  "property.golfLocation.homeNet": "Home net / 家用網",
+  "property.golfLocation.drivingRange": "Driving range / 練習場",
+  "property.golfLocation.course": "Course / 球場",
+  "property.golfLocation.other": "Other / 其他",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
+
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / 舊版 fitness-* 區塊已停用，請使用 atomic-* 區塊。",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues 需要 activity 選項，例如 activity: golf。",
   "view.unknownAtomicBlock": "Unknown block / 未知區塊: {kind}",

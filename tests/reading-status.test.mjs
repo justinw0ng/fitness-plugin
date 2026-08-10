@@ -7,7 +7,6 @@ import {
   matchesBookShelfStatus,
   readingStatusLabelKey,
   resolveBookShelfStatuses,
-  shouldUseReadingStatusDropdown,
   statusRank,
 } from "../src/core/reading-status.ts";
 
@@ -39,13 +38,6 @@ test("isReadingItemFrontmatter matches atomic Reading items only", () => {
   );
   assert.equal(isReadingItemFrontmatter({ activity: "reading" }), false);
   assert.equal(isReadingItemFrontmatter(null), false);
-});
-
-test("shouldUseReadingStatusDropdown scopes to status on Reading items", () => {
-  const reading = { type: "atomic-item", activity: "reading" };
-  assert.equal(shouldUseReadingStatusDropdown("status", reading), true);
-  assert.equal(shouldUseReadingStatusDropdown("authors", reading), false);
-  assert.equal(shouldUseReadingStatusDropdown("status", { activity: "reading" }), false);
 });
 
 test("readingStatusLabelKey maps known statuses to i18n keys", () => {

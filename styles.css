@@ -570,16 +570,20 @@
   padding: 18px 8px;
 }
 
-/* Reading item status dropdown in Properties / Bases */
+/* Fixed-value property dropdowns in Properties / Bases */
+.atomic-property-select,
 .atomic-reading-status-select {
   width: 100%;
   max-width: 100%;
 }
 
+.atomic-property-native-hidden,
 .atomic-reading-status-native-hidden {
   display: none !important;
 }
 
+.bases-td .atomic-property-select.mod-base,
+.bases-td .atomic-property-select,
 .bases-td .atomic-reading-status-select.mod-base,
 .bases-td .atomic-reading-status-select {
   position: absolute;

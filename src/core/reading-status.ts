@@ -31,13 +31,6 @@ export function isReadingItemFrontmatter(
   return type === "atomic-item" && activity === "reading";
 }
 
-export function shouldUseReadingStatusDropdown(
-  propertyKey: string,
-  frontmatter: Record<string, unknown> | null | undefined,
-): boolean {
-  return propertyKey === "status" && isReadingItemFrontmatter(frontmatter);
-}
-
 export function readingStatusLabelKey(status: string): string {
   switch (status) {
     case "to-read":

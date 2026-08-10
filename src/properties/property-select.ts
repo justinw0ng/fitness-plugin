@@ -3,10 +3,10 @@ import { TFile } from "obsidian";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { READING_STATUSES, readingStatusLabelKey, shouldUseReadingStatusDropdown } from "../core/reading-status.ts";
+import { DROPDOWN_PROPERTY_NAMES, resolvePropertyOptions, type PropertyOptionSpec } from "../core/property-options.ts";
 
-const SELECT_CLASS = "atomic-reading-status-select";
-const HIDDEN_CLASS = "atomic-reading-status-native-hidden";
+const SELECT_CLASS = "atomic-property-select";
+const HIDDEN_CLASS = "atomic-property-native-hidden";
 const SYNC_GRACE_MS = 2000;
 
 type RegisterOptions = {
@@ -40,12 +40,25 @@ function getFileFromElement(app: App, el: HTMLElement): TFile | null {
 
 function readNativeValue(valueContainer: HTMLElement): string {
   const nativeInput = valueContainer.querySelector("input");
-  if (nativeInput) return nativeInput.value;
+  if (nativeInput instanceof HTMLInputElement) return nativeInput.value;
   const nativeEditable = valueContainer.querySelector("[contenteditable]");
   return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
-function createStatusSelect(
+function optionLabel(
+  spec: PropertyOptionSpec,
+  value: string,
+  language: Language,
+): string {
+  const labelKey = spec.labelKey?.(value) ?? value;
+  if (labelKey === value) return value;
+  const translated = t(labelKey, language);
+  return translated === labelKey ? value : translated;
+}
+
+function createPropertySelect(
+  spec: PropertyOptionSpec,
+  property: string,
   getLanguage: () => Language,
   currentValue: string,
   onChange: (value: string) => void,
@@ -53,22 +66,20 @@ function createStatusSelect(
   const language = getLanguage();
   const selectEl = document.createElement("select");
   selectEl.classList.add(SELECT_CLASS, "dropdown");
-  selectEl.setAttribute("aria-label", t("reading.status.selectLabel", language));
+  selectEl.setAttribute(
+    "aria-label",
+    t("property.selectLabel", language, { property }),
+  );
 
-  for (const status of READING_STATUSES) {
+  for (const value of spec.values) {
     const optionEl = document.createElement("option");
-    optionEl.value = status;
-    const labelKey = readingStatusLabelKey(status);
-    optionEl.text =
-      labelKey === status ? status : t(labelKey, language);
-    if (status === currentValue) optionEl.selected = true;
+    optionEl.value = value;
+    optionEl.text = optionLabel(spec, value, language);
+    if (value === currentValue) optionEl.selected = true;
     selectEl.appendChild(optionEl);
   }
 
-  if (
-    currentValue &&
-    !(READING_STATUSES as readonly string[]).includes(currentValue)
-  ) {
+  if (currentValue && !spec.values.includes(currentValue)) {
     const legacy = document.createElement("option");
     legacy.value = currentValue;
     legacy.text = currentValue;
@@ -85,7 +96,7 @@ function createStatusSelect(
   return selectEl;
 }
 
-function writeStatus(
+function writePropertyValue(
   app: App,
   file: TFile | null,
   key: string,
@@ -128,11 +139,13 @@ function hideNativeEditors(valueContainer: HTMLElement): string {
 function syncExistingSelect(
   selectEl: HTMLSelectElement,
   currentValue: string,
-): boolean {
+  fallbackValue: string,
+): void {
   const lastChanged = Number.parseInt(selectEl.dataset.lastChanged || "0", 10);
-  if (Date.now() - lastChanged < SYNC_GRACE_MS) return true;
-  if (selectEl.value !== currentValue) selectEl.value = currentValue || READING_STATUSES[0];
-  return true;
+  if (Date.now() - lastChanged < SYNC_GRACE_MS) return;
+  if (selectEl.value !== currentValue) {
+    selectEl.value = currentValue || fallbackValue;
+  }
 }
 
 function stopBasesPointerCapture(selectEl: HTMLSelectElement): void {
@@ -152,7 +165,47 @@ function stopBasesPointerCapture(selectEl: HTMLSelectElement): void {
   }
 }
 
-export function registerReadingStatusSelect(
+function injectPropertySelect(
+  app: App,
+  getLanguage: () => Language,
+  property: string,
+  spec: PropertyOptionSpec,
+  valueContainer: HTMLElement,
+  file: TFile | null,
+  forBases: boolean,
+): void {
+  const existing = valueContainer.querySelector(
+    `.${SELECT_CLASS}`,
+  ) as HTMLSelectElement | null;
+  const currentValue = forBases
+    ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+    : readNativeValue(valueContainer);
+
+  if (existing) {
+    syncExistingSelect(existing, currentValue, spec.values[0] ?? "");
+    return;
+  }
+
+  const editableValue = forBases ? currentValue : hideNativeEditors(valueContainer);
+  const selectEl = createPropertySelect(
+    spec,
+    property,
+    getLanguage,
+    editableValue,
+    (newValue) => {
+      writePropertyValue(app, file, property, newValue, forBases ? undefined : valueContainer);
+    },
+  );
+  if (forBases) {
+    selectEl.classList.add("mod-base");
+    stopBasesPointerCapture(selectEl);
+  }
+  valueContainer.appendChild(selectEl);
+}
+
+export function registerPropertySelects(
   plugin: Plugin,
   options: RegisterOptions,
 ): void {
@@ -165,78 +218,58 @@ export function registerReadingStatusSelect(
         ".metadata-property-key-input",
       ) as HTMLInputElement | null;
       if (!keyEl) return;
-      const key = (keyEl.value || keyEl.textContent || "").trim();
-      if (key !== "status") return;
+      const property = (keyEl.value || keyEl.textContent || "").trim();
+      if (!property) return;
 
       const file = getFileFromElement(app, propEl as HTMLElement);
       const frontmatter = frontmatterForFile(app, file);
-      if (!shouldUseReadingStatusDropdown(key, frontmatter)) return;
+      const spec = resolvePropertyOptions(property, { frontmatter });
+      if (!spec) return;
 
       const valueContainer = propEl.querySelector(".metadata-property-value");
       if (!(valueContainer instanceof HTMLElement)) return;
-
-      const existing = valueContainer.querySelector(
-        `.${SELECT_CLASS}`,
-      ) as HTMLSelectElement | null;
-      if (existing) {
-        syncExistingSelect(existing, readNativeValue(valueContainer));
-        return;
-      }
-
-      const currentValue = hideNativeEditors(valueContainer);
-      const selectEl = createStatusSelect(
+      injectPropertySelect(
+        app,
         getLanguage,
-        currentValue,
-        (newValue) => {
-          writeStatus(app, file, key, newValue, valueContainer);
-        },
+        property,
+        spec,
+        valueContainer,
+        file,
+        false,
       );
-      valueContainer.appendChild(selectEl);
     });
 
-    container
-      .querySelectorAll('.bases-td[data-property="note.status"]')
-      .forEach((cellEl) => {
-        if (!(cellEl instanceof HTMLElement)) return;
-        const row = cellEl.closest(".bases-tr");
-        if (!(row instanceof HTMLElement)) return;
+    for (const property of DROPDOWN_PROPERTY_NAMES) {
+      container
+        .querySelectorAll(`.bases-td[data-property="note.${property}"]`)
+        .forEach((cellEl) => {
+          if (!(cellEl instanceof HTMLElement)) return;
+          const row = cellEl.closest(".bases-tr");
+          if (!(row instanceof HTMLElement)) return;
 
-        const link = row.querySelector(".internal-link");
-        const href = link?.getAttribute("data-href") ?? "";
-        const file = href
-          ? app.metadataCache.getFirstLinkpathDest(href, "")
-          : null;
-        const frontmatter = frontmatterForFile(
-          app,
-          file instanceof TFile ? file : null,
-        );
-        if (!shouldUseReadingStatusDropdown("status", frontmatter)) return;
+          const link = row.querySelector(".internal-link");
+          const href = link?.getAttribute("data-href") ?? "";
+          const file = href
+            ? app.metadataCache.getFirstLinkpathDest(href, "")
+            : null;
+          const frontmatter = frontmatterForFile(
+            app,
+            file instanceof TFile ? file : null,
+          );
+          const spec = resolvePropertyOptions(property, { frontmatter });
+          if (!spec) return;
 
-        const existing = cellEl.querySelector(
-          `.${SELECT_CLASS}`,
-        ) as HTMLSelectElement | null;
-        const contentEl = cellEl.querySelector(".metadata-input-longtext");
-        const currentValue = (contentEl?.textContent ?? "")
-          .replace(/\s+/g, " ")
-          .trim();
-        if (existing) {
-          syncExistingSelect(existing, currentValue);
-          return;
-        }
-
-        const selectEl = createStatusSelect(
-          getLanguage,
-          currentValue,
-          (newValue) => {
-            if (file instanceof TFile) {
-              writeStatus(app, file, "status", newValue);
-            }
-          },
-        );
-        selectEl.classList.add("mod-base");
-        stopBasesPointerCapture(selectEl);
-        cellEl.appendChild(selectEl);
-      });
+          injectPropertySelect(
+            app,
+            getLanguage,
+            property,
+            spec,
+            cellEl,
+            file instanceof TFile ? file : null,
+            true,
+          );
+        });
+    }
   };
 
   const observer = new MutationObserver((mutations) => {

@@ -43,6 +43,8 @@ var MUSCLES = [
   "Core"
 ];
 var GYM_LOCATIONS = ["Home", "Commercial", "Hotel/Travel", "Other"];
+var GOLF_LOCATIONS = ["Home net", "Driving range", "Course", "Other"];
+var FELT = ["good", "ok", "bad"];
 function isLoadedWeight(weight) {
   if (weight === null || weight === void 0) return false;
   const s = String(weight).trim();
@@ -376,6 +378,16 @@ var en = {
   "reading.status.reading": "Reading",
   "reading.status.toReadAgain": "To read again",
   "reading.status.finished": "Finished",
+  "property.selectLabel": "Select {property} value",
+  "property.felt.good": "Good",
+  "property.felt.ok": "OK",
+  "property.felt.bad": "Bad",
+  "property.golfLocation.homeNet": "Home net",
+  "property.golfLocation.drivingRange": "Driving range",
+  "property.golfLocation.course": "Course",
+  "property.golfLocation.other": "Other",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",
@@ -565,6 +577,16 @@ var zhHantEn = {
   "reading.status.reading": "Reading / \u95B1\u8B80\u4E2D",
   "reading.status.toReadAgain": "To read again / \u91CD\u8B80",
   "reading.status.finished": "Finished / \u8B80\u5B8C",
+  "property.selectLabel": "Select {property} value / \u9078\u64C7 {property} \u503C",
+  "property.felt.good": "Good / \u597D",
+  "property.felt.ok": "OK / \u4E00\u822C",
+  "property.felt.bad": "Bad / \u5DEE",
+  "property.golfLocation.homeNet": "Home net / \u5BB6\u7528\u7DB2",
+  "property.golfLocation.drivingRange": "Driving range / \u7DF4\u7FD2\u5834",
+  "property.golfLocation.course": "Course / \u7403\u5834",
+  "property.golfLocation.other": "Other / \u5176\u4ED6",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
   "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
@@ -912,9 +934,6 @@ function isReadingItemFrontmatter(frontmatter) {
   const type = String(frontmatter.type ?? "").trim();
   const activity = String(frontmatter.activity ?? "").trim();
   return type === "atomic-item" && activity === "reading";
-}
-function shouldUseReadingStatusDropdown(propertyKey, frontmatter) {
-  return propertyKey === "status" && isReadingItemFrontmatter(frontmatter);
 }
 function readingStatusLabelKey(status) {
   switch (status) {
@@ -3304,10 +3323,117 @@ var VaultDataSource = class {
   }
 };
 
-// src/properties/reading-status-select.ts
+// src/properties/property-select.ts
 var import_obsidian5 = require("obsidian");
-var SELECT_CLASS = "atomic-reading-status-select";
-var HIDDEN_CLASS = "atomic-reading-status-native-hidden";
+
+// src/core/property-options.ts
+var WEIGHT_UNITS = ["kg", "lb"];
+function sessionActivity(frontmatter) {
+  return String(frontmatter?.activity ?? "").trim().toLowerCase();
+}
+function isSession(frontmatter) {
+  return String(frontmatter?.type ?? "").trim() === "session";
+}
+function isGolfSession(context) {
+  return isSession(context.frontmatter) && sessionActivity(context.frontmatter) === "golf";
+}
+function isGymSession(context) {
+  return isSession(context.frontmatter) && sessionActivity(context.frontmatter) === "gym";
+}
+function gymLocationLabelKey(value) {
+  switch (value) {
+    case "Home":
+      return "location.home";
+    case "Commercial":
+      return "location.commercial";
+    case "Hotel/Travel":
+      return "location.hotelTravel";
+    case "Other":
+      return "location.other";
+    default:
+      return value;
+  }
+}
+function golfLocationLabelKey(value) {
+  switch (value) {
+    case "Home net":
+      return "property.golfLocation.homeNet";
+    case "Driving range":
+      return "property.golfLocation.drivingRange";
+    case "Course":
+      return "property.golfLocation.course";
+    case "Other":
+      return "property.golfLocation.other";
+    default:
+      return value;
+  }
+}
+function feltLabelKey(value) {
+  switch (value) {
+    case "good":
+      return "property.felt.good";
+    case "ok":
+      return "property.felt.ok";
+    case "bad":
+      return "property.felt.bad";
+    default:
+      return value;
+  }
+}
+function weightUnitLabelKey(value) {
+  switch (value) {
+    case "kg":
+      return "property.weightUnit.kg";
+    case "lb":
+      return "property.weightUnit.lb";
+    default:
+      return value;
+  }
+}
+var PROPERTY_OPTION_SPECS = [
+  {
+    property: "status",
+    values: READING_STATUSES,
+    matches: (context) => isReadingItemFrontmatter(context.frontmatter),
+    labelKey: readingStatusLabelKey
+  },
+  {
+    property: "felt",
+    values: FELT,
+    matches: isGolfSession,
+    labelKey: feltLabelKey
+  },
+  {
+    property: "location",
+    values: GOLF_LOCATIONS,
+    matches: isGolfSession,
+    labelKey: golfLocationLabelKey
+  },
+  {
+    property: "location",
+    values: GYM_LOCATIONS,
+    matches: isGymSession,
+    labelKey: gymLocationLabelKey
+  },
+  {
+    property: "weight_unit",
+    values: WEIGHT_UNITS,
+    matches: isGymSession,
+    labelKey: weightUnitLabelKey
+  }
+];
+var DROPDOWN_PROPERTY_NAMES = [
+  ...new Set(PROPERTY_OPTION_SPECS.map((spec) => spec.property))
+];
+function resolvePropertyOptions(property, context) {
+  return PROPERTY_OPTION_SPECS.find(
+    (spec) => spec.property === property && spec.matches(context)
+  ) ?? null;
+}
+
+// src/properties/property-select.ts
+var SELECT_CLASS = "atomic-property-select";
+var HIDDEN_CLASS = "atomic-property-native-hidden";
 var SYNC_GRACE_MS = 2e3;
 function frontmatterForFile(app, file) {
   if (!file) return null;
@@ -3330,24 +3456,32 @@ function getFileFromElement(app, el) {
 }
 function readNativeValue(valueContainer) {
   const nativeInput = valueContainer.querySelector("input");
-  if (nativeInput) return nativeInput.value;
+  if (nativeInput instanceof HTMLInputElement) return nativeInput.value;
   const nativeEditable = valueContainer.querySelector("[contenteditable]");
   return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
-function createStatusSelect(getLanguage, currentValue, onChange) {
+function optionLabel(spec, value, language) {
+  const labelKey = spec.labelKey?.(value) ?? value;
+  if (labelKey === value) return value;
+  const translated = t(labelKey, language);
+  return translated === labelKey ? value : translated;
+}
+function createPropertySelect(spec, property, getLanguage, currentValue, onChange) {
   const language = getLanguage();
   const selectEl = document.createElement("select");
   selectEl.classList.add(SELECT_CLASS, "dropdown");
-  selectEl.setAttribute("aria-label", t("reading.status.selectLabel", language));
-  for (const status of READING_STATUSES) {
+  selectEl.setAttribute(
+    "aria-label",
+    t("property.selectLabel", language, { property })
+  );
+  for (const value of spec.values) {
     const optionEl = document.createElement("option");
-    optionEl.value = status;
-    const labelKey = readingStatusLabelKey(status);
-    optionEl.text = labelKey === status ? status : t(labelKey, language);
-    if (status === currentValue) optionEl.selected = true;
+    optionEl.value = value;
+    optionEl.text = optionLabel(spec, value, language);
+    if (value === currentValue) optionEl.selected = true;
     selectEl.appendChild(optionEl);
   }
-  if (currentValue && !READING_STATUSES.includes(currentValue)) {
+  if (currentValue && !spec.values.includes(currentValue)) {
     const legacy = document.createElement("option");
     legacy.value = currentValue;
     legacy.text = currentValue;
@@ -3361,7 +3495,7 @@ function createStatusSelect(getLanguage, currentValue, onChange) {
   });
   return selectEl;
 }
-function writeStatus(app, file, key, value, valueContainer) {
+function writePropertyValue(app, file, key, value, valueContainer) {
   if (valueContainer) {
     const nativeInput = valueContainer.querySelector("input");
     const nativeEditable = valueContainer.querySelector("[contenteditable]");
@@ -3392,11 +3526,12 @@ function hideNativeEditors(valueContainer) {
   }
   return currentValue.replace(/\s+/g, " ").trim();
 }
-function syncExistingSelect(selectEl, currentValue) {
+function syncExistingSelect(selectEl, currentValue, fallbackValue) {
   const lastChanged = Number.parseInt(selectEl.dataset.lastChanged || "0", 10);
-  if (Date.now() - lastChanged < SYNC_GRACE_MS) return true;
-  if (selectEl.value !== currentValue) selectEl.value = currentValue || READING_STATUSES[0];
-  return true;
+  if (Date.now() - lastChanged < SYNC_GRACE_MS) return;
+  if (selectEl.value !== currentValue) {
+    selectEl.value = currentValue || fallbackValue;
+  }
 }
 function stopBasesPointerCapture(selectEl) {
   const stop = (event) => {
@@ -3414,7 +3549,32 @@ function stopBasesPointerCapture(selectEl) {
     selectEl.addEventListener(type, stop, { capture: true });
   }
 }
-function registerReadingStatusSelect(plugin, options) {
+function injectPropertySelect(app, getLanguage, property, spec, valueContainer, file, forBases) {
+  const existing = valueContainer.querySelector(
+    `.${SELECT_CLASS}`
+  );
+  const currentValue = forBases ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "").replace(/\s+/g, " ").trim() : readNativeValue(valueContainer);
+  if (existing) {
+    syncExistingSelect(existing, currentValue, spec.values[0] ?? "");
+    return;
+  }
+  const editableValue = forBases ? currentValue : hideNativeEditors(valueContainer);
+  const selectEl = createPropertySelect(
+    spec,
+    property,
+    getLanguage,
+    editableValue,
+    (newValue) => {
+      writePropertyValue(app, file, property, newValue, forBases ? void 0 : valueContainer);
+    }
+  );
+  if (forBases) {
+    selectEl.classList.add("mod-base");
+    stopBasesPointerCapture(selectEl);
+  }
+  valueContainer.appendChild(selectEl);
+}
+function registerPropertySelects(plugin, options) {
   const app = plugin.app;
   const { getLanguage } = options;
   const inject = (container) => {
@@ -3423,64 +3583,49 @@ function registerReadingStatusSelect(plugin, options) {
         ".metadata-property-key-input"
       );
       if (!keyEl) return;
-      const key = (keyEl.value || keyEl.textContent || "").trim();
-      if (key !== "status") return;
+      const property = (keyEl.value || keyEl.textContent || "").trim();
+      if (!property) return;
       const file = getFileFromElement(app, propEl);
       const frontmatter = frontmatterForFile(app, file);
-      if (!shouldUseReadingStatusDropdown(key, frontmatter)) return;
+      const spec = resolvePropertyOptions(property, { frontmatter });
+      if (!spec) return;
       const valueContainer = propEl.querySelector(".metadata-property-value");
       if (!(valueContainer instanceof HTMLElement)) return;
-      const existing = valueContainer.querySelector(
-        `.${SELECT_CLASS}`
-      );
-      if (existing) {
-        syncExistingSelect(existing, readNativeValue(valueContainer));
-        return;
-      }
-      const currentValue = hideNativeEditors(valueContainer);
-      const selectEl = createStatusSelect(
-        getLanguage,
-        currentValue,
-        (newValue) => {
-          writeStatus(app, file, key, newValue, valueContainer);
-        }
-      );
-      valueContainer.appendChild(selectEl);
-    });
-    container.querySelectorAll('.bases-td[data-property="note.status"]').forEach((cellEl) => {
-      if (!(cellEl instanceof HTMLElement)) return;
-      const row = cellEl.closest(".bases-tr");
-      if (!(row instanceof HTMLElement)) return;
-      const link = row.querySelector(".internal-link");
-      const href = link?.getAttribute("data-href") ?? "";
-      const file = href ? app.metadataCache.getFirstLinkpathDest(href, "") : null;
-      const frontmatter = frontmatterForFile(
+      injectPropertySelect(
         app,
-        file instanceof import_obsidian5.TFile ? file : null
-      );
-      if (!shouldUseReadingStatusDropdown("status", frontmatter)) return;
-      const existing = cellEl.querySelector(
-        `.${SELECT_CLASS}`
-      );
-      const contentEl = cellEl.querySelector(".metadata-input-longtext");
-      const currentValue = (contentEl?.textContent ?? "").replace(/\s+/g, " ").trim();
-      if (existing) {
-        syncExistingSelect(existing, currentValue);
-        return;
-      }
-      const selectEl = createStatusSelect(
         getLanguage,
-        currentValue,
-        (newValue) => {
-          if (file instanceof import_obsidian5.TFile) {
-            writeStatus(app, file, "status", newValue);
-          }
-        }
+        property,
+        spec,
+        valueContainer,
+        file,
+        false
       );
-      selectEl.classList.add("mod-base");
-      stopBasesPointerCapture(selectEl);
-      cellEl.appendChild(selectEl);
     });
+    for (const property of DROPDOWN_PROPERTY_NAMES) {
+      container.querySelectorAll(`.bases-td[data-property="note.${property}"]`).forEach((cellEl) => {
+        if (!(cellEl instanceof HTMLElement)) return;
+        const row = cellEl.closest(".bases-tr");
+        if (!(row instanceof HTMLElement)) return;
+        const link = row.querySelector(".internal-link");
+        const href = link?.getAttribute("data-href") ?? "";
+        const file = href ? app.metadataCache.getFirstLinkpathDest(href, "") : null;
+        const frontmatter = frontmatterForFile(
+          app,
+          file instanceof import_obsidian5.TFile ? file : null
+        );
+        const spec = resolvePropertyOptions(property, { frontmatter });
+        if (!spec) return;
+        injectPropertySelect(
+          app,
+          getLanguage,
+          property,
+          spec,
+          cellEl,
+          file instanceof import_obsidian5.TFile ? file : null,
+          true
+        );
+      });
+    }
   };
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -4006,7 +4151,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
     this.data = new VaultDataSource(this.app);
     await this.loadSettings();
     registerCodeblocks(this);
-    registerReadingStatusSelect(this, {
+    registerPropertySelects(this, {
       getLanguage: () => this.settings.language
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));

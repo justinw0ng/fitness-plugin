@@ -133,6 +133,17 @@ export const en = {
   "reading.status.toReadAgain": "To read again",
   "reading.status.finished": "Finished",
 
+  "property.selectLabel": "Select {property} value",
+  "property.felt.good": "Good",
+  "property.felt.ok": "OK",
+  "property.felt.bad": "Bad",
+  "property.golfLocation.homeNet": "Home net",
+  "property.golfLocation.drivingRange": "Driving range",
+  "property.golfLocation.course": "Course",
+  "property.golfLocation.other": "Other",
+  "property.weightUnit.kg": "kg",
+  "property.weightUnit.lb": "lb",
+
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",
