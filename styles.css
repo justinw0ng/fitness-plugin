@@ -246,9 +246,9 @@
 .fitness-plugin .atomic-book {
   --atomic-book-color: #374151;
   position: relative;
-  flex: 0 0 86px;
-  width: 86px;
-  height: 142px;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 168px;
   padding: 0;
   border: 0;
   border-radius: 4px;
@@ -571,21 +571,17 @@
 }
 
 /* Fixed-value property dropdowns in Properties / Bases */
-.atomic-property-select,
-.atomic-reading-status-select {
+.atomic-property-select {
   width: 100%;
   max-width: 100%;
 }
 
-.atomic-property-native-hidden,
-.atomic-reading-status-native-hidden {
+.atomic-property-native-hidden {
   display: none !important;
 }
 
 .bases-td .atomic-property-select.mod-base,
-.bases-td .atomic-property-select,
-.bases-td .atomic-reading-status-select.mod-base,
-.bases-td .atomic-reading-status-select {
+.bases-td .atomic-property-select {
   position: absolute;
   inset: 2px 4px;
   width: auto;

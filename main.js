@@ -2317,7 +2317,7 @@ async function renderDashboard(el, data, activityTypes, year, language) {
 }
 
 // src/views/book-shelf.ts
-var BOOK_WIDTH_PX = 86;
+var BOOK_WIDTH_PX = 108;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 56;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
@@ -3514,23 +3514,30 @@ function writePropertyValue(app, file, key, value, valueContainer) {
   });
 }
 function hideNativeEditors(valueContainer) {
-  let currentValue = "";
   for (const child of Array.from(valueContainer.children)) {
     if (child.classList.contains(SELECT_CLASS)) continue;
     if (child instanceof HTMLElement) {
-      const inputEl = child.querySelector("input");
-      if (inputEl instanceof HTMLInputElement) currentValue = inputEl.value;
-      else if (child.textContent) currentValue = child.textContent;
       child.addClass(HIDDEN_CLASS);
     }
   }
-  return currentValue.replace(/\s+/g, " ").trim();
 }
-function syncExistingSelect(selectEl, currentValue, fallbackValue) {
+function syncExistingSelect(selectEl, spec, currentValue, fallbackValue) {
   const lastChanged = Number.parseInt(selectEl.dataset.lastChanged || "0", 10);
   if (Date.now() - lastChanged < SYNC_GRACE_MS) return;
-  if (selectEl.value !== currentValue) {
-    selectEl.value = currentValue || fallbackValue;
+  const valueToSet = currentValue || fallbackValue;
+  if (valueToSet && !spec.values.includes(valueToSet)) {
+    const hasOption = Array.from(selectEl.options).some(
+      (option) => option.value === valueToSet
+    );
+    if (!hasOption) {
+      const legacy = document.createElement("option");
+      legacy.value = valueToSet;
+      legacy.text = valueToSet;
+      selectEl.appendChild(legacy);
+    }
+  }
+  if (selectEl.value !== valueToSet) {
+    selectEl.value = valueToSet;
   }
 }
 function stopBasesPointerCapture(selectEl) {
@@ -3555,10 +3562,11 @@ function injectPropertySelect(app, getLanguage, property, spec, valueContainer, 
   );
   const currentValue = forBases ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "").replace(/\s+/g, " ").trim() : readNativeValue(valueContainer);
   if (existing) {
-    syncExistingSelect(existing, currentValue, spec.values[0] ?? "");
+    syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
     return;
   }
-  const editableValue = forBases ? currentValue : hideNativeEditors(valueContainer);
+  if (!forBases) hideNativeEditors(valueContainer);
+  const editableValue = currentValue;
   const selectEl = createPropertySelect(
     spec,
     property,
@@ -3627,15 +3635,29 @@ function registerPropertySelects(plugin, options) {
       });
     }
   };
+  let injectFrame = null;
+  const scheduleInject = () => {
+    if (injectFrame !== null) return;
+    injectFrame = requestAnimationFrame(() => {
+      injectFrame = null;
+      inject(document.body);
+    });
+  };
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        inject(document.body);
+        scheduleInject();
         return;
       }
     }
   });
-  plugin.register(() => observer.disconnect());
+  plugin.register(() => {
+    observer.disconnect();
+    if (injectFrame !== null) {
+      cancelAnimationFrame(injectFrame);
+      injectFrame = null;
+    }
+  });
   plugin.app.workspace.onLayoutReady(() => {
     observer.observe(document.body, { childList: true, subtree: true });
     inject(document.body);
