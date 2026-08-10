@@ -1,6 +1,8 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { DEFAULT_READING_STATUS } from "../core/reading-status.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
 const FALLBACK_BOOK_TITLE = "Untitled Book";
@@ -41,7 +43,7 @@ export function readingItemMarkdown(
 type: atomic-item
 domain: hobby
 activity: ${activity}
-status: to-read
+status: ${DEFAULT_READING_STATUS}
 authors:
   - ""
 description: ""

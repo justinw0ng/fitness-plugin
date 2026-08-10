@@ -570,6 +570,24 @@
   padding: 18px 8px;
 }
 
+/* Reading item status dropdown in Properties / Bases */
+.atomic-reading-status-select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.atomic-reading-status-native-hidden {
+  display: none !important;
+}
+
+.bases-td .atomic-reading-status-select.mod-base,
+.bases-td .atomic-reading-status-select {
+  position: absolute;
+  inset: 2px 4px;
+  width: auto;
+  min-width: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fitness-plugin .atomic-book,
   .fitness-plugin .atomic-book-volume,

@@ -127,6 +127,12 @@ export const zhHantEn = {
   "template.base.cards": "Cards / 卡片",
   "template.base.table": "Table / 表格",
 
+  "reading.status.selectLabel": "Reading status / 閱讀狀態",
+  "reading.status.toRead": "To read / 待讀",
+  "reading.status.reading": "Reading / 閱讀中",
+  "reading.status.toReadAgain": "To read again / 重讀",
+  "reading.status.finished": "Finished / 讀完",
+
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / 舊版 fitness-* 區塊已停用，請使用 atomic-* 區塊。",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues 需要 activity 選項，例如 activity: golf。",
   "view.unknownAtomicBlock": "Unknown block / 未知區塊: {kind}",

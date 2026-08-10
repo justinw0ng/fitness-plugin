@@ -127,6 +127,12 @@ export const en = {
   "template.base.cards": "Cards",
   "template.base.table": "Table",
 
+  "reading.status.selectLabel": "Reading status",
+  "reading.status.toRead": "To read",
+  "reading.status.reading": "Reading",
+  "reading.status.toReadAgain": "To read again",
+  "reading.status.finished": "Finished",
+
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",

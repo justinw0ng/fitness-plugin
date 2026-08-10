@@ -3,6 +3,8 @@ import type { VaultDataSource } from "../data/vault-source";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, HobbyItemMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { DEFAULT_READING_STATUS, statusRank } from "../core/reading-status.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
 
 export type BookShelfItem = {
@@ -19,13 +21,6 @@ export type CoverRef =
   | { kind: "url"; src: string }
   | { kind: "vault"; path: string }
   | { kind: "none" };
-
-const STATUS_ORDER = new Map([
-  ["reading", 0],
-  ["to-read", 1],
-  ["to-read-again", 2],
-  ["finished", 3],
-]);
 
 const BOOK_WIDTH_PX = 86;
 const BOOK_GAP_PX = 8;
@@ -67,10 +62,6 @@ export function shelfColorFor(item: {
   return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
 }
 
-function statusRank(status: string): number {
-  return STATUS_ORDER.get(status) ?? 99;
-}
-
 export function buildBookShelfItems(files: HobbyItemMeta[], activityId = "reading"): BookShelfItem[] {
   return files
     .filter(
@@ -80,7 +71,7 @@ export function buildBookShelfItems(files: HobbyItemMeta[], activityId = "readin
     )
     .map((file) => {
       const title = asString(file.frontmatter.title) || file.basename;
-      const status = asString(file.frontmatter.status) || "to-read";
+      const status = asString(file.frontmatter.status) || DEFAULT_READING_STATUS;
       const cover = asString(file.frontmatter.cover);
       const description = asString(file.frontmatter.description);
       return {

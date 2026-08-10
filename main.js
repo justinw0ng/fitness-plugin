@@ -23,7 +23,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/commands/create-session.ts
 var import_obsidian2 = require("obsidian");
@@ -371,6 +371,11 @@ var en = {
   "template.base.totalMinutes": "Total minutes",
   "template.base.cards": "Cards",
   "template.base.table": "Table",
+  "reading.status.selectLabel": "Reading status",
+  "reading.status.toRead": "To read",
+  "reading.status.reading": "Reading",
+  "reading.status.toReadAgain": "To read again",
+  "reading.status.finished": "Finished",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",
@@ -553,6 +558,11 @@ var zhHantEn = {
   "template.base.totalMinutes": "Total minutes / \u7E3D\u5206\u9418",
   "template.base.cards": "Cards / \u5361\u7247",
   "template.base.table": "Table / \u8868\u683C",
+  "reading.status.selectLabel": "Reading status / \u95B1\u8B80\u72C0\u614B",
+  "reading.status.toRead": "To read / \u5F85\u8B80",
+  "reading.status.reading": "Reading / \u95B1\u8B80\u4E2D",
+  "reading.status.toReadAgain": "To read again / \u91CD\u8B80",
+  "reading.status.finished": "Finished / \u8B80\u5B8C",
   "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
   "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
@@ -876,6 +886,47 @@ function showNotice(message) {
   new Notice5(message);
 }
 
+// src/core/reading-status.ts
+var READING_STATUSES = [
+  "to-read",
+  "reading",
+  "to-read-again",
+  "finished"
+];
+var DEFAULT_READING_STATUS = "to-read";
+var STATUS_ORDER = /* @__PURE__ */ new Map([
+  ["reading", 0],
+  ["to-read", 1],
+  ["to-read-again", 2],
+  ["finished", 3]
+]);
+function statusRank(status) {
+  return STATUS_ORDER.get(status) ?? 99;
+}
+function isReadingItemFrontmatter(frontmatter) {
+  if (!frontmatter) return false;
+  const type = String(frontmatter.type ?? "").trim();
+  const activity = String(frontmatter.activity ?? "").trim();
+  return type === "atomic-item" && activity === "reading";
+}
+function shouldUseReadingStatusDropdown(propertyKey, frontmatter) {
+  return propertyKey === "status" && isReadingItemFrontmatter(frontmatter);
+}
+function readingStatusLabelKey(status) {
+  switch (status) {
+    case "to-read":
+      return "reading.status.toRead";
+    case "reading":
+      return "reading.status.reading";
+    case "to-read-again":
+      return "reading.status.toReadAgain";
+    case "finished":
+      return "reading.status.finished";
+    default:
+      return status;
+  }
+}
+
 // src/util/vault-path.ts
 function normalizeSlashes(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
@@ -936,7 +987,7 @@ function readingItemMarkdown(title, language = "en", activityId = "reading") {
 type: atomic-item
 domain: hobby
 activity: ${activity}
-status: to-read
+status: ${DEFAULT_READING_STATUS}
 authors:
   - ""
 description: ""
@@ -2208,12 +2259,6 @@ async function renderDashboard(el, data, activityTypes, year, language) {
 }
 
 // src/views/book-shelf.ts
-var STATUS_ORDER = /* @__PURE__ */ new Map([
-  ["reading", 0],
-  ["to-read", 1],
-  ["to-read-again", 2],
-  ["finished", 3]
-]);
 var BOOK_WIDTH_PX = 86;
 var BOOK_GAP_PX = 8;
 var ROW_PADDING_PX = 56;
@@ -2243,15 +2288,12 @@ ${item.path}`;
   const color = hash & 16777215 | 3158064;
   return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
 }
-function statusRank(status) {
-  return STATUS_ORDER.get(status) ?? 99;
-}
 function buildBookShelfItems(files, activityId = "reading") {
   return files.filter(
     (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
   ).map((file) => {
     const title = asString(file.frontmatter.title) || file.basename;
-    const status = asString(file.frontmatter.status) || "to-read";
+    const status = asString(file.frontmatter.status) || DEFAULT_READING_STATUS;
     const cover = asString(file.frontmatter.cover);
     const description = asString(file.frontmatter.description);
     return {
@@ -3207,8 +3249,201 @@ var VaultDataSource = class {
   }
 };
 
-// src/settings.ts
+// src/properties/reading-status-select.ts
 var import_obsidian5 = require("obsidian");
+var SELECT_CLASS = "atomic-reading-status-select";
+var HIDDEN_CLASS = "atomic-reading-status-native-hidden";
+var SYNC_GRACE_MS = 2e3;
+function frontmatterForFile(app, file) {
+  if (!file) return null;
+  const cache = app.metadataCache.getFileCache(file);
+  return cache?.frontmatter ?? null;
+}
+function getFileFromElement(app, el) {
+  const leafEl = el.closest(".workspace-leaf");
+  if (!leafEl) return app.workspace.getActiveFile();
+  let targetFile = null;
+  app.workspace.iterateAllLeaves((leaf) => {
+    if (leaf.view.containerEl.parentElement === leafEl) {
+      const view = leaf.view;
+      if ("file" in view && view.file instanceof import_obsidian5.TFile) {
+        targetFile = view.file;
+      }
+    }
+  });
+  return targetFile ?? app.workspace.getActiveFile();
+}
+function readNativeValue(valueContainer) {
+  const nativeInput = valueContainer.querySelector("input");
+  if (nativeInput) return nativeInput.value;
+  const nativeEditable = valueContainer.querySelector("[contenteditable]");
+  return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+function createStatusSelect(getLanguage, currentValue, onChange) {
+  const language = getLanguage();
+  const selectEl = document.createElement("select");
+  selectEl.classList.add(SELECT_CLASS, "dropdown");
+  selectEl.setAttribute("aria-label", t("reading.status.selectLabel", language));
+  for (const status of READING_STATUSES) {
+    const optionEl = document.createElement("option");
+    optionEl.value = status;
+    const labelKey = readingStatusLabelKey(status);
+    optionEl.text = labelKey === status ? status : t(labelKey, language);
+    if (status === currentValue) optionEl.selected = true;
+    selectEl.appendChild(optionEl);
+  }
+  if (currentValue && !READING_STATUSES.includes(currentValue)) {
+    const legacy = document.createElement("option");
+    legacy.value = currentValue;
+    legacy.text = currentValue;
+    legacy.selected = true;
+    selectEl.appendChild(legacy);
+  }
+  selectEl.addEventListener("change", (event) => {
+    const newValue = event.target.value;
+    selectEl.dataset.lastChanged = Date.now().toString();
+    onChange(newValue);
+  });
+  return selectEl;
+}
+function writeStatus(app, file, key, value, valueContainer) {
+  if (valueContainer) {
+    const nativeInput = valueContainer.querySelector("input");
+    const nativeEditable = valueContainer.querySelector("[contenteditable]");
+    if (nativeInput instanceof HTMLInputElement) {
+      nativeInput.value = value;
+      nativeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      nativeInput.dispatchEvent(new Event("change", { bubbles: true }));
+    } else if (nativeEditable instanceof HTMLElement) {
+      nativeEditable.textContent = value;
+      nativeEditable.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+  }
+  if (!(file instanceof import_obsidian5.TFile)) return;
+  void app.fileManager.processFrontMatter(file, (frontmatter) => {
+    frontmatter[key] = value;
+  });
+}
+function hideNativeEditors(valueContainer) {
+  let currentValue = "";
+  for (const child of Array.from(valueContainer.children)) {
+    if (child.classList.contains(SELECT_CLASS)) continue;
+    if (child instanceof HTMLElement) {
+      const inputEl = child.querySelector("input");
+      if (inputEl instanceof HTMLInputElement) currentValue = inputEl.value;
+      else if (child.textContent) currentValue = child.textContent;
+      child.addClass(HIDDEN_CLASS);
+    }
+  }
+  return currentValue.replace(/\s+/g, " ").trim();
+}
+function syncExistingSelect(selectEl, currentValue) {
+  const lastChanged = Number.parseInt(selectEl.dataset.lastChanged || "0", 10);
+  if (Date.now() - lastChanged < SYNC_GRACE_MS) return true;
+  if (selectEl.value !== currentValue) selectEl.value = currentValue || READING_STATUSES[0];
+  return true;
+}
+function stopBasesPointerCapture(selectEl) {
+  const stop = (event) => {
+    event.stopPropagation();
+  };
+  for (const type of [
+    "mousedown",
+    "mouseup",
+    "click",
+    "pointerdown",
+    "pointerup",
+    "focusin"
+  ]) {
+    selectEl.addEventListener(type, stop);
+    selectEl.addEventListener(type, stop, { capture: true });
+  }
+}
+function registerReadingStatusSelect(plugin, options) {
+  const app = plugin.app;
+  const { getLanguage } = options;
+  const inject = (container) => {
+    container.querySelectorAll(".metadata-property").forEach((propEl) => {
+      const keyEl = propEl.querySelector(
+        ".metadata-property-key-input"
+      );
+      if (!keyEl) return;
+      const key = (keyEl.value || keyEl.textContent || "").trim();
+      if (key !== "status") return;
+      const file = getFileFromElement(app, propEl);
+      const frontmatter = frontmatterForFile(app, file);
+      if (!shouldUseReadingStatusDropdown(key, frontmatter)) return;
+      const valueContainer = propEl.querySelector(".metadata-property-value");
+      if (!(valueContainer instanceof HTMLElement)) return;
+      const existing = valueContainer.querySelector(
+        `.${SELECT_CLASS}`
+      );
+      if (existing) {
+        syncExistingSelect(existing, readNativeValue(valueContainer));
+        return;
+      }
+      const currentValue = hideNativeEditors(valueContainer);
+      const selectEl = createStatusSelect(
+        getLanguage,
+        currentValue,
+        (newValue) => {
+          writeStatus(app, file, key, newValue, valueContainer);
+        }
+      );
+      valueContainer.appendChild(selectEl);
+    });
+    container.querySelectorAll('.bases-td[data-property="note.status"]').forEach((cellEl) => {
+      if (!(cellEl instanceof HTMLElement)) return;
+      const row = cellEl.closest(".bases-tr");
+      if (!(row instanceof HTMLElement)) return;
+      const link = row.querySelector(".internal-link");
+      const href = link?.getAttribute("data-href") ?? "";
+      const file = href ? app.metadataCache.getFirstLinkpathDest(href, "") : null;
+      const frontmatter = frontmatterForFile(
+        app,
+        file instanceof import_obsidian5.TFile ? file : null
+      );
+      if (!shouldUseReadingStatusDropdown("status", frontmatter)) return;
+      const existing = cellEl.querySelector(
+        `.${SELECT_CLASS}`
+      );
+      const contentEl = cellEl.querySelector(".metadata-input-longtext");
+      const currentValue = (contentEl?.textContent ?? "").replace(/\s+/g, " ").trim();
+      if (existing) {
+        syncExistingSelect(existing, currentValue);
+        return;
+      }
+      const selectEl = createStatusSelect(
+        getLanguage,
+        currentValue,
+        (newValue) => {
+          if (file instanceof import_obsidian5.TFile) {
+            writeStatus(app, file, "status", newValue);
+          }
+        }
+      );
+      selectEl.classList.add("mod-base");
+      stopBasesPointerCapture(selectEl);
+      cellEl.appendChild(selectEl);
+    });
+  };
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        inject(document.body);
+        return;
+      }
+    }
+  });
+  plugin.register(() => observer.disconnect());
+  plugin.app.workspace.onLayoutReady(() => {
+    observer.observe(document.body, { childList: true, subtree: true });
+    inject(document.body);
+  });
+}
+
+// src/settings.ts
+var import_obsidian6 = require("obsidian");
 
 // src/util/migrate-fitness.ts
 var MOVE_DEFINITIONS = [
@@ -3402,7 +3637,7 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
-var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
+var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
   constructor(app, options) {
     super(app);
     this.message = options.message;
@@ -3413,7 +3648,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
   onOpen() {
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian5.Setting(this.contentEl).addButton(
+    new import_obsidian6.Setting(this.contentEl).addButton(
       (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
     ).addButton(
       (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
@@ -3423,7 +3658,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian5.Modal {
     );
   }
 };
-var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -3435,28 +3670,28 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     const language = this.plugin.settings.language;
     containerEl.empty();
     containerEl.createEl("h2", { text: t("settings.title", language) });
-    new import_obsidian5.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
         this.plugin.settings.language = value;
         await this.plugin.saveSettings();
         this.display();
         await this.plugin.refreshAll();
-        new import_obsidian5.Notice(t("notice.reloadForCommands", value));
+        new import_obsidian6.Notice(t("notice.reloadForCommands", value));
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         if (!isSafeVaultFolder(next)) {
-          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         this.plugin.settings.dashboardPath = next;
@@ -3465,15 +3700,15 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     );
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
-    new import_obsidian5.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
         this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
         await this.plugin.saveSettings();
         this.plugin.refreshAll();
-        new import_obsidian5.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
+        new import_obsidian6.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
       })
     );
-    new import_obsidian5.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
       (button) => button.setButtonText(t("settings.migrateFitness", language)).setCta().onClick(() => {
         void this.migrateFromFitnessToAtomic();
       })
@@ -3500,7 +3735,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
     }
-    new import_obsidian5.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
         this.pendingExerciseName = value;
       })
@@ -3508,7 +3743,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingExerciseName.trim();
         if (!name) {
-          new import_obsidian5.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
           return;
         }
         const activity = createExerciseActivityType(name);
@@ -3533,7 +3768,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
-    new import_obsidian5.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+    new import_obsidian6.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
         this.pendingHobbyName = value;
       })
@@ -3541,7 +3776,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingHobbyName.trim();
         if (!name) {
-          new import_obsidian5.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
           return;
         }
         const activity = createHobbyActivityType(name);
@@ -3559,7 +3794,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
   renderActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
     const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
-    const row = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+    const row = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
       (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
         await this.saveAndRefresh();
@@ -3575,7 +3810,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       (text) => text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian5.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         activity.folder = folder;
@@ -3595,7 +3830,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
         this.confirmDeleteActivity(activity);
       })
     );
-    const colorSetting = new import_obsidian5.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+    const colorSetting = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
         activity.colors = shadesFromBaseColor(value);
@@ -3631,14 +3866,14 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     );
     await this.saveAndRefresh();
     this.display();
-    new import_obsidian5.Notice(
+    new import_obsidian6.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label
       })
     );
   }
   async ensureParentFolder(path) {
-    const normalized = (0, import_obsidian5.normalizePath)(path);
+    const normalized = (0, import_obsidian6.normalizePath)(path);
     const slash = normalized.lastIndexOf("/");
     if (slash <= 0) return;
     await this.plugin.data.ensureFolder(normalized.slice(0, slash));
@@ -3657,8 +3892,8 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     let replacements = 0;
     try {
       for (const move of plan.moves) {
-        const from = (0, import_obsidian5.normalizePath)(move.from);
-        const to = (0, import_obsidian5.normalizePath)(move.to);
+        const from = (0, import_obsidian6.normalizePath)(move.from);
+        const to = (0, import_obsidian6.normalizePath)(move.to);
         const source = this.app.vault.getAbstractFileByPath(from);
         const destination = this.app.vault.getAbstractFileByPath(to);
         if (!source || destination) {
@@ -3682,7 +3917,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
       await this.plugin.saveSettings();
       this.plugin.refreshAll();
       this.display();
-      new import_obsidian5.Notice(
+      new import_obsidian6.Notice(
         t("notice.migrationComplete", this.plugin.settings.language, {
           movedPaths,
           pathWord: movedPaths === 1 ? "path" : "paths",
@@ -3697,7 +3932,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
     } catch (err) {
       console.error("Fitness to Atomic migration failed", err);
       const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian5.Notice(
+      new import_obsidian6.Notice(
         t("notice.migrationFailed", this.plugin.settings.language, { message })
       );
     }
@@ -3705,7 +3940,7 @@ var FitnessSettingTab = class extends import_obsidian5.PluginSettingTab {
 };
 
 // src/main.ts
-var FitnessPlugin = class extends import_obsidian6.Plugin {
+var FitnessPlugin = class extends import_obsidian7.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -3716,6 +3951,9 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
     this.data = new VaultDataSource(this.app);
     await this.loadSettings();
     registerCodeblocks(this);
+    registerReadingStatusSelect(this, {
+      getLanguage: () => this.settings.language
+    });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.addCommand({
       id: "fitness-new-gym-session",
@@ -3757,7 +3995,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -3768,7 +4006,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -3863,12 +4101,12 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian6.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian7.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
       let settled = false;
-      const modal = new class extends import_obsidian6.FuzzySuggestModal {
+      const modal = new class extends import_obsidian7.FuzzySuggestModal {
         getItems() {
           return activities;
         }
@@ -3918,7 +4156,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
@@ -3932,7 +4170,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
@@ -3946,7 +4184,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian6.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
@@ -3959,7 +4197,7 @@ var FitnessPlugin = class extends import_obsidian6.Plugin {
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian6.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian7.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);
