@@ -426,6 +426,8 @@ var en = {
   "view.bookShelf.open": "Open {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
+  "view.bookShelf.emptyFiltered": "No Reading items with status: {statuses}.",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note.",
   "view.timer.total": "Total: {minutes} min",
   "view.timer.runningSince": "Timer running since {time}",
@@ -613,6 +615,8 @@ var zhHantEn = {
   "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
+  "view.bookShelf.emptyFiltered": "No Reading items with status / \u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values / \u672A\u77E5\u7684\u66F8\u67B6\u72C0\u614B\u503C: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u95B1\u8B80\u9805\u76EE\u7B46\u8A18\u57F7\u884C\u3002",
   "view.timer.total": "Total / \u7E3D\u8A08: {minutes} min / \u5206\u9418",
   "view.timer.runningSince": "Timer running since / Timer \u958B\u59CB\u65BC {time}",
@@ -925,6 +929,41 @@ function readingStatusLabelKey(status) {
     default:
       return status;
   }
+}
+var KNOWN_STATUSES = new Map(
+  READING_STATUSES.map((status) => [status.toLowerCase(), status])
+);
+function parseStatusTokens(statusOption) {
+  if (statusOption == null) return ["all"];
+  return statusOption.split(",").map((token) => token.trim()).filter((token) => token.length > 0);
+}
+function resolveBookShelfStatuses(statusOption) {
+  const tokens = parseStatusTokens(statusOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+    return { statuses: null, invalidStatuses: [] };
+  }
+  const statuses = [];
+  const invalidStatuses = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const token of tokens) {
+    const key = token.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const canonical = KNOWN_STATUSES.get(key);
+    if (!canonical) {
+      invalidStatuses.push(token);
+      continue;
+    }
+    statuses.push(canonical);
+  }
+  return {
+    statuses: statuses.length > 0 ? statuses : null,
+    invalidStatuses
+  };
+}
+function matchesBookShelfStatus(itemStatus, statuses) {
+  if (!statuses) return true;
+  return statuses.includes(itemStatus);
 }
 
 // src/util/vault-path.ts
@@ -2288,9 +2327,9 @@ ${item.path}`;
   const color = hash & 16777215 | 3158064;
   return `#${color.toString(16).padStart(6, "0").slice(-6)}`;
 }
-function buildBookShelfItems(files, activityId = "reading") {
+function buildBookShelfItems(files, activityId = "reading", statusFilter = null) {
   return files.filter(
-    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === "reading"
+    (file) => file.frontmatter.type === "atomic-item" && file.frontmatter.activity === activityId
   ).map((file) => {
     const title = asString(file.frontmatter.title) || file.basename;
     const status = asString(file.frontmatter.status) || DEFAULT_READING_STATUS;
@@ -2309,7 +2348,7 @@ function buildBookShelfItems(files, activityId = "reading") {
       ...cover ? { cover } : {},
       ...description ? { description } : {}
     };
-  }).sort(
+  }).filter((item) => matchesBookShelfStatus(item.status, statusFilter)).sort(
     (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
   );
 }
@@ -2411,7 +2450,7 @@ function createBook(parent, item, data, language) {
     });
   }
 }
-function paintRows(frame, items, perRow, data, language) {
+function paintRows(frame, items, perRow, data, language, emptyText) {
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
@@ -2420,7 +2459,7 @@ function paintRows(frame, items, perRow, data, language) {
     if (!rowItems.length) {
       books.createDiv({
         cls: "atomic-book-empty",
-        text: t("view.bookShelf.empty", language)
+        text: emptyText
       });
     } else {
       for (const item of rowItems) createBook(books, item, data, language);
@@ -2447,7 +2486,23 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     });
     return;
   }
-  const items = buildBookShelfItems(data.listHobbyItems(activity));
+  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
+  if (invalidStatuses.length > 0) {
+    root.createEl("p", {
+      cls: "fitness-muted",
+      text: t("view.bookShelf.invalidStatuses", language, {
+        statuses: invalidStatuses.join(", ")
+      })
+    });
+  }
+  const items = buildBookShelfItems(
+    data.listHobbyItems(activity),
+    activityId,
+    statuses
+  );
+  const emptyText = statuses && statuses.length > 0 ? t("view.bookShelf.emptyFiltered", language, {
+    statuses: statuses.join(", ")
+  }) : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
   let lastPerRow = -1;
   const layout = () => {
@@ -2456,7 +2511,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     );
     if (perRow === lastPerRow && frame.childElementCount > 0) return;
     lastPerRow = perRow;
-    paintRows(frame, items, perRow, data, language);
+    paintRows(frame, items, perRow, data, language, emptyText);
   };
   layout();
   if (typeof ResizeObserver !== "undefined") {

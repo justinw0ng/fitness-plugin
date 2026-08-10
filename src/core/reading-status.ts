@@ -52,3 +52,63 @@ export function readingStatusLabelKey(status: string): string {
       return status;
   }
 }
+
+export type BookShelfStatusResolution = {
+  /** `null` means show every status (default). */
+  statuses: string[] | null;
+  invalidStatuses: string[];
+};
+
+const KNOWN_STATUSES = new Map(
+  READING_STATUSES.map((status) => [status.toLowerCase(), status] as const),
+);
+
+function parseStatusTokens(statusOption: string | undefined): string[] {
+  if (statusOption == null) return ["all"];
+  return statusOption
+    .split(",")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+}
+
+/**
+ * Resolve which Reading statuses an atomic-bookshelf block should show.
+ * Omit / `all` → every status; otherwise comma-separated status ids.
+ */
+export function resolveBookShelfStatuses(
+  statusOption?: string,
+): BookShelfStatusResolution {
+  const tokens = parseStatusTokens(statusOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+    return { statuses: null, invalidStatuses: [] };
+  }
+
+  const statuses: string[] = [];
+  const invalidStatuses: string[] = [];
+  const seen = new Set<string>();
+
+  for (const token of tokens) {
+    const key = token.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const canonical = KNOWN_STATUSES.get(key);
+    if (!canonical) {
+      invalidStatuses.push(token);
+      continue;
+    }
+    statuses.push(canonical);
+  }
+
+  return {
+    statuses: statuses.length > 0 ? statuses : null,
+    invalidStatuses,
+  };
+}
+
+export function matchesBookShelfStatus(
+  itemStatus: string,
+  statuses: string[] | null,
+): boolean {
+  if (!statuses) return true;
+  return statuses.includes(itemStatus);
+}

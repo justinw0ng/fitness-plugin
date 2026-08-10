@@ -183,6 +183,8 @@ export const en = {
   "view.bookShelf.open": "Open {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
+  "view.bookShelf.emptyFiltered": "No Reading items with status: {statuses}.",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note.",
   "view.timer.total": "Total: {minutes} min",
   "view.timer.runningSince": "Timer running since {time}",

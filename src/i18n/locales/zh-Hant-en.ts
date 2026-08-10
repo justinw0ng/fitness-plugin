@@ -183,6 +183,8 @@ export const zhHantEn = {
   "view.bookShelf.open": "Open {title} / 開啟 {title}",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / 尚未設定支援 timer 的興趣活動: {activity}。",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item / 尚未有閱讀項目。請執行 New reading item。",
+  "view.bookShelf.emptyFiltered": "No Reading items with status / 沒有狀態為 {statuses} 的閱讀項目。",
+  "view.bookShelf.invalidStatuses": "Unknown book shelf status values / 未知的書架狀態值: {statuses}",
   "view.timer.needsReadingItem": "Timer can only run from a saved Reading item note / Timer 只可在已儲存的閱讀項目筆記執行。",
   "view.timer.total": "Total / 總計: {minutes} min / 分鐘",
   "view.timer.runningSince": "Timer running since / Timer 開始於 {time}",
