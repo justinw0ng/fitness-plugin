@@ -14,6 +14,12 @@ test("parseBlockOptions strips trailing hash comments from values", () => {
   assert.equal(opts.columns, "2");
 });
 
+test("parseBlockOptions keeps hashes that are not space-prefixed comments", () => {
+  const opts = parseBlockOptions("tag: foo#bar\npath: notes/a.md\n");
+  assert.equal(opts.tag, "foo#bar");
+  assert.equal(opts.path, "notes/a.md");
+});
+
 test("parseBlockOptions skips full-line hash comments", () => {
   const opts = parseBlockOptions(
     "# layout options\nrows: 2\n# columns: 99\ncolumns: 2\n",

@@ -209,6 +209,8 @@ test("booksPerRow and chunkItems wrap to multiple shelf rows by width", () => {
   // 24px padding + one 108px book = 132; two books need 24 + 108*2 + 8 = 248
   assert.equal(booksPerRow(132), 1);
   assert.equal(booksPerRow(248), 2);
+  // 24 + 3*108 + 2*8 = 364 → three books (mobile default target)
+  assert.equal(booksPerRow(364), 3);
   // 24 + 8*108 + 7*8 = 944 → eight books
   assert.equal(booksPerRow(944), 8);
 

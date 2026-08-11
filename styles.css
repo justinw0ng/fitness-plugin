@@ -210,6 +210,8 @@
   --atomic-shelf-face: color-mix(in srgb, var(--background-secondary), var(--text-muted) 12%);
   margin: 12px 0 20px;
   overflow: visible;
+  /* layout only — paint containment would clip hover title bubbles */
+  contain: layout;
 }
 
 .fitness-plugin .atomic-book-shelf-frame {

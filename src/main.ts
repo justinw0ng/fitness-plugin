@@ -229,10 +229,11 @@ export default class FitnessPlugin extends Plugin {
       (oldPath != null && this.pathAffectsRefresh(oldPath));
     if (!affectsCurrent) return;
 
-    this.data.invalidateHobbyTimeLogCache(path);
     if (oldPath != null) {
-      this.data.invalidateHobbyTimeLogCache(oldPath);
+      // Preserve parsed Time log across renames when mtime-aligned cache moves.
       this.data.renameHobbyTimeLogCache(oldPath, path);
+    } else {
+      this.data.invalidateHobbyTimeLogCache(path);
     }
     this.data.invalidateListCache();
     this.scheduleRefresh();

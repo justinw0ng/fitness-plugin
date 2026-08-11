@@ -48,6 +48,35 @@ test("resolveHeatmapLayout falls back on invalid or non-positive numbers", () =>
   );
 });
 
+test("resolveHeatmapLayout floors integer options and keeps default-span fractional", () => {
+  assert.deepEqual(
+    resolveHeatmapLayout({
+      rows: "2.9",
+      columns: "3.1",
+      "min-column-width": "280.8",
+      "default-span": "1.75",
+    }),
+    {
+      rows: 2,
+      columns: 3,
+      minColumnWidth: 280,
+      defaultSpan: 1.75,
+    },
+  );
+  assert.deepEqual(
+    resolveHeatmapLayout({
+      rows: "0.5",
+      columns: "0.9",
+    }),
+    {
+      rows: 1,
+      columns: 1,
+      minColumnWidth: 300,
+      defaultSpan: 1.2,
+    },
+  );
+});
+
 test("effectiveHeatmapColumns is at least 1", () => {
   assert.equal(
     effectiveHeatmapColumns({

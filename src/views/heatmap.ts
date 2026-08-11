@@ -289,6 +289,9 @@ function wireHeatmapGrid(
   activityCount: number,
   registry: HeatmapObserverRegistry,
 ): void {
+  // Preferred / documented NxM capacity; implicit rows still grow as needed.
+  gridEl.style.gridTemplateRows = `repeat(${layout.rows}, auto)`;
+
   const applyColumns = () => {
     const columnCount = effectiveHeatmapColumns({
       columns: layout.columns,
@@ -296,6 +299,8 @@ function wireHeatmapGrid(
       containerWidth: gridEl.clientWidth,
       activityCount,
     });
+    // Column count already enforces min-column-width; minmax(0, …fr) avoids
+    // overflow when gap eats a few pixels at the wrap boundary.
     gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(0, ${layout.defaultSpan}fr))`;
   };
 

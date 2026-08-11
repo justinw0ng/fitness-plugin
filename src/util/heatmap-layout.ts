@@ -20,13 +20,22 @@ function parsePositiveNumber(
   return n;
 }
 
+/** Positive integers for rows / columns / min-column-width (floored). */
+function parsePositiveInt(
+  value: string | undefined,
+  defaultValue: number,
+): number {
+  const n = parsePositiveNumber(value, defaultValue);
+  return Math.max(1, Math.floor(n));
+}
+
 export function resolveHeatmapLayout(
   opts: Record<string, string>,
 ): HeatmapLayout {
   return {
-    rows: parsePositiveNumber(opts.rows, DEFAULT_ROWS),
-    columns: parsePositiveNumber(opts.columns, DEFAULT_COLUMNS),
-    minColumnWidth: parsePositiveNumber(
+    rows: parsePositiveInt(opts.rows, DEFAULT_ROWS),
+    columns: parsePositiveInt(opts.columns, DEFAULT_COLUMNS),
+    minColumnWidth: parsePositiveInt(
       opts["min-column-width"],
       DEFAULT_MIN_COLUMN_WIDTH,
     ),
