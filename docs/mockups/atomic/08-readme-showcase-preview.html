@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic — README showcase preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --paper: #ffffff;
+      --wash: #f3f4f6;
+      --obsidian-bg: #ffffff;
+      --obsidian-pane: #fafafa;
+      --obsidian-text: #222222;
+      --obsidian-muted: #787878;
+      --obsidian-border: #e3e3e3;
+      --gym: #30a14e;
+      --golf: #f76707;
+      --guitar: #ae3ec9;
+      --reading: #228be6;
+      --accent: #111827;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #e8eef7 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #f1eee8 0%, transparent 50%),
+        #f7f7f5;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: baseline;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .meta p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 62ch;
+    }
+    .meta h1 {
+      margin: 0 0 6px;
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+    .pill.on {
+      color: var(--ink);
+      border-color: #c7ccd4;
+      background: #fff;
+      font-weight: 500;
+    }
+
+    /* GitHub-style README chrome */
+    .readme {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 18px 50px rgba(17, 24, 39, 0.06);
+      overflow: hidden;
+    }
+    .readme-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fcfcfc, #f6f6f6);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #d1d5db; }
+    .readme-body { padding: 36px 40px 44px; }
+    .brand {
+      margin: 0;
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+    }
+    .tagline {
+      margin: 14px 0 0;
+      max-width: 36ch;
+      font-size: 1.15rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .cta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 22px 0 28px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .btn.ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    /* Obsidian daily note frame */
+    .obsidian {
+      border: 1px solid var(--obsidian-border);
+      border-radius: 10px;
+      background: var(--obsidian-bg);
+      overflow: hidden;
+    }
+    .obs-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--obsidian-border);
+      background: var(--obsidian-pane);
+      color: var(--obsidian-muted);
+      font-size: 0.78rem;
+    }
+    .crumbs { letter-spacing: 0.01em; }
+    .obs-main { padding: 18px 20px 22px; }
+    .note-title {
+      margin: 0 0 14px;
+      font-size: 1.45rem;
+      font-weight: 600;
+      color: var(--obsidian-text);
+      letter-spacing: -0.02em;
+    }
+
+    .section-label {
+      margin: 18px 0 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--obsidian-muted);
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* Bookshelf */
+    .shelf-case {
+      background: linear-gradient(180deg, #f6f4f1, #efebe5);
+      border: 1px solid #e4ddd3;
+      border-radius: 8px;
+      padding: 14px 12px 0;
+    }
+    .shelf-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      min-height: 156px;
+      padding: 0 4px 14px;
+    }
+    .shelf-row::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 10px;
+      background: linear-gradient(180deg, #d8d0c4, #c9bfb0);
+      border-radius: 2px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+    .book {
+      width: 100%;
+      max-width: 108px;
+      aspect-ratio: 2 / 3;
+      height: auto;
+      margin: 0 auto 10px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      position: relative;
+    }
+    .book img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 2px 4px 4px 2px;
+      box-shadow:
+        2px 0 0 rgba(255, 255, 255, 0.15) inset,
+        -6px 0 14px rgba(0, 0, 0, 0.18);
+      background: #ddd;
+    }
+    .book figcaption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -999px;
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .action {
+      border: 1px solid var(--obsidian-border);
+      background: #f5f5f5;
+      color: var(--obsidian-text);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.86rem;
+    }
+
+    /* Heatmap 2x2 */
+    .heat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .heat-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--obsidian-text);
+    }
+    .heat {
+      display: grid;
+      grid-template-columns: repeat(18, 11px);
+      gap: 2px;
+    }
+    .cell {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #ebedf0;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .legend {
+      margin-top: 6px;
+      font-size: 0.72rem;
+      color: var(--obsidian-muted);
+    }
+    .g1 { background: #9be9a8; } .g2 { background: #40c463; } .g3 { background: var(--gym); }
+    .o1 { background: #ffd8a8; } .o2 { background: #ffa94d; } .o3 { background: var(--golf); }
+    .p1 { background: #eebefa; } .p2 { background: #da77f2; } .p3 { background: var(--guitar); }
+    .b1 { background: #a5d8ff; } .b2 { background: #4dabf7; } .b3 { background: var(--reading); }
+
+    /* Today */
+    .today {
+      border: 1px solid var(--obsidian-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fcfcfc;
+    }
+    .today ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--obsidian-text);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    .today .muted { color: var(--obsidian-muted); }
+
+    .below {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 28px;
+    }
+    .below h2 {
+      margin: 0 0 8px;
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    .below p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .feature-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .feature-list li {
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .feature-list strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .approaches {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .approach {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .approach.rec { border-color: #9ca3af; box-shadow: 0 0 0 1px #111827 inset; }
+    .approach h3 {
+      margin: 0 0 6px;
+      font-size: 0.98rem;
+    }
+    .approach p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+    .approach .tag {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .refs {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .refs a { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      .readme-body { padding: 24px 18px 28px; }
+      .heat-grid, .below, .approaches { grid-template-columns: 1fr; }
+      .shelf-row { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="meta">
+      <div>
+        <h1>README design preview</h1>
+        <p>
+          Minimal product page for the GitHub README. First viewport is one composition:
+          English daily note with bookshelf, actions, 2×2 heatmaps, and today.
+          Inspired by Linear / Raycast product pages and clean Obsidian plugin READMEs
+          (hero screenshot, short tagline, sparse copy).
+        </p>
+      </div>
+      <div class="pill-row">
+        <span class="pill on">Approach A · chosen</span>
+        <span class="pill">10 books</span>
+        <span class="pill">Light · English</span>
+      </div>
+    </div>
+
+    <article class="readme" aria-label="README preview">
+      <div class="readme-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>justinw0ng / obsidian-atomic · README.md</span>
+      </div>
+      <div class="readme-body">
+        <h1 class="brand">Atomic</h1>
+        <p class="tagline">Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.</p>
+        <div class="cta">
+          <a class="btn" href="#">Download latest release</a>
+          <a class="btn ghost" href="#">User guide</a>
+        </div>
+
+        <div class="obsidian">
+          <div class="obs-top">
+            <span class="crumbs">Daily notes / 2026-08-11</span>
+            <span>Reading time 2 min</span>
+          </div>
+          <div class="obs-main">
+            <h2 class="note-title">Tuesday, August 11, 2026</h2>
+
+            <div class="section-label">Bookshelf</div>
+            <div class="shelf-case" aria-label="atomic-bookshelf">
+              <div class="shelf-row">
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15205233-L.jpg" alt="Theo of Golden by Allen Levi" loading="lazy" />
+                  <figcaption>Theo of Golden</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15236189-L.jpg" alt="The Calamity Club by Kathryn Stockett" loading="lazy" />
+                  <figcaption>The Calamity Club</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15234864-L.jpg" alt="Yesteryear by Caro Claire Burke" loading="lazy" />
+                  <figcaption>Yesteryear</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15234903-L.jpg" alt="Whistler by Ann Patchett" loading="lazy" />
+                  <figcaption>Whistler</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15143022-L.jpg" alt="Dungeon Crawler Carl by Matt Dinniman" loading="lazy" />
+                  <figcaption>Dungeon Crawler Carl</figcaption>
+                </figure>
+              </div>
+              <div class="shelf-row">
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/11200092-L.jpg" alt="Project Hail Mary by Andy Weir" loading="lazy" />
+                  <figcaption>Project Hail Mary</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15232516-L.jpg" alt="Regime Change by Maggie Haberman and Jonathan Swan" loading="lazy" />
+                  <figcaption>Regime Change</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/8100018-L.jpg" alt="The Odyssey translated by Emily Wilson" loading="lazy" />
+                  <figcaption>The Odyssey</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15127690-L.jpg" alt="The Wedding People by Alison Espach" loading="lazy" />
+                  <figcaption>The Wedding People</figcaption>
+                </figure>
+                <figure class="book">
+                  <img src="https://covers.openlibrary.org/b/id/15165806-L.jpg" alt="The Let Them Theory by Mel Robbins" loading="lazy" />
+                  <figcaption>The Let Them Theory</figcaption>
+                </figure>
+              </div>
+            </div>
+
+            <div class="section-label">Actions</div>
+            <div class="actions" aria-label="atomic-actions">
+              <span class="action">Gym</span>
+              <span class="action">Golf</span>
+              <span class="action">Guitar</span>
+              <span class="action">Reading</span>
+            </div>
+
+            <div class="section-label">Heatmaps</div>
+            <div class="heat-grid" aria-label="atomic-heatmap 2x2">
+              <div class="heat-card">
+                <h3>Gym</h3>
+                <div class="heat" id="heat-gym"></div>
+                <div class="legend">Less → More · by duration</div>
+              </div>
+              <div class="heat-card">
+                <h3>Golf</h3>
+                <div class="heat" id="heat-golf"></div>
+                <div class="legend">Less → More · by duration</div>
+              </div>
+              <div class="heat-card">
+                <h3>Guitar</h3>
+                <div class="heat" id="heat-guitar"></div>
+                <div class="legend">Less → More · by duration</div>
+              </div>
+              <div class="heat-card">
+                <h3>Reading</h3>
+                <div class="heat" id="heat-reading"></div>
+                <div class="legend">Less → More · by duration</div>
+              </div>
+            </div>
+
+            <div class="section-label">Today</div>
+            <div class="today" aria-label="atomic-today">
+              <ul>
+                <li>Gym · Commercial · 55 min</li>
+                <li>Guitar · 25 min</li>
+                <li>Reading · <em>Theo of Golden</em> · 40 min</li>
+                <li class="muted">Golf · no session yet</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="below">
+          <div>
+            <h2>What it does</h2>
+            <p>Track gym, golf, custom habits, and reading from markdown you already own. Heatmaps, timers, and a book shelf render in the note.</p>
+          </div>
+          <ul class="feature-list">
+            <li>
+              <strong>Exercise + habits</strong>
+              Sessions, cues, timers, enable/disable per activity.
+            </li>
+            <li>
+              <strong>Reading shelf</strong>
+              Covers, status filters, Bases bookshelf.
+            </li>
+            <li>
+              <strong>One color each</strong>
+              Pick a base color; four heatmap shades follow.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <section class="approaches" aria-label="Layout approaches">
+      <article class="approach rec">
+        <span class="tag">A · chosen</span>
+        <h3>Hero daily note · 10 books</h3>
+        <p>Brand + one line + CTAs, then the full daily-note composition as the only hero visual. Bookshelf shows two rows of five covers. Setup details stay below the fold.</p>
+      </article>
+      <article class="approach">
+        <span class="tag">B · not chosen</span>
+        <h3>Split strip</h3>
+        <p>Tagline and install on the left, cropped bookshelf + one heatmap on the right.</p>
+      </article>
+      <article class="approach">
+        <span class="tag">C · not chosen</span>
+        <h3>Stacked reels</h3>
+        <p>Four short screenshots in a vertical reel. More proof, less first-glance impact.</p>
+      </article>
+    </section>
+
+    <p class="refs">
+      Design references:
+      <a href="https://linear.app">Linear</a>,
+      <a href="https://www.raycast.com">Raycast</a>,
+      and sparse GitHub product READMEs that lead with one real product frame.
+      Book covers via Open Library (current bestseller set for the mock).
+      Open this file in a browser:
+      <code>docs/mockups/atomic/08-readme-showcase-preview.html</code>
+    </p>
+  </div>
+
+  <script>
+    function paint(id, classes) {
+      const root = document.getElementById(id);
+      if (!root) return;
+      const cells = 18 * 7;
+      const html = [];
+      for (let i = 0; i < cells; i++) {
+        const roll = Math.random();
+        let cls = "cell";
+        if (roll > 0.82) cls += " " + classes[2];
+        else if (roll > 0.62) cls += " " + classes[1];
+        else if (roll > 0.42) cls += " " + classes[0];
+        html.push(`<div class="${cls}"></div>`);
+      }
+      root.innerHTML = html.join("");
+    }
+    paint("heat-gym", ["g1", "g2", "g3"]);
+    paint("heat-golf", ["o1", "o2", "o3"]);
+    paint("heat-guitar", ["p1", "p2", "p3"]);
+    paint("heat-reading", ["b1", "b2", "b3"]);
+  </script>
+</body>
+</html>
