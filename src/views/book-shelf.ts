@@ -25,8 +25,8 @@ export type CoverRef =
 /** Default upright book face; ~2:3 so typical cover art fills the width. */
 const BOOK_WIDTH_PX = 108;
 const BOOK_GAP_PX = 8;
-/** Horizontal inset of the book row: frame 16*2 + row 4*2 + books 8*2. */
-const ROW_PADDING_PX = 56;
+/** Horizontal inset of the book row: frame 6*2 + row 2*2 + books 4*2. */
+const ROW_PADDING_PX = 24;
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 

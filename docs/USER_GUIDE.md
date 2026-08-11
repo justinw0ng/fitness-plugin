@@ -236,9 +236,20 @@ year: 2026
 activity: gym, golf
 year: 2026
 ```
+
+```atomic-heatmap
+activity: gym, golf, reading, guitar
+rows: 2              # default: 1
+columns: 2           # default: 1
+min-column-width: 300  # default: 300
+default-span: 1.2      # default: 1.2
+year: 2026
+```
 ````
 
 Use `activity: all` (or omit the field) for every enabled exercise + general habit. Unknown or disabled ids show a short notice; valid ids in the list still render.
+
+With multiple activities, `columns` greater than `1` lays out heatmaps in a responsive grid (`.fitness-heatmap-grid`) that wraps when the pane is narrower than `columns × min-column-width`. `columns: 1` (default) keeps the original vertical stack.
 
 ![Heatmap activity filter examples](./images/atomic-heatmap-activity-filter.png)
 
@@ -437,6 +448,25 @@ activity: all
 ```
 
 `activity` accepts `all`, one activity id (`reading`, `gym`, …), or a comma-separated list (`gym, golf, reading`).
+
+Optional multi-activity grid layout (ignored for a single activity):
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `rows` | `1` | Preferred row count for the grid |
+| `columns` | `1` | Max columns (`1` = vertical stack) |
+| `min-column-width` | `300` | Minimum px width per column before wrapping |
+| `default-span` | `1.2` | CSS `fr` weight for each grid track |
+
+Example with inline defaults:
+
+```text
+activity: gym, golf, reading, guitar
+rows: 2              # default: 1
+columns: 2           # default: 1
+min-column-width: 300  # default: 300
+default-span: 1.2      # default: 1.2
+```
 
 ### `atomic-bookshelf`
 

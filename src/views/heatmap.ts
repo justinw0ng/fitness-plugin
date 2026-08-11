@@ -14,7 +14,27 @@ import {
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
+import {
+  effectiveHeatmapColumns,
+  resolveHeatmapLayout,
+  type HeatmapLayout,
+} from "../util/heatmap-layout";
 import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
+
+type HeatmapObserverRegistry = {
+  scrolls: ResizeObserver[];
+  grid?: ResizeObserver;
+};
+
+const heatmapObserverRegistry = new WeakMap<HTMLElement, HeatmapObserverRegistry>();
+
+function cleanupHeatmapObservers(container: HTMLElement): void {
+  const registry = heatmapObserverRegistry.get(container);
+  if (!registry) return;
+  for (const observer of registry.scrolls) observer.disconnect();
+  registry.grid?.disconnect();
+  heatmapObserverRegistry.delete(container);
+}
 
 const DAY_NAMES: Record<Language, string[]> = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -26,7 +46,10 @@ function colorFor(activity: ActivityType, level: number): string {
   return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
 }
 
-function wireHeatmapScroll(scrollEl: HTMLElement): void {
+function wireHeatmapScroll(
+  scrollEl: HTMLElement,
+  registry: HeatmapObserverRegistry,
+): void {
   let userHasScrolled = false;
   let expectedScrollLeft: number | null = null;
 
@@ -71,6 +94,7 @@ function wireHeatmapScroll(scrollEl: HTMLElement): void {
       });
     });
     resizeObserver.observe(scrollEl);
+    registry.scrolls.push(resizeObserver);
   }
 
   requestAnimationFrame(() => {
@@ -125,6 +149,7 @@ async function renderOneHeatmap(
   year: number,
   timezone: string,
   language: Language,
+  registry: HeatmapObserverRegistry,
 ): Promise<void> {
   const wrap = root.createDiv({ cls: "fitness-heatmap" });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
@@ -255,7 +280,37 @@ async function renderOneHeatmap(
     }
   }
 
-  wireHeatmapScroll(scroll);
+  wireHeatmapScroll(scroll, registry);
+}
+
+function wireHeatmapGrid(
+  gridEl: HTMLElement,
+  layout: HeatmapLayout,
+  activityCount: number,
+  registry: HeatmapObserverRegistry,
+): void {
+  // Preferred / documented NxM capacity; implicit rows still grow as needed.
+  gridEl.style.gridTemplateRows = `repeat(${layout.rows}, auto)`;
+
+  const applyColumns = () => {
+    const columnCount = effectiveHeatmapColumns({
+      columns: layout.columns,
+      minColumnWidth: layout.minColumnWidth,
+      containerWidth: gridEl.clientWidth,
+      activityCount,
+    });
+    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(${layout.minColumnWidth}px, ${layout.defaultSpan}fr))`;
+  };
+
+  if (typeof ResizeObserver !== "undefined") {
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(applyColumns);
+    });
+    resizeObserver.observe(gridEl);
+    registry.grid = resizeObserver;
+  }
+
+  applyColumns();
 }
 
 export async function renderHeatmaps(
@@ -266,9 +321,15 @@ export async function renderHeatmaps(
   timezone: string,
   language: Language,
   activityOption?: string,
+  layoutOptions?: Record<string, string>,
 ): Promise<void> {
+  cleanupHeatmapObservers(el);
   el.empty();
+  const registry: HeatmapObserverRegistry = { scrolls: [] };
+  heatmapObserverRegistry.set(el, registry);
+
   const root = el.createDiv({ cls: "fitness-plugin" });
+  const layout = resolveHeatmapLayout(layoutOptions ?? {});
   const { activities, invalidIds } = resolveHeatmapActivities(
     activityTypes,
     activityOption,
@@ -288,8 +349,26 @@ export async function renderHeatmaps(
     });
     return;
   }
+
+  const useGrid = activities.length > 1 && layout.columns > 1;
+  const heatmapParent = useGrid
+    ? root.createDiv({ cls: "fitness-heatmap-grid" })
+    : root;
+
   for (const activity of activities) {
-    await renderOneHeatmap(root, data, activity, year, timezone, language);
+    await renderOneHeatmap(
+      heatmapParent,
+      data,
+      activity,
+      year,
+      timezone,
+      language,
+      registry,
+    );
+  }
+
+  if (useGrid && heatmapParent instanceof HTMLElement) {
+    wireHeatmapGrid(heatmapParent, layout, activities.length, registry);
   }
 }
 

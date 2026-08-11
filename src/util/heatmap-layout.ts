@@ -1,0 +1,73 @@
+export type HeatmapLayout = {
+  rows: number;
+  columns: number;
+  minColumnWidth: number;
+  defaultSpan: number;
+};
+
+const DEFAULT_ROWS = 1;
+const DEFAULT_COLUMNS = 1;
+const DEFAULT_MIN_COLUMN_WIDTH = 300;
+const DEFAULT_DEFAULT_SPAN = 1.2;
+
+/** Must match `.fitness-heatmap-grid { gap }` in styles.css. */
+export const HEATMAP_GRID_GAP_PX = 12;
+
+function parsePositiveNumber(
+  value: string | undefined,
+  defaultValue: number,
+): number {
+  if (!value) return defaultValue;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return defaultValue;
+  return n;
+}
+
+/** Positive integers for rows / columns / min-column-width (floored). */
+function parsePositiveInt(
+  value: string | undefined,
+  defaultValue: number,
+): number {
+  const n = parsePositiveNumber(value, defaultValue);
+  return Math.max(1, Math.floor(n));
+}
+
+export function resolveHeatmapLayout(
+  opts: Record<string, string>,
+): HeatmapLayout {
+  return {
+    rows: parsePositiveInt(opts.rows, DEFAULT_ROWS),
+    columns: parsePositiveInt(opts.columns, DEFAULT_COLUMNS),
+    minColumnWidth: parsePositiveInt(
+      opts["min-column-width"],
+      DEFAULT_MIN_COLUMN_WIDTH,
+    ),
+    defaultSpan: parsePositiveNumber(
+      opts["default-span"],
+      DEFAULT_DEFAULT_SPAN,
+    ),
+  };
+}
+
+export function effectiveHeatmapColumns(params: {
+  columns: number;
+  minColumnWidth: number;
+  containerWidth: number;
+  activityCount: number;
+  gridGap?: number;
+}): number {
+  const {
+    columns,
+    minColumnWidth,
+    containerWidth,
+    activityCount,
+    gridGap = HEATMAP_GRID_GAP_PX,
+  } = params;
+  if (activityCount <= 0) return 1;
+  // N columns need N * minWidth + (N - 1) * gap <= containerWidth.
+  const widthBased = Math.max(
+    1,
+    Math.floor((containerWidth + gridGap) / (minColumnWidth + gridGap)),
+  );
+  return Math.min(columns, activityCount, widthBased);
+}

@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, Notice, Plugin } from "obsidian";
+import { FuzzySuggestModal, Notice, Plugin, TFile } from "obsidian";
 import {
   createActivitySession,
   createGolfSession,
@@ -23,6 +23,12 @@ import { t } from "./i18n/index.ts";
 import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { exerciseActivities, hobbyActivities } from "./util/activity-types";
+import {
+  collectAtomicDataRoots,
+  pathAffectsAtomicRefresh,
+} from "./util/refresh-path";
+
+const REFRESH_DEBOUNCE_MS = 300;
 
 export default class FitnessPlugin extends Plugin {
   settings: FitnessSettings = DEFAULT_SETTINGS;
@@ -128,27 +134,33 @@ export default class FitnessPlugin extends Plugin {
       },
     });
 
-    const schedule = () => this.scheduleRefresh();
     this.registerEvent(
       this.app.vault.on("modify", (file) => {
-        this.data.invalidateHobbyTimeLogCache(file.path);
-        schedule();
+        this.handleVaultPathChange(file.path);
       }),
     );
     this.registerEvent(
       this.app.vault.on("delete", (file) => {
-        this.data.invalidateHobbyTimeLogCache(file.path);
-        schedule();
+        this.handleVaultPathChange(file.path);
       }),
     );
     this.registerEvent(
       this.app.vault.on("rename", (file, oldPath) => {
-        this.data.renameHobbyTimeLogCache(oldPath, file.path);
-        schedule();
+        this.handleVaultPathChange(file.path, oldPath);
       }),
     );
-    this.registerEvent(this.app.vault.on("create", schedule));
-    this.registerEvent(this.app.metadataCache.on("resolved", schedule));
+    this.registerEvent(
+      this.app.vault.on("create", (file) => {
+        this.handleVaultPathChange(file.path);
+      }),
+    );
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        if (!(file instanceof TFile)) return;
+        if (!this.isLiveBlockSourcePath(file.path)) return;
+        this.scheduleRefresh();
+      }),
+    );
   }
 
   onunload() {
@@ -180,17 +192,51 @@ export default class FitnessPlugin extends Plugin {
     this.refreshTimer = window.setTimeout(() => {
       this.refreshTimer = null;
       void this.refreshAll();
-    }, 200);
+    }, REFRESH_DEBOUNCE_MS);
   }
 
   async refreshAll() {
     this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);
-    for (const block of this.liveBlocks) {
-      const ctx = {
-        sourcePath: block.sourcePath,
-      } as Parameters<typeof renderBlock>[4];
-      await renderBlock(this, block.kind, block.source, block.el, ctx);
+    await Promise.all(
+      this.liveBlocks.map((block) => {
+        const ctx = {
+          sourcePath: block.sourcePath,
+        } as Parameters<typeof renderBlock>[4];
+        return renderBlock(this, block.kind, block.source, block.el, ctx);
+      }),
+    );
+  }
+
+  private liveBlockSourcePaths(): string[] {
+    return this.liveBlocks.map((block) => block.sourcePath);
+  }
+
+  private isLiveBlockSourcePath(path: string): boolean {
+    return this.liveBlockSourcePaths().includes(path);
+  }
+
+  private pathAffectsRefresh(path: string): boolean {
+    return pathAffectsAtomicRefresh(
+      path,
+      collectAtomicDataRoots(this.settings),
+      this.liveBlockSourcePaths(),
+    );
+  }
+
+  private handleVaultPathChange(path: string, oldPath?: string) {
+    const affectsCurrent =
+      this.pathAffectsRefresh(path) ||
+      (oldPath != null && this.pathAffectsRefresh(oldPath));
+    if (!affectsCurrent) return;
+
+    if (oldPath != null) {
+      // Preserve parsed Time log across renames when mtime-aligned cache moves.
+      this.data.renameHobbyTimeLogCache(oldPath, path);
+    } else {
+      this.data.invalidateHobbyTimeLogCache(path);
     }
+    this.data.invalidateListCache();
+    this.scheduleRefresh();
   }
 
   exerciseActivityById(id: string): ActivityType | undefined {
