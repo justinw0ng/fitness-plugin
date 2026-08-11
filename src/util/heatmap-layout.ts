@@ -10,6 +10,9 @@ const DEFAULT_COLUMNS = 1;
 const DEFAULT_MIN_COLUMN_WIDTH = 300;
 const DEFAULT_DEFAULT_SPAN = 1.2;
 
+/** Must match `.fitness-heatmap-grid { gap }` in styles.css. */
+export const HEATMAP_GRID_GAP_PX = 12;
+
 function parsePositiveNumber(
   value: string | undefined,
   defaultValue: number,
@@ -51,12 +54,20 @@ export function effectiveHeatmapColumns(params: {
   minColumnWidth: number;
   containerWidth: number;
   activityCount: number;
+  gridGap?: number;
 }): number {
-  const { columns, minColumnWidth, containerWidth, activityCount } = params;
+  const {
+    columns,
+    minColumnWidth,
+    containerWidth,
+    activityCount,
+    gridGap = HEATMAP_GRID_GAP_PX,
+  } = params;
   if (activityCount <= 0) return 1;
+  // N columns need N * minWidth + (N - 1) * gap <= containerWidth.
   const widthBased = Math.max(
     1,
-    Math.floor(containerWidth / minColumnWidth),
+    Math.floor((containerWidth + gridGap) / (minColumnWidth + gridGap)),
   );
   return Math.min(columns, activityCount, widthBased);
 }

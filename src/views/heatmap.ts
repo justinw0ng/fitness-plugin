@@ -299,9 +299,7 @@ function wireHeatmapGrid(
       containerWidth: gridEl.clientWidth,
       activityCount,
     });
-    // Column count already enforces min-column-width; minmax(0, …fr) avoids
-    // overflow when gap eats a few pixels at the wrap boundary.
-    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(0, ${layout.defaultSpan}fr))`;
+    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(${layout.minColumnWidth}px, ${layout.defaultSpan}fr))`;
   };
 
   if (typeof ResizeObserver !== "undefined") {

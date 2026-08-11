@@ -114,7 +114,7 @@ export class VaultDataSource {
     ) {
       return [];
     }
-    const cacheKey = activity.id;
+    const cacheKey = `${activity.id}\0${activity.folder}`;
     const cached = this.hobbyItemListCache.get(cacheKey);
     if (cached) return cached;
 
