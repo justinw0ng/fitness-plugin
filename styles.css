@@ -43,15 +43,19 @@
 }
 
 .fitness-plugin .fitness-legend-swatch {
-  border: 1px solid rgba(27, 31, 36, 0.06);
+  border: 1px solid var(--background-modifier-border);
 }
 
 .fitness-plugin .fitness-cell {
-  border: 1px solid rgba(27, 31, 36, 0.06);
+  border: 1px solid var(--background-modifier-border);
 }
 
+/* Double ring: inner matches pane bg, outer uses text — visible on any cell shade in light/dark. */
 .fitness-plugin .fitness-cell.is-today {
-  border: 2px solid var(--text-normal);
+  border: none;
+  box-shadow:
+    0 0 0 1px var(--background-primary),
+    0 0 0 3px var(--text-normal);
 }
 
 .fitness-plugin .fitness-cell.is-faded {
