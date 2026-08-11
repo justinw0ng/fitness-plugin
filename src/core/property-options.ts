@@ -5,6 +5,40 @@ import { READING_STATUSES, isReadingItemFrontmatter, readingStatusLabelKey } fro
 
 export const CUSTOM_LOCATION_SENTINEL = "__atomic_custom_location__";
 
+export type ResolveGymCreateLocationResult = {
+  location: string;
+  wasCustom: boolean;
+  emptyCustomNotice: boolean;
+};
+
+/** Resolves gym session create location after suggest (+ optional custom prompt). Never returns the sentinel. */
+export function resolveGymCreateLocation(
+  selected: string,
+  customPromptRaw: string | null | undefined,
+): ResolveGymCreateLocationResult {
+  if (selected !== CUSTOM_LOCATION_SENTINEL) {
+    return { location: selected, wasCustom: false, emptyCustomNotice: false };
+  }
+
+  if (customPromptRaw === null || customPromptRaw === undefined) {
+    return { location: "", wasCustom: false, emptyCustomNotice: false };
+  }
+
+  const trimmed = customPromptRaw.trim();
+  if (!trimmed) {
+    return { location: "", wasCustom: false, emptyCustomNotice: true };
+  }
+
+  return { location: trimmed, wasCustom: true, emptyCustomNotice: false };
+}
+
+export function gymCreateLocationNeedsDetail(
+  location: string,
+  wasCustom: boolean,
+): boolean {
+  return location === "Other" && !wasCustom;
+}
+
 export type PropertyOptionContext = {
   frontmatter: Record<string, unknown> | null | undefined;
 };

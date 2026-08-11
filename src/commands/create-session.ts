@@ -3,7 +3,11 @@ import {
   GYM_LOCATIONS,
   MUSCLES,
 } from "../core";
-import { CUSTOM_LOCATION_SENTINEL } from "../core/property-options";
+import {
+  CUSTOM_LOCATION_SENTINEL,
+  gymCreateLocationNeedsDetail,
+  resolveGymCreateLocation,
+} from "../core/property-options";
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -174,7 +178,7 @@ async function gymSessionBody(
     t("property.location.custom", language),
   ];
 
-  let location =
+  const selected =
     (await suggestOne(
       app,
       t("modal.locationPlaceholder", language),
@@ -182,28 +186,26 @@ async function gymSessionBody(
       locationLabels,
     )) || "";
 
-  if (location === CUSTOM_LOCATION_SENTINEL) {
-    const raw = await promptText(
+  let customPromptRaw: string | null | undefined;
+  if (selected === CUSTOM_LOCATION_SENTINEL) {
+    customPromptRaw = await promptText(
       app,
       t("modal.customLocation", language),
       "",
       language,
     );
-    if (raw === null) {
-      location = "";
-    } else {
-      const trimmed = raw.trim();
-      if (!trimmed) {
-        new Notice(t("notice.emptyCustomLocation", language));
-        location = "";
-      } else {
-        location = trimmed;
-      }
-    }
+  }
+
+  const { location, wasCustom, emptyCustomNotice } = resolveGymCreateLocation(
+    selected,
+    customPromptRaw,
+  );
+  if (emptyCustomNotice) {
+    new Notice(t("notice.emptyCustomLocation", language));
   }
 
   let locationDetail = "";
-  if (location === "Other") {
+  if (gymCreateLocationNeedsDetail(location, wasCustom)) {
     locationDetail =
       (await promptText(
         app,

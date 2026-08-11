@@ -203,6 +203,7 @@ function syncExistingSelect(
   if (selectEl.value !== valueToSet) {
     selectEl.value = valueToSet;
   }
+  selectEl.dataset.committedValue = valueToSet;
 }
 
 function stopBasesPointerCapture(selectEl: HTMLSelectElement): void {
