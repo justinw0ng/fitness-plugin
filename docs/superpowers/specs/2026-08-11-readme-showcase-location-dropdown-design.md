@@ -1,7 +1,7 @@
 # Custom location dropdown, theme-aligned selects, and README showcase
 
 Date: 2026-08-11  
-Status: approved for planning (Approach A README; custom `location`; theme tokens; real Obsidian hero capture)
+Status: written; waiting for user review before implementation plan
 
 ## Goal
 
@@ -46,7 +46,8 @@ Session create flow (`FuzzySuggestModal` for gym/golf location):
 
 - Keep predefined suggestions.
 - Allow a custom entry the same way (type a value that is not in the list, or an explicit Custom path), writing it to `location`.
-- Gym may still offer an optional detail field when useful; it must not be the only way to store a non-list location.
+- If the user picks the predefined **Other** value, keep today’s gym `location_detail` prompt.
+- If the user enters a custom `location` string, write that string to `location` and do not require `location_detail`.
 
 ### Scope of code
 
