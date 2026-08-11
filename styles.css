@@ -50,12 +50,12 @@
   border: 1px solid var(--background-modifier-border);
 }
 
-/* Inset double ring: text outline inside the cell with a bg gap — works in light/dark. */
+/* Double ring: inner matches pane bg, outer uses text — visible on any cell shade in light/dark. */
 .fitness-plugin .fitness-cell.is-today {
   border: none;
   box-shadow:
-    inset 0 0 0 1px var(--background-primary),
-    inset 0 0 0 3px var(--text-normal);
+    0 0 0 1px var(--background-primary),
+    0 0 0 3px var(--text-normal);
 }
 
 .fitness-plugin .fitness-cell.is-faded {
