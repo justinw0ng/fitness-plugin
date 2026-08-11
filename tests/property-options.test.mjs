@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  CUSTOM_LOCATION_SENTINEL,
   DROPDOWN_PROPERTY_NAMES,
   resolvePropertyOptions,
 } from "../src/core/property-options.ts";
@@ -67,4 +68,37 @@ test("DROPDOWN_PROPERTY_NAMES lists every dropdown property key", () => {
     "status",
     "weight_unit",
   ]);
+});
+
+test("location specs allow custom values; other dropdowns do not", () => {
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: gymSession })?.allowCustom,
+    true,
+  );
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: golfSession })?.allowCustom,
+    true,
+  );
+  assert.equal(
+    resolvePropertyOptions("status", { frontmatter: readingItem })?.allowCustom,
+    undefined,
+  );
+  assert.equal(
+    resolvePropertyOptions("felt", { frontmatter: golfSession })?.allowCustom,
+    undefined,
+  );
+  assert.equal(
+    resolvePropertyOptions("weight_unit", { frontmatter: gymSession })?.allowCustom,
+    undefined,
+  );
+});
+
+test("CUSTOM_LOCATION_SENTINEL is stable and not a real location label", () => {
+  assert.equal(CUSTOM_LOCATION_SENTINEL, "__atomic_custom_location__");
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: gymSession })?.values.includes(
+      CUSTOM_LOCATION_SENTINEL,
+    ),
+    false,
+  );
 });
