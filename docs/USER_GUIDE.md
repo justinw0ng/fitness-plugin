@@ -22,7 +22,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Reading timer | `atomic-timer` in a Reading item note |
 | Reading notes in Bases | **Atomic: Open Obsidian bases of reading notes** |
 | Book shelf | `atomic-bookshelf`, or **Atomic: Open book shelf** |
-| Property dropdowns | Fixed-value fields in Properties / Bases (Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`) |
+| Property dropdowns | Dropdowns in Properties / Bases (Reading `status`; golf `felt`; gym/golf `location` preset or **Custom…**; gym `weight_unit`) |
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
 
@@ -297,13 +297,15 @@ Gym notes store sets in a markdown table and reminders under a **Reminders** hea
 
 ### Session frontmatter and property dropdowns
 
-Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells) so you pick from a fixed list instead of typing free text.
+Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells).
 
 | Property | Golf sessions (`activity: golf`) | Gym sessions (`activity: gym`) |
 |----------|----------------------------------|--------------------------------|
-| `location` | Home net, Driving range, Course, Other | Home, Commercial, Hotel/Travel, Other |
+| `location` | Home net, Driving range, Course, Other — plus **Custom…** | Home, Commercial, Hotel/Travel, Other — plus **Custom…** |
 | `felt` | good, ok, bad | — |
 | `weight_unit` | — | kg, lb |
+
+For `location`, pick a preset or **Custom…** at the bottom of the list. **Custom…** opens a prompt; whatever you enter is stored in `location`. When you create a gym session and choose predefined **Other**, Atomic may still ask for `location_detail` (separate from a custom `location` string).
 
 Dropdown labels follow **Settings → Atomic → Language**. If a note already has a value outside the list, it still appears as an extra option so nothing is lost.
 
