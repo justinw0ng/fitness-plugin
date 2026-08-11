@@ -3,6 +3,42 @@ import { FELT, GOLF_LOCATIONS, GYM_LOCATIONS } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { READING_STATUSES, isReadingItemFrontmatter, readingStatusLabelKey } from "./reading-status.ts";
 
+export const CUSTOM_LOCATION_SENTINEL = "__atomic_custom_location__";
+
+export type ResolveGymCreateLocationResult = {
+  location: string;
+  wasCustom: boolean;
+  emptyCustomNotice: boolean;
+};
+
+/** Resolves gym session create location after suggest (+ optional custom prompt). Never returns the sentinel. */
+export function resolveGymCreateLocation(
+  selected: string,
+  customPromptRaw: string | null | undefined,
+): ResolveGymCreateLocationResult {
+  if (selected !== CUSTOM_LOCATION_SENTINEL) {
+    return { location: selected, wasCustom: false, emptyCustomNotice: false };
+  }
+
+  if (customPromptRaw === null || customPromptRaw === undefined) {
+    return { location: "", wasCustom: false, emptyCustomNotice: false };
+  }
+
+  const trimmed = customPromptRaw.trim();
+  if (!trimmed) {
+    return { location: "", wasCustom: false, emptyCustomNotice: true };
+  }
+
+  return { location: trimmed, wasCustom: true, emptyCustomNotice: false };
+}
+
+export function gymCreateLocationNeedsDetail(
+  location: string,
+  wasCustom: boolean,
+): boolean {
+  return location === "Other" && !wasCustom;
+}
+
 export type PropertyOptionContext = {
   frontmatter: Record<string, unknown> | null | undefined;
 };
@@ -12,6 +48,7 @@ export type PropertyOptionSpec = {
   values: readonly string[];
   matches: (context: PropertyOptionContext) => boolean;
   labelKey?: (value: string) => string;
+  allowCustom?: boolean;
 };
 
 const WEIGHT_UNITS = ["kg", "lb"] as const;
@@ -108,12 +145,14 @@ export const PROPERTY_OPTION_SPECS: readonly PropertyOptionSpec[] = [
     values: GOLF_LOCATIONS,
     matches: isGolfSession,
     labelKey: golfLocationLabelKey,
+    allowCustom: true,
   },
   {
     property: "location",
     values: GYM_LOCATIONS,
     matches: isGymSession,
     labelKey: gymLocationLabelKey,
+    allowCustom: true,
   },
   {
     property: "weight_unit",

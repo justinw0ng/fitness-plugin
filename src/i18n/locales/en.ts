@@ -86,12 +86,14 @@ export const en = {
   "notice.timerNotRunning": "Timer is not running.",
   "notice.timerAlreadyRunning": "Timer is already running.",
   "notice.timerLogged": "Logged {minutes} min.",
+  "notice.emptyCustomLocation": "Location cannot be empty.",
 
   "modal.dateTitle": "Date (YYYY-MM-DD)",
   "modal.cancel": "Cancel",
   "modal.ok": "OK",
   "modal.locationPlaceholder": "Location (Esc to skip)",
   "modal.otherLocationDetail": "Other location detail",
+  "modal.customLocation": "Custom location",
   "modal.weightUnitPlaceholder": "Weight unit (Esc -> kg)",
   "modal.exerciseTypePlaceholder": "Exercise type",
   "modal.hobbyTypePlaceholder": "General habit",
@@ -141,6 +143,7 @@ export const en = {
   "property.golfLocation.drivingRange": "Driving range",
   "property.golfLocation.course": "Course",
   "property.golfLocation.other": "Other",
+  "property.location.custom": "Custom…",
   "property.weightUnit.kg": "kg",
   "property.weightUnit.lb": "lb",
 

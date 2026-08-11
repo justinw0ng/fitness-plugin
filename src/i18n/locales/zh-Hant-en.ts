@@ -86,12 +86,14 @@ export const zhHantEn = {
   "notice.timerNotRunning": "Timer is not running / Timer 尚未開始。",
   "notice.timerAlreadyRunning": "Timer is already running / Timer 已在運行。",
   "notice.timerLogged": "Logged {minutes} min / 已記錄 {minutes} 分鐘。",
+  "notice.emptyCustomLocation": "Location cannot be empty. / 地點不可為空白。",
 
   "modal.dateTitle": "Date / 日期 (YYYY-MM-DD)",
   "modal.cancel": "Cancel / 取消",
   "modal.ok": "OK",
   "modal.locationPlaceholder": "Location / 地點 (Esc to skip / 略過)",
   "modal.otherLocationDetail": "Other location detail / 其他地點說明",
+  "modal.customLocation": "Custom location / 自訂地點",
   "modal.weightUnitPlaceholder": "Weight unit / 重量單位 (Esc -> kg)",
   "modal.exerciseTypePlaceholder": "Exercise type / 運動類型",
   "modal.hobbyTypePlaceholder": "General habit / 一般習慣",
@@ -141,6 +143,7 @@ export const zhHantEn = {
   "property.golfLocation.drivingRange": "Driving range / 練習場",
   "property.golfLocation.course": "Course / 球場",
   "property.golfLocation.other": "Other / 其他",
+  "property.location.custom": "Custom… / 自訂…",
   "property.weightUnit.kg": "kg",
   "property.weightUnit.lb": "lb",
 

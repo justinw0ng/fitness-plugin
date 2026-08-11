@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  CUSTOM_LOCATION_SENTINEL,
   DROPDOWN_PROPERTY_NAMES,
+  gymCreateLocationNeedsDetail,
+  resolveGymCreateLocation,
   resolvePropertyOptions,
 } from "../src/core/property-options.ts";
 
@@ -67,4 +70,94 @@ test("DROPDOWN_PROPERTY_NAMES lists every dropdown property key", () => {
     "status",
     "weight_unit",
   ]);
+});
+
+test("location specs allow custom values; other dropdowns do not", () => {
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: gymSession })?.allowCustom,
+    true,
+  );
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: golfSession })?.allowCustom,
+    true,
+  );
+  assert.equal(
+    resolvePropertyOptions("status", { frontmatter: readingItem })?.allowCustom,
+    undefined,
+  );
+  assert.equal(
+    resolvePropertyOptions("felt", { frontmatter: golfSession })?.allowCustom,
+    undefined,
+  );
+  assert.equal(
+    resolvePropertyOptions("weight_unit", { frontmatter: gymSession })?.allowCustom,
+    undefined,
+  );
+});
+
+test("CUSTOM_LOCATION_SENTINEL is stable and not a real location label", () => {
+  assert.equal(CUSTOM_LOCATION_SENTINEL, "__atomic_custom_location__");
+  assert.equal(
+    resolvePropertyOptions("location", { frontmatter: gymSession })?.values.includes(
+      CUSTOM_LOCATION_SENTINEL,
+    ),
+    false,
+  );
+});
+
+test("resolveGymCreateLocation returns predefined selection unchanged", () => {
+  assert.deepEqual(resolveGymCreateLocation("Home", undefined), {
+    location: "Home",
+    wasCustom: false,
+    emptyCustomNotice: false,
+  });
+  assert.deepEqual(resolveGymCreateLocation("Other", undefined), {
+    location: "Other",
+    wasCustom: false,
+    emptyCustomNotice: false,
+  });
+});
+
+test("resolveGymCreateLocation trims custom location text", () => {
+  assert.deepEqual(resolveGymCreateLocation(CUSTOM_LOCATION_SENTINEL, "  My gym  "), {
+    location: "My gym",
+    wasCustom: true,
+    emptyCustomNotice: false,
+  });
+});
+
+test("resolveGymCreateLocation empty custom prompt signals notice", () => {
+  assert.deepEqual(resolveGymCreateLocation(CUSTOM_LOCATION_SENTINEL, "   "), {
+    location: "",
+    wasCustom: false,
+    emptyCustomNotice: true,
+  });
+  assert.deepEqual(resolveGymCreateLocation(CUSTOM_LOCATION_SENTINEL, ""), {
+    location: "",
+    wasCustom: false,
+    emptyCustomNotice: true,
+  });
+});
+
+test("resolveGymCreateLocation custom cancel yields empty location", () => {
+  assert.deepEqual(resolveGymCreateLocation(CUSTOM_LOCATION_SENTINEL, null), {
+    location: "",
+    wasCustom: false,
+    emptyCustomNotice: false,
+  });
+});
+
+test("resolveGymCreateLocation never returns the sentinel", () => {
+  for (const customPromptRaw of [null, "", "  ", "Other", "Home"]) {
+    const result = resolveGymCreateLocation(CUSTOM_LOCATION_SENTINEL, customPromptRaw);
+    assert.notEqual(result.location, CUSTOM_LOCATION_SENTINEL);
+  }
+  assert.notEqual(resolveGymCreateLocation("Commercial", undefined).location, CUSTOM_LOCATION_SENTINEL);
+});
+
+test("gymCreateLocationNeedsDetail distinguishes custom Other from predefined Other", () => {
+  assert.equal(gymCreateLocationNeedsDetail("Other", false), true);
+  assert.equal(gymCreateLocationNeedsDetail("Other", true), false);
+  assert.equal(gymCreateLocationNeedsDetail("Home", false), false);
+  assert.equal(gymCreateLocationNeedsDetail("My gym", true), false);
 });
