@@ -5,6 +5,7 @@ import {
 } from "../core/hobby";
 import type { ActivityType, HobbyItemMeta, SessionMeta } from "../types";
 import { HobbyTimeLogCache } from "../util/hobby-time-log-cache";
+import { VaultListCache } from "../util/vault-list-cache";
 import {
   hobbyItemsScanPrefix,
   isSafeVaultFolder,
@@ -36,6 +37,8 @@ function resolveDate(
 
 export class VaultDataSource {
   private readonly hobbyTimeLogCache = new HobbyTimeLogCache();
+  private readonly sessionListCache = new VaultListCache<SessionMeta[]>();
+  private readonly hobbyItemListCache = new VaultListCache<HobbyItemMeta[]>();
 
   constructor(private app: App) {}
 
@@ -49,6 +52,12 @@ export class VaultDataSource {
   /** Keep cache entries aligned when a note is renamed. */
   renameHobbyTimeLogCache(oldPath: string, newPath: string): void {
     this.hobbyTimeLogCache.rename(normalizePath(oldPath), normalizePath(newPath));
+  }
+
+  /** Drop cached vault list scans (sessions / hobby items). */
+  invalidateListCache(): void {
+    this.sessionListCache.invalidate();
+    this.hobbyItemListCache.invalidate();
   }
 
   /**
@@ -69,6 +78,10 @@ export class VaultDataSource {
   }
 
   listSessions(folder: string, year: number): SessionMeta[] {
+    const cacheKey = `${folder}\0${year}`;
+    const cached = this.sessionListCache.get(cacheKey);
+    if (cached) return cached;
+
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
     // Re-normalize with Obsidian so vault path style matches file.path
@@ -89,6 +102,7 @@ export class VaultDataSource {
         felt: String(fm.felt || ""),
       });
     }
+    this.sessionListCache.set(cacheKey, out);
     return out;
   }
 
@@ -100,6 +114,10 @@ export class VaultDataSource {
     ) {
       return [];
     }
+    const cacheKey = activity.id;
+    const cached = this.hobbyItemListCache.get(cacheKey);
+    if (cached) return cached;
+
     const prefix = hobbyItemsScanPrefix(activity.folder);
     if (!prefix) return [];
     const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
@@ -116,6 +134,7 @@ export class VaultDataSource {
         frontmatter: fm,
       });
     }
+    this.hobbyItemListCache.set(cacheKey, out);
     return out;
   }
 
