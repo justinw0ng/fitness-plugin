@@ -52,7 +52,7 @@ In **Settings → Atomic**, each exercise and general habit has enable/disable, 
 
 Reading is the default general habit (item + timer). Use **Atomic: New reading item** or **Atomic: New hobby item** for `atomics/hobbies/<Name>/Items/<Title>.md` with properties, remarks, a time log, and an `atomic-timer` block. Timer-log minutes feed heatmaps and the dashboard hobby summary.
 
-`atomic-heatmap` defaults to all enabled habits. Filter with `activity: reading` or `activity: gym, golf`.
+`atomic-heatmap` defaults to all enabled habits. Filter with `activity: reading` or `activity: gym, golf`. For multiple activities, optional grid layout uses `columns`, `rows`, `min-column-width`, and `default-span` (see `docs/USER_GUIDE.md`); `columns: 1` keeps the vertical stack.
 
 `atomic-actions` shows a button for every enabled habit (exercise sessions + general-habit items).
 

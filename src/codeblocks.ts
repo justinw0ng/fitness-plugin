@@ -72,6 +72,7 @@ export async function renderBlock(
           tz,
           language,
           opts.activity,
+          opts,
         );
         break;
       }
