@@ -3,6 +3,7 @@ import {
   GYM_LOCATIONS,
   MUSCLES,
 } from "../core";
+import { CUSTOM_LOCATION_SENTINEL } from "../core/property-options";
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -164,19 +165,42 @@ async function gymSessionBody(
   date: string,
   language: Language,
 ): Promise<string> {
+  const locationItems = [...GYM_LOCATIONS, CUSTOM_LOCATION_SENTINEL];
   const locationLabels = [
     t("location.home", language),
     t("location.commercial", language),
     t("location.hotelTravel", language),
     t("location.other", language),
+    t("property.location.custom", language),
   ];
+
   let location =
     (await suggestOne(
       app,
       t("modal.locationPlaceholder", language),
-      GYM_LOCATIONS,
+      locationItems,
       locationLabels,
     )) || "";
+
+  if (location === CUSTOM_LOCATION_SENTINEL) {
+    const raw = await promptText(
+      app,
+      t("modal.customLocation", language),
+      "",
+      language,
+    );
+    if (raw === null) {
+      location = "";
+    } else {
+      const trimmed = raw.trim();
+      if (!trimmed) {
+        new Notice(t("notice.emptyCustomLocation", language));
+        location = "";
+      } else {
+        location = trimmed;
+      }
+    }
+  }
 
   let locationDetail = "";
   if (location === "Other") {
