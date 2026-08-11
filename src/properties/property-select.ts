@@ -1,9 +1,11 @@
 import type { App, Plugin, WorkspaceLeaf } from "obsidian";
-import { TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { DROPDOWN_PROPERTY_NAMES, resolvePropertyOptions, type PropertyOptionSpec } from "../core/property-options.ts";
+import { promptText } from "../util/prompt-text.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { CUSTOM_LOCATION_SENTINEL, DROPDOWN_PROPERTY_NAMES, resolvePropertyOptions, type PropertyOptionSpec } from "../core/property-options.ts";
 
 const SELECT_CLASS = "atomic-property-select";
 const HIDDEN_CLASS = "atomic-property-native-hidden";
@@ -57,6 +59,7 @@ function optionLabel(
 }
 
 function createPropertySelect(
+  app: App,
   spec: PropertyOptionSpec,
   property: string,
   getLanguage: () => Language,
@@ -87,9 +90,53 @@ function createPropertySelect(
     selectEl.appendChild(legacy);
   }
 
-  selectEl.addEventListener("change", (event) => {
-    const newValue = (event.target as HTMLSelectElement).value;
+  if (spec.allowCustom) {
+    const customOpt = document.createElement("option");
+    customOpt.value = CUSTOM_LOCATION_SENTINEL;
+    customOpt.text = t("property.location.custom", language);
+    selectEl.appendChild(customOpt);
+  }
+
+  selectEl.dataset.committedValue = currentValue || spec.values[0] || "";
+
+  selectEl.addEventListener("change", () => {
+    const language = getLanguage();
+    const newValue = selectEl.value;
     selectEl.dataset.lastChanged = Date.now().toString();
+
+    if (spec.allowCustom && newValue === CUSTOM_LOCATION_SENTINEL) {
+      const previous = selectEl.dataset.committedValue || "";
+      selectEl.value = previous;
+      void (async () => {
+        const raw = await promptText(
+          app,
+          t("modal.customLocation", language),
+          "",
+          language,
+        );
+        if (raw === null) return;
+        const trimmed = raw.trim();
+        if (!trimmed) {
+          new Notice(t("notice.emptyCustomLocation", language));
+          return;
+        }
+        selectEl.dataset.committedValue = trimmed;
+        if (!Array.from(selectEl.options).some((o) => o.value === trimmed)) {
+          const legacy = document.createElement("option");
+          legacy.value = trimmed;
+          legacy.text = trimmed;
+          const customOption = Array.from(selectEl.options).find(
+            (o) => o.value === CUSTOM_LOCATION_SENTINEL,
+          );
+          selectEl.insertBefore(legacy, customOption ?? null);
+        }
+        selectEl.value = trimmed;
+        onChange(trimmed);
+      })();
+      return;
+    }
+
+    selectEl.dataset.committedValue = newValue;
     onChange(newValue);
   });
 
@@ -201,6 +248,7 @@ function injectPropertySelect(
   if (!forBases) hideNativeEditors(valueContainer);
   const editableValue = currentValue;
   const selectEl = createPropertySelect(
+    app,
     spec,
     property,
     getLanguage,
