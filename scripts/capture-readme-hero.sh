@@ -3,7 +3,6 @@
 set -euo pipefail
 
 export DISPLAY=:1
-VAULT="/workspace/obsidian-demo"
 VAULT_ID="a1b2c3d4e5f67890"
 DAILY_FILE="Daily notes/2026-08-11.md"
 OUT="/workspace/docs/images/atomic-daily-hero.png"

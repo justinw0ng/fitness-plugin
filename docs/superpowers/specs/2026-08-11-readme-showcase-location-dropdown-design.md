@@ -42,7 +42,7 @@ In the Properties (and Bases) `location` select:
 3. Choosing **Custom…** opens a small prompt (Obsidian `PromptModal` or equivalent). Confirm writes the trimmed string to `location` and selects it. Cancel restores the previous value.
 4. Empty / whitespace-only custom input is rejected (keep previous value; optional Notice).
 
-Session create flow (`FuzzySuggestModal` for gym/golf location):
+Session create flow (`FuzzySuggestModal` for gym location):
 
 - Keep predefined suggestions.
 - Allow a custom entry the same way (type a value that is not in the list, or an explicit Custom path), writing it to `location`.

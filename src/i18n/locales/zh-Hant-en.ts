@@ -86,7 +86,7 @@ export const zhHantEn = {
   "notice.timerNotRunning": "Timer is not running / Timer 尚未開始。",
   "notice.timerAlreadyRunning": "Timer is already running / Timer 已在運行。",
   "notice.timerLogged": "Logged {minutes} min / 已記錄 {minutes} 分鐘。",
-  "notice.emptyCustomLocation": "Location cannot be empty / 地點不可為空白",
+  "notice.emptyCustomLocation": "Location cannot be empty. / 地點不可為空白。",
 
   "modal.dateTitle": "Date / 日期 (YYYY-MM-DD)",
   "modal.cancel": "Cancel / 取消",

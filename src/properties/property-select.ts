@@ -196,7 +196,10 @@ function syncExistingSelect(
       const legacy = document.createElement("option");
       legacy.value = valueToSet;
       legacy.text = valueToSet;
-      selectEl.appendChild(legacy);
+      const customOption = Array.from(selectEl.options).find(
+        (option) => option.value === CUSTOM_LOCATION_SENTINEL,
+      );
+      selectEl.insertBefore(legacy, customOption ?? null);
     }
   }
 

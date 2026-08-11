@@ -86,7 +86,7 @@ export const en = {
   "notice.timerNotRunning": "Timer is not running.",
   "notice.timerAlreadyRunning": "Timer is already running.",
   "notice.timerLogged": "Logged {minutes} min.",
-  "notice.emptyCustomLocation": "Location cannot be empty",
+  "notice.emptyCustomLocation": "Location cannot be empty.",
 
   "modal.dateTitle": "Date (YYYY-MM-DD)",
   "modal.cancel": "Cancel",
