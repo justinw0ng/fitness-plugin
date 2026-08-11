@@ -204,7 +204,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 14px;
   /* Room above books for the hover title bubble (wraps; can be multi-line). */
-  padding: 72px 16px 8px;
+  padding: 48px 6px 8px;
   overflow: visible;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
@@ -214,7 +214,7 @@
 
 .fitness-plugin .atomic-book-shelf-row {
   position: relative;
-  padding: 0 4px 20px;
+  padding: 0 2px 16px;
   margin-bottom: 18px;
   overflow: visible;
 }
@@ -226,7 +226,7 @@
   justify-content: flex-start;
   gap: 8px;
   min-height: 168px;
-  padding: 0 8px;
+  padding: 0 4px;
   perspective: 1400px;
   overflow: visible;
 }
@@ -373,11 +373,7 @@
 
 .fitness-plugin .atomic-book-cover-face {
   position: absolute;
-  /* Overlap the hinge slightly so cream pages never flash as a white edge. */
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: -1px;
+  inset: 0;
   border-radius: 3px 4px 4px 3px;
   overflow: hidden;
   color: white;
@@ -436,6 +432,7 @@
   max-height: none !important;
   object-fit: cover !important;
   object-position: center;
+  border-radius: 3px 4px 4px 3px;
   display: block;
 }
 
