@@ -585,10 +585,28 @@
   padding: 18px 8px;
 }
 
-/* Fixed-value property dropdowns in Properties / Bases */
+/* Property dropdowns: match Obsidian form controls (light/dark). */
 .atomic-property-select {
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--text-normal);
+  background-color: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--input-radius, var(--radius-s, 4px));
+  padding: var(--size-2-1, 4px) var(--size-2-2, 8px);
+  line-height: var(--line-height-normal, 1.4);
+}
+
+.atomic-property-select:hover {
+  background-color: var(--background-modifier-form-field-hover, var(--background-modifier-form-field));
+}
+
+.atomic-property-select:focus,
+.atomic-property-select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background-modifier-border-focus, var(--interactive-accent));
 }
 
 .atomic-property-native-hidden {
