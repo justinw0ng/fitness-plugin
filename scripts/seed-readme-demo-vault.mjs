@@ -2,7 +2,7 @@
  * Seed /workspace/obsidian-demo for README hero screenshot (Task 7).
  * Run: node scripts/seed-readme-demo-vault.mjs
  */
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const VAULT = "/workspace/obsidian-demo";
@@ -20,6 +20,8 @@ const BOOKS = [
   { title: "The Odyssey", cover: "https://covers.openlibrary.org/b/id/8100018-L.jpg" },
   { title: "The Wedding People", cover: "https://covers.openlibrary.org/b/id/15127690-L.jpg" },
   { title: "The Let Them Theory", cover: "https://covers.openlibrary.org/b/id/15165806-L.jpg" },
+  { title: "Remarkably Bright Creatures", cover: "https://covers.openlibrary.org/b/id/12019989-L.jpg" },
+  { title: "Atomic Habits", cover: "https://covers.openlibrary.org/b/id/12539702-L.jpg" },
 ];
 
 const GREEN = ["#9be9a8", "#40c463", "#30a14e", "#216e39"];
@@ -146,40 +148,49 @@ felt: ${felt}
 `;
 }
 
+/** Deterministic dense activity days through TODAY (inclusive). */
+function activityDays({ startMonth, weekdays, stride = 1 }) {
+  const out = [];
+  const end = new Date(`${TODAY}T12:00:00Z`);
+  for (let month = startMonth; month <= end.getUTCMonth() + 1; month++) {
+    const daysInMonth = new Date(Date.UTC(2026, month, 0)).getUTCDate();
+    let hit = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = `2026-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const dt = new Date(`${iso}T12:00:00Z`);
+      if (dt > end) break;
+      const dow = dt.getUTCDay(); // 0 Sun … 6 Sat
+      if (!weekdays.includes(dow)) continue;
+      hit += 1;
+      if (hit % stride !== 0) continue;
+      out.push(iso);
+    }
+  }
+  if (!out.includes(TODAY)) out.push(TODAY);
+  return out;
+}
+
+function durationFor(date, base, spread) {
+  const n = Number(date.slice(-2));
+  return base + ((n * 7) % spread);
+}
+
 function seedHeatmapSessions() {
-  const gymDates = [
-    ["2026-01-06", 45],
-    ["2026-02-10", 60],
-    ["2026-03-15", 50],
-    ["2026-04-22", 55],
-    ["2026-05-08", 40],
-    ["2026-06-12", 65],
-    ["2026-07-03", 50],
-    ["2026-07-28", 45],
-    ["2026-08-05", 55],
-    [TODAY, 45],
-  ];
-  for (const [date, min] of gymDates) {
+  // Gym: Mon/Wed/Fri-ish density (~3×/week)
+  const gymDates = activityDays({ startMonth: 1, weekdays: [1, 3, 5] });
+  for (const date of gymDates) {
     write(
       join(VAULT, `atomics/exercise/Gym/${YEAR}/${date}.md`),
-      gymSession(date, min),
+      gymSession(date, durationFor(date, 40, 30)),
     );
   }
 
-  const golfDates = [
-    ["2026-01-12", 90],
-    ["2026-02-28", 75],
-    ["2026-04-05", 80],
-    ["2026-05-20", 70],
-    ["2026-06-30", 85],
-    ["2026-07-15", 60],
-    ["2026-08-02", 75],
-    [TODAY, 30],
-  ];
-  for (const [date, min] of golfDates) {
+  // Golf: weekends + occasional midweek
+  const golfDates = activityDays({ startMonth: 1, weekdays: [0, 6, 3], stride: 1 });
+  for (const date of golfDates) {
     write(
       join(VAULT, `atomics/exercise/Golf/${YEAR}/${date}.md`),
-      golfSession(date, min),
+      golfSession(date, durationFor(date, 60, 40)),
     );
   }
 }
@@ -187,26 +198,32 @@ function seedHeatmapSessions() {
 function seedHobbyTimeLogs() {
   const readingLogs = [];
   const guitarLogs = [];
-  const spread = [
-    ["2026-01-08", 30],
-    ["2026-02-14", 45],
-    ["2026-03-21", 35],
-    ["2026-04-18", 50],
-    ["2026-05-25", 40],
-    ["2026-06-08", 55],
-    ["2026-07-19", 35],
-    ["2026-08-03", 42],
-    [TODAY, 40],
-  ];
-  for (const [date, min] of spread) {
+  // Reading most evenings; guitar nearly daily
+  const readingDays = activityDays({ startMonth: 1, weekdays: [0, 1, 2, 3, 4, 5, 6], stride: 2 });
+  const guitarDays = activityDays({ startMonth: 1, weekdays: [1, 2, 3, 4, 5, 6] });
+
+  for (const date of readingDays) {
+    const min = durationFor(date, 25, 35);
     readingLogs.push(`- ${date} | ${min} min`);
-    guitarLogs.push(`- ${date} | ${min === 40 ? 25 : Math.max(15, min - 10)} min`);
   }
+  for (const date of guitarDays) {
+    const min = durationFor(date, 15, 25);
+    guitarLogs.push(`- ${date} | ${min} min`);
+  }
+
+  const readingTotal = readingLogs.reduce((sum, line) => {
+    const m = line.match(/(\d+) min/);
+    return sum + (m ? Number(m[1]) : 0);
+  }, 0);
+  const guitarTotal = guitarLogs.reduce((sum, line) => {
+    const m = line.match(/(\d+) min/);
+    return sum + (m ? Number(m[1]) : 0);
+  }, 0);
 
   const [first, ...rest] = BOOKS;
   write(
     join(VAULT, `atomics/hobbies/Reading/Items/${first.title}.md`),
-    readingItem(first.title, first.cover, 40, readingLogs),
+    readingItem(first.title, first.cover, readingTotal, readingLogs),
   );
   for (const book of rest) {
     write(
@@ -217,7 +234,7 @@ function seedHobbyTimeLogs() {
 
   write(
     join(VAULT, "atomics/hobbies/Guitar/Items/Practice log.md"),
-    guitarItem(25, guitarLogs),
+    guitarItem(guitarTotal, guitarLogs),
   );
 }
 
@@ -405,6 +422,18 @@ function deployPlugin() {
 ensureDir(VAULT);
 seedObsidianConfig();
 deployPlugin();
+
+// Drop prior demo sessions/items so denser seeds replace sparse ones cleanly.
+for (const rel of [
+  "atomics/exercise/Gym/2026",
+  "atomics/exercise/Golf/2026",
+  "atomics/hobbies/Reading/Items",
+  "atomics/hobbies/Guitar/Items",
+]) {
+  const p = join(VAULT, rel);
+  if (existsSync(p)) rmSync(p, { recursive: true, force: true });
+}
+
 seedHeatmapSessions();
 seedHobbyTimeLogs();
 seedDailyNote();
