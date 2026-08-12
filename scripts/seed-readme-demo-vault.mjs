@@ -246,6 +246,8 @@ function seedDailyNote() {
 \`\`\`atomic-bookshelf
 \`\`\`
 
+## Track your activities today!
+
 \`\`\`atomic-actions
 \`\`\`
 
@@ -352,7 +354,7 @@ function seedObsidianConfig() {
       {
         id: "gym",
         domain: "exercise",
-        label: "Gym",
+        label: "🏋️ Gym",
         folder: "atomics/exercise/Gym",
         enabled: true,
         baseColor: GREEN[2],
@@ -365,7 +367,7 @@ function seedObsidianConfig() {
       {
         id: "golf",
         domain: "exercise",
-        label: "Golf",
+        label: "⛳ Golf",
         folder: "atomics/exercise/Golf",
         enabled: true,
         baseColor: ORANGE[2],
@@ -378,7 +380,7 @@ function seedObsidianConfig() {
       {
         id: "guitar",
         domain: "hobby",
-        label: "Guitar",
+        label: "🎸 Guitar",
         folder: "atomics/hobbies/Guitar",
         enabled: true,
         baseColor: PURPLE[2],
@@ -391,7 +393,7 @@ function seedObsidianConfig() {
       {
         id: "reading",
         domain: "hobby",
-        label: "Reading",
+        label: "📚 Reading",
         folder: "atomics/hobbies/Reading",
         enabled: true,
         baseColor: BLUE[2],
