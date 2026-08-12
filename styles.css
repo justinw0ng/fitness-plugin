@@ -1,42 +1,71 @@
 .fitness-plugin {
+  --atomic-heatmap-cell: 11px;
+  --atomic-heatmap-gap: 1px;
+  --atomic-heatmap-day-label: 22px;
+  --atomic-book-width: 80px;
+  --atomic-book-height: 124px;
+  --atomic-book-gap: 6px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.fitness-plugin,
+.fitness-plugin * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.fitness-plugin::-webkit-scrollbar,
+.fitness-plugin *::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 .fitness-plugin .fitness-heatmap-grid {
   display: grid;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   contain: layout;
 }
 
 .fitness-plugin .fitness-heatmap-grid .fitness-heatmap {
   margin-bottom: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .fitness-plugin .fitness-heatmap {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
-  margin-bottom: 24px;
-  contain: layout paint;
+  margin-bottom: 18px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  contain: layout;
 }
 
 .fitness-plugin .fitness-heatmap-title {
-  margin: 0 0 12px 0;
-  font-size: 16px;
+  margin: 0 0 8px 0;
+  font-size: 13px;
 }
 
 .fitness-plugin .fitness-heatmap-legend {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .fitness-plugin .fitness-cell,
 .fitness-plugin .fitness-legend-swatch {
-  width: 16px;
-  height: 16px;
+  width: var(--atomic-heatmap-cell);
+  height: var(--atomic-heatmap-cell);
   border-radius: 50%;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -50,12 +79,14 @@
   border: 1px solid var(--background-modifier-border);
 }
 
-/* Double ring: inner matches pane bg, outer uses text — visible on any cell shade in light/dark. */
+/* Ring sits on the cell (same outer size). Black in light, white in dark. */
 .fitness-plugin .fitness-cell.is-today {
-  border: none;
-  box-shadow:
-    0 0 0 1px var(--background-primary),
-    0 0 0 3px var(--text-normal);
+  border: 1.5px solid #000;
+  box-shadow: none;
+}
+
+.theme-dark .fitness-plugin .fitness-cell.is-today {
+  border-color: #fff;
 }
 
 .fitness-plugin .fitness-cell.is-faded {
@@ -72,73 +103,88 @@
 
 .fitness-plugin .fitness-month-row {
   display: flex;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   flex-wrap: nowrap;
 }
 
 .fitness-plugin .fitness-month-label {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--text-muted);
-  width: 18px;
+  width: calc(var(--atomic-heatmap-cell) + var(--atomic-heatmap-gap));
   text-align: center;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .fitness-plugin .fitness-month-spacer {
-  width: 18px;
+  width: calc(var(--atomic-heatmap-cell) + var(--atomic-heatmap-gap));
   flex-shrink: 0;
 }
 
 .fitness-plugin .fitness-heatmap-body {
   display: flex;
-  gap: 5px;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .fitness-plugin .fitness-heatmap-scroll {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 4px 3px 0;
 }
 
 .fitness-plugin .fitness-day-labels {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  width: 25px;
+  gap: var(--atomic-heatmap-gap);
+  width: var(--atomic-heatmap-day-label);
   flex-shrink: 0;
   align-self: flex-end;
+  padding-bottom: 3px;
 }
 
 .fitness-plugin .fitness-day-label {
-  font-size: 9px;
+  font-size: 8px;
   text-align: right;
-  height: 16px;
-  line-height: 16px;
+  height: var(--atomic-heatmap-cell);
+  line-height: var(--atomic-heatmap-cell);
   color: var(--text-muted);
 }
 
 .fitness-plugin .fitness-weeks {
   display: flex;
-  gap: 2px;
+  gap: var(--atomic-heatmap-gap);
+  padding-right: 6px;
+}
+
+.fitness-plugin .fitness-weeks-end-pad {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 1px;
 }
 
 .fitness-plugin .fitness-week {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--atomic-heatmap-gap);
+  padding: 1px;
 }
 
 .fitness-plugin .fitness-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  margin: 4px 0 12px;
+  margin: 4px 0 10px;
 }
 
 .fitness-plugin .fitness-actions button {
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 4px 10px;
+  font-size: var(--font-ui-small, 13px);
   border-radius: 6px;
   border: 1px solid var(--background-modifier-border);
   background: var(--interactive-normal);
@@ -212,17 +258,19 @@
 .fitness-plugin.atomic-book-shelf {
   --atomic-shelf-depth: color-mix(in srgb, var(--background-modifier-border), var(--background-primary) 30%);
   --atomic-shelf-face: color-mix(in srgb, var(--background-secondary), var(--text-muted) 12%);
-  margin: 12px 0 20px;
+  margin: 8px 0 16px;
   overflow: visible;
+  max-width: 100%;
+  min-width: 0;
   /* layout only — paint containment would clip hover title bubbles */
   contain: layout;
 }
 
 .fitness-plugin .atomic-book-shelf-frame {
   border: 1px solid var(--background-modifier-border);
-  border-radius: 14px;
+  border-radius: 12px;
   /* Room above books for the hover title bubble (wraps; can be multi-line). */
-  padding: 48px 6px 8px;
+  padding: 36px 4px 6px;
   overflow: visible;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
@@ -232,8 +280,8 @@
 
 .fitness-plugin .atomic-book-shelf-row {
   position: relative;
-  padding: 0 2px 16px;
-  margin-bottom: 18px;
+  padding: 0 2px 14px;
+  margin-bottom: 14px;
   overflow: visible;
 }
 
@@ -242,11 +290,11 @@
   flex-wrap: nowrap;
   align-items: flex-end;
   justify-content: flex-start;
-  gap: 8px;
-  min-height: 168px;
+  gap: var(--atomic-book-gap);
+  min-height: var(--atomic-book-height);
   padding: 0 4px;
-  perspective: 1400px;
-  overflow: visible;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .fitness-plugin .atomic-book-shelf-plank {
@@ -254,19 +302,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 18px;
+  height: 14px;
   border-radius: 6px;
   background:
     linear-gradient(180deg, var(--atomic-shelf-face), var(--atomic-shelf-depth));
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
 }
 
 .fitness-plugin .atomic-book {
   --atomic-book-color: #374151;
   position: relative;
-  flex: 0 0 108px;
-  width: 108px;
-  height: 168px;
+  flex: 0 0 var(--atomic-book-width);
+  width: var(--atomic-book-width);
+  height: var(--atomic-book-height);
   padding: 0;
   border: 0;
   border-radius: 4px;
@@ -290,14 +338,7 @@
 .fitness-plugin .atomic-book-volume {
   position: absolute;
   inset: 0;
-  transform-style: preserve-3d;
-  transform: rotateY(0deg);
-  transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
-}
-
-.fitness-plugin .atomic-book:hover .atomic-book-volume,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-volume {
-  transform: rotateY(-10deg);
+  transform: none;
 }
 
 .fitness-plugin .atomic-book-pages,
@@ -312,8 +353,8 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
   overflow: hidden;
   background:
     repeating-linear-gradient(
@@ -325,21 +366,12 @@
   color: #3f3422;
   box-shadow:
     inset -8px 0 10px rgba(0, 0, 0, 0.12),
-    0 8px 14px rgba(0, 0, 0, 0.16);
-  transform: translateZ(0);
-  transition: box-shadow 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+    0 6px 12px rgba(0, 0, 0, 0.16);
   z-index: 1;
 }
 
-.fitness-plugin .atomic-book:hover .atomic-book-pages,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-pages {
-  box-shadow:
-    inset -12px 0 16px rgba(0, 0, 0, 0.18),
-    6px 10px 20px rgba(0, 0, 0, 0.22);
-}
-
 .fitness-plugin .atomic-book-page-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.15;
   white-space: normal;
@@ -352,16 +384,16 @@
 }
 
 .fitness-plugin .atomic-book-page-title.is-title-sm {
-  font-size: 9px;
+  font-size: 8px;
 }
 
 .fitness-plugin .atomic-book-page-title.is-title-xs {
-  font-size: 8px;
+  font-size: 7px;
   line-height: 1.1;
 }
 
 .fitness-plugin .atomic-book-page-author {
-  font-size: 10px;
+  font-size: 9px;
   color: #6b5a3a;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -371,22 +403,12 @@
   overflow: hidden;
 }
 
-/* Cover board hinged at the spine — sleeve edge + inside face for a roll-open feel. */
+/* Flat cover by default so iOS/WebKit paints books without preserve-3d bugs. */
 .fitness-plugin .atomic-book-cover {
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  transform: rotateY(0deg);
   background: transparent;
   overflow: visible;
-  transition: transform 760ms cubic-bezier(0.18, 0.9, 0.22, 1);
   pointer-events: none;
   z-index: 2;
-}
-
-.fitness-plugin .atomic-book:hover .atomic-book-cover,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-cover {
-  /* Far enough open that the board reads as an inside flap, not a second face. */
-  transform: rotateY(-155deg);
 }
 
 .fitness-plugin .atomic-book-cover-face {
@@ -396,50 +418,12 @@
   overflow: hidden;
   color: white;
   background: var(--atomic-book-color);
-  transform: translateZ(3px);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.22);
 }
 
-/* Inside flap only while open — avoids a cream flash/line while the cover closes. */
-.fitness-plugin .atomic-book-cover-inside {
-  position: absolute;
-  inset: 0;
-  border-radius: 3px 4px 4px 3px;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.1), transparent 22%),
-    linear-gradient(180deg, #f7f0e2, #ebe1cb);
-  transform: rotateY(180deg) translateZ(3px);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  opacity: 0;
-  transition: opacity 90ms ease;
-}
-
-.fitness-plugin .atomic-book:hover .atomic-book-cover-inside,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-cover-inside {
-  opacity: 1;
-  transition: opacity 180ms ease 140ms;
-}
-
+.fitness-plugin .atomic-book-cover-inside,
 .fitness-plugin .atomic-book-cover-sleeve {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 6px;
-  transform-origin: left center;
-  transform: rotateY(-90deg);
-  background: color-mix(in srgb, var(--atomic-book-color), black 18%);
-  opacity: 0;
-  transition: opacity 90ms ease;
-}
-
-.fitness-plugin .atomic-book:hover .atomic-book-cover-sleeve,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-cover-sleeve {
-  opacity: 1;
-  transition: opacity 160ms ease 120ms;
+  display: none;
 }
 
 /* Beat Obsidian's preview `img { height: auto }` so covers fill the face. */
@@ -456,12 +440,12 @@
 
 .fitness-plugin .atomic-book-cover-title {
   position: absolute;
-  inset: 10px 8px;
+  inset: 8px 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   line-height: 1.15;
   white-space: normal;
@@ -473,62 +457,161 @@
 }
 
 .fitness-plugin .atomic-book-cover-title.is-title-sm {
-  font-size: 8.5px;
-  inset: 8px 6px;
-}
-
-.fitness-plugin .atomic-book-cover-title.is-title-xs {
-  font-size: 7.5px;
-  line-height: 1.1;
+  font-size: 8px;
   inset: 7px 5px;
 }
 
+.fitness-plugin .atomic-book-cover-title.is-title-xs {
+  font-size: 7px;
+  line-height: 1.1;
+  inset: 6px 4px;
+}
+
 .fitness-plugin .atomic-book-spine {
-  width: 14px;
+  width: 7px;
   right: auto;
   overflow: hidden;
   background: color-mix(in srgb, var(--atomic-book-color), black 24%);
-  transform: translateX(-7px) rotateY(90deg);
-  transform-origin: right center;
-  z-index: 0;
-  opacity: 1;
-  transition: opacity 220ms ease;
-}
-
-/* Cover-open hover: hide the outer spine so only pages + open cover show. */
-.fitness-plugin .atomic-book:hover .atomic-book-spine,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-spine {
-  opacity: 0;
+  transform: none;
+  z-index: 3;
 }
 
 .fitness-plugin .atomic-book-spine-title {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  color: white;
-  font-size: 9px;
-  line-height: 1;
-  padding: 8px 2px;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-height: 100%;
+  display: none;
 }
 
-.fitness-plugin .atomic-book-spine-title.is-title-sm {
-  font-size: 8px;
-}
+@media (hover: hover) and (pointer: fine) {
+  .fitness-plugin .atomic-book-row-books {
+    perspective: 1400px;
+    overflow-x: auto;
+  }
 
-.fitness-plugin .atomic-book-spine-title.is-title-xs {
-  font-size: 7px;
+  .fitness-plugin .atomic-book-volume {
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-volume,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-volume {
+    transform: rotateY(-10deg);
+  }
+
+  .fitness-plugin .atomic-book-pages {
+    transform: translateZ(0);
+    transition: box-shadow 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-pages,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-pages {
+    box-shadow:
+      inset -12px 0 16px rgba(0, 0, 0, 0.18),
+      6px 10px 20px rgba(0, 0, 0, 0.22);
+  }
+
+  .fitness-plugin .atomic-book-cover {
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    transition: transform 760ms cubic-bezier(0.18, 0.9, 0.22, 1);
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-cover,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover {
+    transform: rotateY(-155deg);
+  }
+
+  .fitness-plugin .atomic-book-cover-face {
+    transform: translateZ(3px);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .fitness-plugin .atomic-book-cover-inside {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border-radius: 3px 4px 4px 3px;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.1), transparent 22%),
+      linear-gradient(180deg, #f7f0e2, #ebe1cb);
+    transform: rotateY(180deg) translateZ(3px);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    opacity: 0;
+    transition: opacity 90ms ease;
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-cover-inside,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover-inside {
+    opacity: 1;
+    transition: opacity 180ms ease 140ms;
+  }
+
+  .fitness-plugin .atomic-book-cover-sleeve {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 6px;
+    transform-origin: left center;
+    transform: rotateY(-90deg);
+    background: color-mix(in srgb, var(--atomic-book-color), black 18%);
+    opacity: 0;
+    transition: opacity 90ms ease;
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-cover-sleeve,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover-sleeve {
+    opacity: 1;
+    transition: opacity 160ms ease 120ms;
+  }
+
+  .fitness-plugin .atomic-book-spine {
+    width: 14px;
+    transform: translateX(-7px) rotateY(90deg);
+    transform-origin: right center;
+    z-index: 0;
+    opacity: 1;
+    transition: opacity 220ms ease;
+  }
+
+  .fitness-plugin .atomic-book:hover .atomic-book-spine,
+  .fitness-plugin .atomic-book:focus-visible .atomic-book-spine {
+    opacity: 0;
+  }
+
+  .fitness-plugin .atomic-book-spine-title {
+    display: block;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    color: white;
+    font-size: 8px;
+    line-height: 1;
+    padding: 8px 2px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-height: 100%;
+  }
+
+  .fitness-plugin .atomic-book-spine-title.is-title-sm {
+    font-size: 7px;
+  }
+
+  .fitness-plugin .atomic-book-spine-title.is-title-xs {
+    font-size: 6px;
+  }
 }
 
 .fitness-plugin .atomic-book-detail {
   position: absolute;
   left: 50%;
-  bottom: 152px;
-  width: min(200px, 72vw);
-  max-width: 240px;
+  bottom: calc(var(--atomic-book-height) - 12px);
+  width: min(180px, 72vw);
+  max-width: 220px;
   box-sizing: border-box;
   transform: translateX(-50%) translateY(8px);
   opacity: 0;

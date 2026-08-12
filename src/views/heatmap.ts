@@ -19,6 +19,7 @@ import {
   resolveHeatmapLayout,
   type HeatmapLayout,
 } from "../util/heatmap-layout";
+import { measureElementWidth } from "../util/element-width";
 import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
 
 type HeatmapObserverRegistry = {
@@ -280,6 +281,8 @@ async function renderOneHeatmap(
     }
   }
 
+  weeksEl.createDiv({ cls: "fitness-weeks-end-pad" });
+
   wireHeatmapScroll(scroll, registry);
 }
 
@@ -293,13 +296,17 @@ function wireHeatmapGrid(
   gridEl.style.gridTemplateRows = `repeat(${layout.rows}, auto)`;
 
   const applyColumns = () => {
+    const fallback =
+      typeof window !== "undefined" && Number.isFinite(window.innerWidth)
+        ? window.innerWidth
+        : layout.minColumnWidth;
     const columnCount = effectiveHeatmapColumns({
       columns: layout.columns,
       minColumnWidth: layout.minColumnWidth,
-      containerWidth: gridEl.clientWidth,
+      containerWidth: measureElementWidth(gridEl, fallback),
       activityCount,
     });
-    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(${layout.minColumnWidth}px, ${layout.defaultSpan}fr))`;
+    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(0, ${layout.defaultSpan}fr))`;
   };
 
   if (typeof ResizeObserver !== "undefined") {
