@@ -180,6 +180,15 @@ test("parseCoverRef rejects javascript and non-raster data URLs", () => {
   );
 });
 
+test("book shelf window resize listener is only a ResizeObserver fallback", () => {
+  const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
+  const listener = src.indexOf('window.addEventListener("resize"');
+  assert.ok(listener > 0);
+  const observerCheck = src.lastIndexOf("typeof ResizeObserver", listener);
+  assert.ok(observerCheck > 0);
+  assert.match(src.slice(observerCheck, listener), /return;/);
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.match(styles, /scrollbar-width:\s*none/);
   assert.match(styles, /::-webkit-scrollbar/);

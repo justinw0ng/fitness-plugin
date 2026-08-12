@@ -327,8 +327,12 @@ export function renderBookShelf(
     const observer = new ResizeObserver(() => layout());
     observer.observe(frame);
     resizeObservers.set(el, observer);
+    return;
   }
 
+  // Fallback only: a window listener holds `el` until removed, so it would
+  // leak across note unmounts until the next resize if registered alongside
+  // ResizeObserver (which Obsidian's WebViews always provide).
   const onWindowResize = (): void => {
     if (!el.isConnected) {
       window.removeEventListener("resize", onWindowResize);

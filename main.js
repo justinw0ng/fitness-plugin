@@ -2743,6 +2743,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     const observer = new ResizeObserver(() => layout());
     observer.observe(frame);
     resizeObservers.set(el, observer);
+    return;
   }
   const onWindowResize = () => {
     if (!el.isConnected) {
