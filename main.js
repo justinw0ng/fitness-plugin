@@ -2503,6 +2503,8 @@ function chunkItems(items, size) {
   }
   return rows;
 }
+
+// src/util/element-width.ts
 function measureElementWidth(el, fallbackWidth = 0) {
   let node = el;
   while (node) {
@@ -3048,13 +3050,14 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language, 
 function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
   gridEl.style.gridTemplateRows = `repeat(${layout.rows}, auto)`;
   const applyColumns = () => {
+    const fallback = typeof window !== "undefined" && Number.isFinite(window.innerWidth) ? window.innerWidth : layout.minColumnWidth;
     const columnCount = effectiveHeatmapColumns({
       columns: layout.columns,
       minColumnWidth: layout.minColumnWidth,
-      containerWidth: gridEl.clientWidth,
+      containerWidth: measureElementWidth(gridEl, fallback),
       activityCount
     });
-    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(${layout.minColumnWidth}px, ${layout.defaultSpan}fr))`;
+    gridEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(0, ${layout.defaultSpan}fr))`;
   };
   if (typeof ResizeObserver !== "undefined") {
     const resizeObserver = new ResizeObserver(() => {

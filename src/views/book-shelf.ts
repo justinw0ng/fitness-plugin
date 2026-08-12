@@ -7,7 +7,9 @@ import { DEFAULT_READING_STATUS, matchesBookShelfStatus, resolveBookShelfStatuse
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, measureElementWidth } from "../util/book-shelf-layout.ts";
+import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems } from "../util/book-shelf-layout.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { measureElementWidth } from "../util/element-width.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems };
 

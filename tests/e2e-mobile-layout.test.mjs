@@ -14,9 +14,9 @@ import {
   bookWidthForContainer,
   booksPerRow,
   chunkItems,
-  measureElementWidth,
   rowNeedsHorizontalScroll,
 } from "../src/util/book-shelf-layout.ts";
+import { measureElementWidth } from "../src/util/element-width.ts";
 import {
   HEATMAP_CELL_PX,
   HEATMAP_DAY_LABEL_PX,
