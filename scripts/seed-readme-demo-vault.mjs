@@ -286,7 +286,41 @@ function seedObsidianConfig() {
 
   write(
     join(obsidianDir, "appearance.json"),
-    JSON.stringify({ theme: "moonstone", accentColor: "" }, null, 2),
+    JSON.stringify(
+      {
+        theme: "moonstone",
+        accentColor: "",
+        showRibbon: false,
+        enabledCssSnippets: ["readme-hero-fullscreen"],
+      },
+      null,
+      2,
+    ),
+  );
+
+  write(
+    join(obsidianDir, "snippets/readme-hero-fullscreen.css"),
+    `/* Hide chrome so the README hero is the note only. */
+.workspace-ribbon,
+.workspace-split.mod-left-split,
+.workspace-split.mod-right-split,
+.workspace-tab-header-container,
+.view-header,
+.status-bar,
+.titlebar,
+.workspace-drawer-backdrop {
+  display: none !important;
+}
+
+.workspace-split.mod-root {
+  margin: 0 !important;
+}
+
+.markdown-preview-view,
+.markdown-source-view {
+  padding-top: 24px;
+}
+`,
   );
 
   write(
