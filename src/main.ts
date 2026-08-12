@@ -157,8 +157,15 @@ export default class FitnessPlugin extends Plugin {
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
         if (!(file instanceof TFile)) return;
-        if (!this.isLiveBlockSourcePath(file.path)) return;
-        this.scheduleRefresh();
+        this.handleVaultPathChange(file.path);
+      }),
+    );
+    this.registerEvent(
+      this.app.metadataCache.on("resolved", () => {
+        this.data.invalidateListCache();
+        if (this.liveBlocks.some((block) => block.el.isConnected)) {
+          this.scheduleRefresh();
+        }
       }),
     );
   }
@@ -209,10 +216,6 @@ export default class FitnessPlugin extends Plugin {
 
   private liveBlockSourcePaths(): string[] {
     return this.liveBlocks.map((block) => block.sourcePath);
-  }
-
-  private isLiveBlockSourcePath(path: string): boolean {
-    return this.liveBlockSourcePaths().includes(path);
   }
 
   private pathAffectsRefresh(path: string): boolean {

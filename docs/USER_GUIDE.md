@@ -153,8 +153,6 @@ The screenshot may show a demo path under `/tmp/...`. On your machine use `<your
 
 ![Atomic settings — exercise + general habits](./images/07-settings-atomic.png)
 
-> Screenshot from the settings mockup (`docs/mockups/atomic/01-settings.html`) because Obsidian desktop is not available in the docs VM. In the live plugin each row uses Obsidian’s color picker plus enable/delete controls.
-
 Each habit has a single color picker. Atomic derives the four heatmap shades (light → dark) automatically; a small swatch row previews them. Disable a habit to hide it from heatmaps, dashboard, and commands without deleting vault notes. Delete removes it from settings only (Reading is not force-added back afterward).
 
 Exercise folders default to `atomics/exercise/Gym` and `atomics/exercise/Golf`. Reading defaults to `atomics/hobbies/Reading` with item notes under `Items/`.
@@ -410,7 +408,7 @@ Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknow
 
 ![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
 
-The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks; editor width decides how many books sit on each plank (rows reflow on resize). Hover/focus rolls the cover open on a spine hinge (local CSS 3D). Click opens the book note. No Framer runtime.
+The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks. Covers are a bit smaller than earlier builds so they sit closer to Obsidian’s UI scale. A row always keeps **at least three books**; if the pane is too narrow even at the minimum cover size, that row scrolls horizontally (scrollbar hidden) instead of wrapping to one or two books. Wider panes still wrap extra books onto the next plank. Hover/focus on a desktop pointer rolls the cover open on a spine hinge (local CSS 3D). Click opens the book note. No Framer runtime.
 
 #### Set a custom book cover
 
@@ -450,6 +448,8 @@ activity: all
 ```
 
 `activity` accepts `all`, one activity id (`reading`, `gym`, …), or a comma-separated list (`gym, golf, reading`).
+
+On a narrow pane the year grid scrolls horizontally (scrollbar hidden) so every day cell stays a full circle. Today is a ring on that day’s circle: **black in light mode**, **white in dark mode**.
 
 Optional multi-activity grid layout (ignored for a single activity):
 
@@ -525,6 +525,8 @@ date: 2026-08-08
 | Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |
 | Property dropdown missing | Reload the Atomic plugin; confirm the note type matches (Reading item vs golf/gym session) |
 | Book shelf empty after `status:` filter | Check item frontmatter `status` values; use `status: all` to show every book |
+| Book shelf empty on phone / iOS | Wait for vault metadata to finish indexing, or reopen the note; covers stay flat on touch (open-on-hover is desktop) |
+| Heatmap cells clipped on a narrow pane | Scroll the grid horizontally; day labels stay pinned |
 
 ---
 

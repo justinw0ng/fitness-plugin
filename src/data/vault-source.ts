@@ -6,6 +6,7 @@ import {
 import type { ActivityType, HobbyItemMeta, SessionMeta } from "../types";
 import { HobbyTimeLogCache } from "../util/hobby-time-log-cache";
 import { VaultListCache } from "../util/vault-list-cache";
+import { hobbyItemFromFileCache } from "../util/hobby-item-scan";
 import {
   hobbyItemsScanPrefix,
   isSafeVaultFolder,
@@ -126,13 +127,16 @@ export class VaultDataSource {
       if (!file.path.startsWith(scanPrefix)) continue;
       if (!file.path.endsWith(".md")) continue;
       const cache = this.app.metadataCache.getFileCache(file);
-      const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
-      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
-      out.push({
+      const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
-        frontmatter: fm,
+        frontmatter:
+          cache == null
+            ? null
+            : ((cache.frontmatter as Record<string, unknown> | undefined) ?? {}),
+        activityId: activity.id,
       });
+      if (item) out.push(item);
     }
     this.hobbyItemListCache.set(cacheKey, out);
     return out;
@@ -214,11 +218,14 @@ export class VaultDataSource {
   resolveResourcePath(linkOrPath: string, sourcePath = ""): string | null {
     const trimmed = linkOrPath.trim();
     if (!trimmed) return null;
-    if (
-      /^https?:\/\//i.test(trimmed) ||
-      /^app:\/\//i.test(trimmed) ||
-      /^data:image\//i.test(trimmed)
-    ) {
+    if (/^(javascript|vbscript):/i.test(trimmed)) return null;
+    if (/^data:/i.test(trimmed)) {
+      if (!/^data:image\/(png|jpe?g|gif|webp|avif|bmp)(;|,)/i.test(trimmed)) {
+        return null;
+      }
+      return trimmed;
+    }
+    if (/^https?:\/\//i.test(trimmed) || /^app:\/\//i.test(trimmed)) {
       return trimmed;
     }
 

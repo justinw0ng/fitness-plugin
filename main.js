@@ -2467,11 +2467,57 @@ async function renderDashboard(el, data, activityTypes, year, language) {
   }
 }
 
+// src/util/book-shelf-layout.ts
+var DEFAULT_BOOK_WIDTH_PX = 80;
+var DEFAULT_BOOK_HEIGHT_PX = 124;
+var MIN_BOOK_WIDTH_PX = 56;
+var BOOK_GAP_PX = 6;
+var ROW_PADDING_PX = 20;
+var MIN_BOOKS_PER_ROW = 3;
+function bookHeightForWidth(width) {
+  if (!Number.isFinite(width) || width <= 0) return DEFAULT_BOOK_HEIGHT_PX;
+  return Math.round(width * DEFAULT_BOOK_HEIGHT_PX / DEFAULT_BOOK_WIDTH_PX);
+}
+function bookWidthForContainer(containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX, minWidth = MIN_BOOK_WIDTH_PX, maxWidth = DEFAULT_BOOK_WIDTH_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return maxWidth;
+  const available = Math.max(0, containerWidth - padding);
+  const widthForMinCount = (available - (MIN_BOOKS_PER_ROW - 1) * gap) / MIN_BOOKS_PER_ROW;
+  if (widthForMinCount >= maxWidth) return maxWidth;
+  if (widthForMinCount >= minWidth) return Math.floor(widthForMinCount);
+  return minWidth;
+}
+function booksPerRow(containerWidth, bookWidth = DEFAULT_BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
+    return MIN_BOOKS_PER_ROW;
+  }
+  const available = Math.max(0, containerWidth - padding);
+  const fitted = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(MIN_BOOKS_PER_ROW, fitted);
+}
+function chunkItems(items, size) {
+  const rowSize = Math.max(1, Math.floor(size));
+  if (!items.length) return [[]];
+  const rows = [];
+  for (let index = 0; index < items.length; index += rowSize) {
+    rows.push(items.slice(index, index + rowSize));
+  }
+  return rows;
+}
+function measureElementWidth(el, fallbackWidth = 0) {
+  let node = el;
+  while (node) {
+    const client = node.clientWidth;
+    if (Number.isFinite(client) && client > 0) return client;
+    const rectWidth = node.getBoundingClientRect?.().width;
+    if (Number.isFinite(rectWidth) && (rectWidth ?? 0) > 0) return rectWidth ?? 0;
+    node = node.parentElement;
+  }
+  return Number.isFinite(fallbackWidth) && fallbackWidth > 0 ? fallbackWidth : 0;
+}
+
 // src/views/book-shelf.ts
-var BOOK_WIDTH_PX = 108;
-var BOOK_GAP_PX = 8;
-var ROW_PADDING_PX = 24;
 var resizeObservers = /* @__PURE__ */ new WeakMap();
+var windowListeners = /* @__PURE__ */ new WeakMap();
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -2522,10 +2568,16 @@ function buildBookShelfItems(files, activityId = "reading", statusFilter = null)
     (a, b) => statusRank(a.status) - statusRank(b.status) || a.title.localeCompare(b.title) || a.path.localeCompare(b.path)
   );
 }
+var SAFE_REMOTE_COVER = /^(https?:\/\/|app:\/\/)/i;
+var SAFE_RASTER_DATA_COVER = /^data:image\/(png|jpe?g|gif|webp|avif|bmp)(;|,)/i;
 function parseCoverRef(raw) {
   const value = raw.trim();
   if (!value) return { kind: "none" };
-  if (/^https?:\/\//i.test(value) || /^app:\/\//i.test(value) || /^data:image\//i.test(value)) {
+  if (/^(javascript|vbscript|data):/i.test(value)) {
+    if (SAFE_RASTER_DATA_COVER.test(value)) return { kind: "url", src: value };
+    return { kind: "none" };
+  }
+  if (SAFE_REMOTE_COVER.test(value)) {
     return { kind: "url", src: value };
   }
   let path = value;
@@ -2540,21 +2592,6 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "none") return null;
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
-}
-function booksPerRow(containerWidth, bookWidth = BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
-  const available = Math.max(0, containerWidth - padding);
-  const per = Math.floor((available + gap) / (bookWidth + gap));
-  return Math.max(1, per);
-}
-function chunkItems(items, size) {
-  const rowSize = Math.max(1, Math.floor(size));
-  if (!items.length) return [[]];
-  const rows = [];
-  for (let index = 0; index < items.length; index += rowSize) {
-    rows.push(items.slice(index, index + rowSize));
-  }
-  return rows;
 }
 function titleLengthClass(title) {
   const length = title.trim().length;
@@ -2637,9 +2674,19 @@ function paintRows(frame, items, perRow, data, language, emptyText) {
     row.createDiv({ cls: "atomic-book-shelf-plank" });
   }
 }
+function applyBookSize(frame, bookWidth) {
+  const height = bookHeightForWidth(bookWidth);
+  frame.style.setProperty("--atomic-book-width", `${bookWidth}px`);
+  frame.style.setProperty("--atomic-book-height", `${height}px`);
+}
 function renderBookShelf(el, data, activityTypes, options, language) {
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
+  const previousWindowListener = windowListeners.get(el);
+  if (previousWindowListener) {
+    window.removeEventListener("resize", previousWindowListener);
+    windowListeners.delete(el);
+  }
   el.empty();
   el.style.overflow = "visible";
   const host = el.parentElement;
@@ -2674,21 +2721,37 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     statuses: statuses.join(", ")
   }) : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  let lastPerRow = -1;
+  let lastKey = "";
   const layout = () => {
-    const perRow = booksPerRow(
-      frame.clientWidth || frame.getBoundingClientRect().width
-    );
-    if (perRow === lastPerRow && frame.childElementCount > 0) return;
-    lastPerRow = perRow;
+    const fallback = typeof window !== "undefined" && Number.isFinite(window.innerWidth) ? window.innerWidth : DEFAULT_BOOK_WIDTH_PX * 3 + BOOK_GAP_PX * 2 + ROW_PADDING_PX;
+    const width = measureElementWidth(frame, fallback);
+    const bookWidth = bookWidthForContainer(width);
+    const perRow = booksPerRow(width, bookWidth);
+    const key = `${bookWidth}:${perRow}`;
+    if (key === lastKey && frame.childElementCount > 0) return;
+    lastKey = key;
+    applyBookSize(frame, bookWidth);
     paintRows(frame, items, perRow, data, language, emptyText);
   };
   layout();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(layout);
+  });
   if (typeof ResizeObserver !== "undefined") {
     const observer = new ResizeObserver(() => layout());
     observer.observe(frame);
     resizeObservers.set(el, observer);
   }
+  const onWindowResize = () => {
+    if (!el.isConnected) {
+      window.removeEventListener("resize", onWindowResize);
+      windowListeners.delete(el);
+      return;
+    }
+    layout();
+  };
+  window.addEventListener("resize", onWindowResize);
+  windowListeners.set(el, onWindowResize);
 }
 
 // src/util/heatmap-activities.ts
@@ -3424,6 +3487,25 @@ var VaultListCache = class {
   }
 };
 
+// src/util/hobby-item-scan.ts
+function hobbyItemFromFileCache(params) {
+  const { path, basename, activityId } = params;
+  const fm = params.frontmatter;
+  if (fm == null) {
+    return {
+      path,
+      basename,
+      frontmatter: {
+        type: "atomic-item",
+        activity: activityId,
+        title: basename
+      }
+    };
+  }
+  if (fm.type !== "atomic-item" || fm.activity !== activityId) return null;
+  return { path, basename, frontmatter: fm };
+}
+
 // src/data/vault-source.ts
 function asList(value) {
   if (value == null || value === "") return [];
@@ -3520,13 +3602,13 @@ var VaultDataSource = class {
       if (!file.path.startsWith(scanPrefix)) continue;
       if (!file.path.endsWith(".md")) continue;
       const cache = this.app.metadataCache.getFileCache(file);
-      const fm = cache?.frontmatter ?? {};
-      if (fm.type !== "atomic-item" || fm.activity !== activity.id) continue;
-      out.push({
+      const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
-        frontmatter: fm
+        frontmatter: cache == null ? null : cache.frontmatter ?? {},
+        activityId: activity.id
       });
+      if (item) out.push(item);
     }
     this.hobbyItemListCache.set(cacheKey, out);
     return out;
@@ -3595,7 +3677,14 @@ var VaultDataSource = class {
   resolveResourcePath(linkOrPath, sourcePath = "") {
     const trimmed = linkOrPath.trim();
     if (!trimmed) return null;
-    if (/^https?:\/\//i.test(trimmed) || /^app:\/\//i.test(trimmed) || /^data:image\//i.test(trimmed)) {
+    if (/^(javascript|vbscript):/i.test(trimmed)) return null;
+    if (/^data:/i.test(trimmed)) {
+      if (!/^data:image\/(png|jpe?g|gif|webp|avif|bmp)(;|,)/i.test(trimmed)) {
+        return null;
+      }
+      return trimmed;
+    }
+    if (/^https?:\/\//i.test(trimmed) || /^app:\/\//i.test(trimmed)) {
       return trimmed;
     }
     const fromLink = this.app.metadataCache.getFirstLinkpathDest(
@@ -4558,8 +4647,15 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
         if (!(file instanceof import_obsidian7.TFile)) return;
-        if (!this.isLiveBlockSourcePath(file.path)) return;
-        this.scheduleRefresh();
+        this.handleVaultPathChange(file.path);
+      })
+    );
+    this.registerEvent(
+      this.app.metadataCache.on("resolved", () => {
+        this.data.invalidateListCache();
+        if (this.liveBlocks.some((block) => block.el.isConnected)) {
+          this.scheduleRefresh();
+        }
       })
     );
   }
@@ -4601,9 +4697,6 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   }
   liveBlockSourcePaths() {
     return this.liveBlocks.map((block) => block.sourcePath);
-  }
-  isLiveBlockSourcePath(path) {
-    return this.liveBlockSourcePaths().includes(path);
   }
   pathAffectsRefresh(path) {
     return pathAffectsAtomicRefresh(
