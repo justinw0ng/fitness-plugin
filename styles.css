@@ -37,7 +37,6 @@
   margin-bottom: 0;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
 }
 
 .fitness-plugin .fitness-heatmap {
@@ -159,7 +158,13 @@
 .fitness-plugin .fitness-weeks {
   display: flex;
   gap: var(--atomic-heatmap-gap);
-  padding-right: 4px;
+  padding-right: 6px;
+}
+
+.fitness-plugin .fitness-weeks-end-pad {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 1px;
 }
 
 .fitness-plugin .fitness-week {

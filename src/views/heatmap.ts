@@ -281,6 +281,8 @@ async function renderOneHeatmap(
     }
   }
 
+  weeksEl.createDiv({ cls: "fitness-weeks-end-pad" });
+
   wireHeatmapScroll(scroll, registry);
 }
 

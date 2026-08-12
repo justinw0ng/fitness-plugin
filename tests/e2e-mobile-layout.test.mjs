@@ -195,6 +195,7 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
   );
   assert.match(styles, /\.theme-dark[^{]*\.fitness-cell\.is-today/);
   assert.match(styles, /\.fitness-cell\.is-today[^}]*#000/s);
+  assert.match(styles, /\.fitness-weeks-end-pad\s*\{/);
   assert.match(
     styles,
     /\.atomic-book-row-books\s*\{[^}]*overflow-x:\s*auto/s,

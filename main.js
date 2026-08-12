@@ -3045,6 +3045,7 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language, 
       }
     }
   }
+  weeksEl.createDiv({ cls: "fitness-weeks-end-pad" });
   wireHeatmapScroll(scroll, registry);
 }
 function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
