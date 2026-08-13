@@ -62,7 +62,7 @@ test("beginBlockRender increments and isStaleBlockRender detects superseded rend
   assert.equal(isStaleBlockRender(el, second), false);
 });
 
-test("enqueueBlockRender skips a stale in-flight render", async () => {
+test("enqueueBlockRender skips a stale queued render", async () => {
   const el = {};
   const order = [];
   const first = enqueueBlockRender(el, async (generation) => {
