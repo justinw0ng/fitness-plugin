@@ -3,10 +3,9 @@
  * Keeps pure modules importable under Node's test runner.
  */
 export function showNotice(message: string): void {
-  // Obsidian plugins load as CJS; `obsidian` is provided by the app loader.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Notice } = require("obsidian") as {
-    Notice: new (message: string) => { };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-call -- CJS require: the app loader provides `obsidian`; a static import would load it in Node tests.
+  const obsidian = require("obsidian") as {
+    Notice: new (message: string) => object;
   };
-  new Notice(message);
+  new obsidian.Notice(message);
 }

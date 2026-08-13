@@ -33,5 +33,5 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-color-swatch/);
 
   const properties = src("src/properties/property-select.ts");
-  assert.match(properties, /data-testid", "atomic-property-select"/);
+  assert.match(properties, /"data-testid": "atomic-property-select"/);
 });

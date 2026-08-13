@@ -14,6 +14,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function callPluginIdLookup(method: unknown, self: object, id: string): unknown {
+  if (typeof method !== "function") return undefined;
+  return (method as (this: object, pluginId: string) => unknown).call(self, id);
+}
+
 export function readingBookshelfBaseYaml(
   itemsFolder = READING_ITEMS_FOLDER,
   language: Language = "en",
@@ -83,15 +88,12 @@ export function isBasesCorePluginEnabled(app: App): boolean {
   const internalPlugins = appRecord.internalPlugins;
   if (!isRecord(internalPlugins)) return false;
 
-  const getEnabledPluginById = internalPlugins.getEnabledPluginById;
-  if (typeof getEnabledPluginById === "function") {
-    try {
-      if (getEnabledPluginById.call(internalPlugins, "bases") != null) {
-        return true;
-      }
-    } catch {
-      // Fall through to other probes.
+  try {
+    if (callPluginIdLookup(internalPlugins.getEnabledPluginById, internalPlugins, "bases") != null) {
+      return true;
     }
+  } catch {
+    // Fall through to other probes.
   }
 
   const plugins = internalPlugins.plugins;
@@ -103,14 +105,15 @@ export function isBasesCorePluginEnabled(app: App): boolean {
   const config = internalPlugins.config;
   if (isRecord(config) && config.bases === true) return true;
 
-  const getPluginById = internalPlugins.getPluginById;
-  if (typeof getPluginById === "function") {
-    try {
-      const plugin = getPluginById.call(internalPlugins, "bases");
-      if (isRecord(plugin) && plugin.enabled === true) return true;
-    } catch {
-      return false;
-    }
+  try {
+    const plugin = callPluginIdLookup(
+      internalPlugins.getPluginById,
+      internalPlugins,
+      "bases",
+    );
+    if (isRecord(plugin) && plugin.enabled === true) return true;
+  } catch {
+    return false;
   }
 
   return false;

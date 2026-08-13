@@ -83,3 +83,11 @@ test("codeql.yml pull requests stay unfiltered", () => {
   );
   assert.doesNotMatch(yamlKeyBlock(codeql, "  ", "pull_request"), /paths:/);
 });
+
+test("manifest authorUrl points at the GitHub profile, not the plugin repo", () => {
+  const manifest = JSON.parse(
+    readFileSync(join(root, "manifest.json"), "utf8"),
+  );
+  assert.equal(manifest.authorUrl, "https://github.com/justinw0ng");
+  assert.equal(String(manifest.authorUrl).includes("obsidian-atomic"), false);
+});
