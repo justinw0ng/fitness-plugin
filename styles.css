@@ -222,7 +222,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 14px;
   /* Room above books for the hover title bubble (wraps; can be multi-line). */
-  padding: 48px 6px 8px;
+  padding: 64px 6px 8px;
   overflow: visible;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
@@ -245,8 +245,15 @@
   gap: 8px;
   min-height: 168px;
   padding: 0 4px;
-  perspective: 1400px;
   overflow: visible;
+}
+
+/* Live Preview / Reading view codeblocks clip abspos hover bubbles otherwise. */
+.cm-preview-code-block:has(.atomic-book-shelf),
+.cm-embed-block:has(.atomic-book-shelf),
+.markdown-rendered-code-block:has(.atomic-book-shelf),
+.internal-embed:has(.atomic-book-shelf) {
+  overflow: visible !important;
 }
 
 .fitness-plugin .atomic-book-shelf-plank {
@@ -276,23 +283,30 @@
   transform: translateY(0);
   transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
   z-index: 1;
-  overflow: visible;
+  overflow: visible !important;
   white-space: normal;
+}
+
+/* Cover art / 3D faces must not steal hover from the button (aria-label tooltip). */
+.fitness-plugin .atomic-book * {
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book:hover,
 .fitness-plugin .atomic-book:focus-visible {
   transform: translateY(-8px);
   outline: none;
-  z-index: 3;
+  z-index: 6;
 }
 
 .fitness-plugin .atomic-book-volume {
   position: absolute;
   inset: 0;
+  perspective: 1400px;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
   transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book:hover .atomic-book-volume,
@@ -452,6 +466,7 @@
   object-position: center;
   border-radius: 3px 4px 4px 3px;
   display: block;
+  pointer-events: none !important;
 }
 
 .fitness-plugin .atomic-book-cover-title {
@@ -526,18 +541,19 @@
 .fitness-plugin .atomic-book-detail {
   position: absolute;
   left: 50%;
-  bottom: 152px;
-  width: min(200px, 72vw);
-  max-width: 240px;
+  bottom: calc(100% + 10px);
+  width: max-content;
+  max-width: min(220px, 72vw);
   box-sizing: border-box;
   transform: translateX(-50%) translateY(8px);
   opacity: 0;
   pointer-events: none;
-  border: 1px solid var(--background-modifier-border);
+  border: 0;
   border-radius: 8px;
   padding: 8px 10px;
-  background: var(--background-primary);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  background: var(--background-modifier-message, #1e1e1e);
+  color: var(--text-on-accent, #fff);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -547,7 +563,17 @@
   transition:
     opacity 200ms ease,
     transform 200ms ease;
-  z-index: 5;
+  z-index: 20;
+}
+
+.fitness-plugin .atomic-book-detail::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: var(--background-modifier-message, #1e1e1e);
 }
 
 .fitness-plugin .atomic-book:hover .atomic-book-detail,
@@ -568,7 +594,8 @@
 
 .fitness-plugin .atomic-book-detail-author,
 .fitness-plugin .atomic-book-detail-description {
-  color: var(--text-muted);
+  color: inherit;
+  opacity: 0.8;
   font-size: 11px;
   margin-top: 3px;
   line-height: 1.3;

@@ -1,14 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
+  isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
   shelfColorFor,
+  shouldUnclipBookShelfAncestor,
   titleLengthClass,
+  unclipBookShelfAncestors,
 } from "../src/views/book-shelf.ts";
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const stylesCss = readFileSync(join(repoRoot, "styles.css"), "utf8");
 
 test("shelfColorFor uses valid spine_color and hashes missing colors", () => {
   assert.equal(
@@ -218,5 +227,67 @@ test("booksPerRow and chunkItems wrap to multiple shelf rows by width", () => {
   assert.deepEqual(
     chunkItems(["a", "b", "c", "d", "e"], 2),
     [["a", "b"], ["c", "d"], ["e"]],
+  );
+});
+
+test("shouldUnclipBookShelfAncestor targets codeblock wrappers only", () => {
+  assert.equal(shouldUnclipBookShelfAncestor("cm-preview-code-block"), true);
+  assert.equal(shouldUnclipBookShelfAncestor("markdown-rendered-code-block"), true);
+  assert.equal(shouldUnclipBookShelfAncestor("cm-embed-block"), true);
+  assert.equal(shouldUnclipBookShelfAncestor("internal-embed markdown-embed"), true);
+  assert.equal(shouldUnclipBookShelfAncestor("markdown-preview-sizer"), false);
+  assert.equal(shouldUnclipBookShelfAncestor(""), false);
+});
+
+test("isBookShelfUnclipStop keeps note scroll containers intact", () => {
+  assert.equal(isBookShelfUnclipStop("markdown-preview-view"), true);
+  assert.equal(isBookShelfUnclipStop("markdown-source-view mod-cm6"), true);
+  assert.equal(isBookShelfUnclipStop("cm-scroller"), true);
+  assert.equal(isBookShelfUnclipStop("workspace-leaf-content"), true);
+  assert.equal(isBookShelfUnclipStop("cm-preview-code-block"), false);
+});
+
+test("unclipBookShelfAncestors opens codeblock overflow and stops at the note scroller", () => {
+  const scroller = { className: "cm-scroller", style: { overflow: "auto" }, parentElement: null };
+  const preview = {
+    className: "cm-preview-code-block markdown-rendered-code-block",
+    style: { overflow: "hidden" },
+    parentElement: scroller,
+  };
+  const host = {
+    className: "",
+    style: { overflow: "hidden" },
+    parentElement: preview,
+  };
+  const el = { className: "", style: { overflow: "hidden" }, parentElement: host };
+
+  unclipBookShelfAncestors(el);
+
+  assert.equal(el.style.overflow, "visible");
+  assert.equal(host.style.overflow, "visible");
+  assert.equal(preview.style.overflow, "visible");
+  assert.equal(scroller.style.overflow, "auto");
+});
+
+test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {
+  assert.match(
+    stylesCss,
+    /\.fitness-plugin\s+\.atomic-book\s+\*\s*\{[^}]*pointer-events:\s*none/s,
+  );
+  assert.match(
+    stylesCss,
+    /\.atomic-book-cover-image[^{]*\{[^}]*pointer-events:\s*none\s*!important/s,
+  );
+  assert.match(
+    stylesCss,
+    /:has\(\.atomic-book-shelf\)[^}]*overflow:\s*visible\s*!important/s,
+  );
+  assert.match(
+    stylesCss,
+    /\.atomic-book-detail[^{]*\{[^}]*background:[^;]*--background-modifier-message/s,
+  );
+  assert.match(
+    stylesCss,
+    /\.atomic-book-detail::after[^{]*\{[^}]*border-top-color/s,
   );
 });
