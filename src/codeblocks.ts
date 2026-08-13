@@ -1,6 +1,12 @@
-import type { MarkdownPostProcessorContext } from "obsidian";
+import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian";
 import type FitnessPlugin from "./main";
 import { parseBlockOptions } from "./util/parse-block";
+import {
+  beginBlockRender,
+  enqueueBlockRender,
+  isStaleBlockRender,
+  mountAtomicBlockShell,
+} from "./util/block-render";
 import { renderActions } from "./views/actions";
 import { renderCues, resolveCuesYear } from "./views/cues";
 import {
@@ -33,13 +39,47 @@ function frontmatterYear(
   return cache?.frontmatter?.year;
 }
 
+class AtomicBlockChild extends MarkdownRenderChild {
+  constructor(
+    containerEl: HTMLElement,
+    private readonly startRender: () => void,
+  ) {
+    super(containerEl);
+  }
+
+  onload(): void {
+    this.startRender();
+  }
+
+  onunload(): void {
+    if (!this.containerEl.isConnected) {
+      beginBlockRender(this.containerEl);
+    }
+  }
+}
+
+export function renderTrackedBlock(
+  plugin: FitnessPlugin,
+  block: LiveBlock,
+): Promise<void> {
+  return enqueueBlockRender(block.el, async (generation) => {
+    if (isStaleBlockRender(block.el, generation) || !block.el.isConnected) {
+      return;
+    }
+    await renderBlock(plugin, block.kind, block.source, block.el, {
+      sourcePath: block.sourcePath,
+    });
+  });
+}
+
 export async function renderBlock(
   plugin: FitnessPlugin,
   kind: string,
   source: string,
   el: HTMLElement,
-  ctx: MarkdownPostProcessorContext,
+  ctx: Pick<MarkdownPostProcessorContext, "sourcePath">,
 ): Promise<void> {
+  if (!el.isConnected) return;
   const opts = parseBlockOptions(source);
   const sourcePath = ctx.sourcePath || "";
   const data = plugin.data;
@@ -126,6 +166,7 @@ export async function renderBlock(
         break;
       }
       default:
+        el.empty();
         el.createEl("p", {
           text: t("view.unknownAtomicBlock", language, { kind }),
         });
@@ -146,12 +187,15 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
   const kinds = codeblockLanguages();
 
   for (const kind of kinds) {
-    plugin.registerMarkdownCodeBlockProcessor(
-      kind,
-      async (source, el, ctx) => {
-        plugin.trackLiveBlock({ kind, el, source, sourcePath: ctx.sourcePath });
-        await renderBlock(plugin, kind, source, el, ctx);
-      },
-    );
+    plugin.registerMarkdownCodeBlockProcessor(kind, (source, el, ctx) => {
+      const block = { kind, el, source, sourcePath: ctx.sourcePath };
+      plugin.trackLiveBlock(block);
+      mountAtomicBlockShell(el);
+      ctx.addChild(
+        new AtomicBlockChild(el, () => {
+          void renderTrackedBlock(plugin, block);
+        }),
+      );
+    });
   }
 }

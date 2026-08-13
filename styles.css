@@ -10,6 +10,36 @@
   min-width: 0;
 }
 
+.fitness-plugin.atomic-block-pending {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.atomic-block-pending-bar {
+  height: 8px;
+  width: 40%;
+  max-width: 12rem;
+  border-radius: 4px;
+  background: var(--background-modifier-border);
+  animation: atomic-block-pending-pulse 1s ease-in-out infinite;
+}
+
+@keyframes atomic-block-pending-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.markdown-preview-view pre:has(> code[class*="language-atomic-"]),
+.cm-preview-code-block:has(> pre > code[class*="language-atomic-"]):not(:has(.fitness-plugin)) {
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .fitness-plugin,
 .fitness-plugin * {
   scrollbar-width: none;
