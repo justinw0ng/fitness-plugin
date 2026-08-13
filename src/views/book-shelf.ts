@@ -81,6 +81,90 @@ export function unclipBookShelfAncestors(
   }
 }
 
+/** Viewport coords for a title bubble centered above a book. */
+export function bookDetailFixedPosition(args: {
+  bookTop: number;
+  bookLeft: number;
+  bookWidth: number;
+  gap?: number;
+}): { left: number; top: number } {
+  const gap = args.gap ?? 8;
+  return {
+    left: args.bookLeft + args.bookWidth / 2,
+    top: args.bookTop - gap,
+  };
+}
+
+const activeDetailHides = new Set<() => void>();
+
+function hideAllPortedDetails(): void {
+  for (const hide of [...activeDetailHides]) hide();
+}
+
+function bindBookDetailPortal(
+  button: HTMLElement,
+  detail: HTMLElement,
+): { show: () => void; hide: () => void } {
+  const doc = button.ownerDocument;
+  let ported = false;
+
+  const place = (): void => {
+    if (!ported) return;
+    if (!button.isConnected) {
+      hide();
+      return;
+    }
+    const rect = button.getBoundingClientRect();
+    const pos = bookDetailFixedPosition({
+      bookTop: rect.top,
+      bookLeft: rect.left,
+      bookWidth: rect.width,
+    });
+    detail.style.left = `${pos.left}px`;
+    detail.style.top = `${pos.top}px`;
+  };
+
+  const hide = (): void => {
+    if (!ported) return;
+    ported = false;
+    activeDetailHides.delete(hide);
+    doc.removeEventListener("scroll", place, true);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", place);
+    }
+    detail.classList.remove("is-ported");
+    detail.style.left = "";
+    detail.style.top = "";
+    if (button.isConnected) button.appendChild(detail);
+    else detail.remove();
+  };
+
+  const show = (): void => {
+    const body = doc.body;
+    if (!body) return;
+    if (ported) {
+      place();
+      return;
+    }
+    hideAllPortedDetails();
+    ported = true;
+    activeDetailHides.add(hide);
+    detail.classList.add("is-ported");
+    body.appendChild(detail);
+    place();
+    doc.addEventListener("scroll", place, true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", place);
+    }
+  };
+
+  button.addEventListener("pointerenter", show);
+  button.addEventListener("pointerleave", hide);
+  button.addEventListener("focus", show);
+  button.addEventListener("blur", hide);
+  return { show, hide };
+}
+
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -273,18 +357,6 @@ function createBook(
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
-    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
-      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
-      return;
-    }
-    void data.openPath(item.path);
-  });
 
   const titleClass = titleLengthClass(item.title);
   const volume = button.createDiv({ cls: "atomic-book-volume" });
@@ -334,6 +406,22 @@ function createBook(
       text: item.description,
     });
   }
+
+  const portal = bindBookDetailPortal(button, detail);
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      portal.show();
+      return;
+    }
+    portal.hide();
+    void data.openPath(item.path);
+  });
 }
 
 function paintRows(
@@ -344,6 +432,7 @@ function paintRows(
   language: Language,
   emptyText: string,
 ): void {
+  hideAllPortedDetails();
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
@@ -381,6 +470,7 @@ export function renderBookShelf(
     window.removeEventListener("resize", previousWindowListener);
     windowListeners.delete(el);
   }
+  hideAllPortedDetails();
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
