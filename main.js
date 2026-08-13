@@ -2562,6 +2562,10 @@ function bindBookDetailPortal(button, detail) {
   let ported = false;
   const place = () => {
     if (!ported) return;
+    if (!button.isConnected) {
+      hide();
+      return;
+    }
     const rect = button.getBoundingClientRect();
     const pos = bookDetailFixedPosition({
       bookTop: rect.top,
@@ -2789,6 +2793,7 @@ function createBook(parent, item, data, language) {
       portal.show();
       return;
     }
+    portal.hide();
     void data.openPath(item.path);
   });
 }

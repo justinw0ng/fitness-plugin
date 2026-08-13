@@ -323,6 +323,11 @@ test("book shelf ports hover details to document.body", () => {
   assert.match(source, /appendChild\(detail\)/);
   assert.match(source, /bookDetailFixedPosition/);
   assert.match(source, /is-ported/);
+  assert.match(
+    source,
+    /if\s*\(\s*!button\.isConnected\s*\)\s*\{[^}]*hide\(\)/s,
+  );
+  assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
 });
 
 test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {

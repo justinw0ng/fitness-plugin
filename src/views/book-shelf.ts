@@ -110,6 +110,10 @@ function bindBookDetailPortal(
 
   const place = (): void => {
     if (!ported) return;
+    if (!button.isConnected) {
+      hide();
+      return;
+    }
     const rect = button.getBoundingClientRect();
     const pos = bookDetailFixedPosition({
       bookTop: rect.top,
@@ -415,6 +419,7 @@ function createBook(
       portal.show();
       return;
     }
+    portal.hide();
     void data.openPath(item.path);
   });
 }
