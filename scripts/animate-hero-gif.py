@@ -203,8 +203,14 @@ def page_face(size: tuple[int, int], title: str, subtitle: str) -> Image.Image:
     image = Image.new("RGB", size, PAGES)
     draw = ImageDraw.Draw(image)
     width, height = size
-    title_font = ImageFont.truetype(str(DEJAVU), max(7, min(11, width // 6)))
-    sub_font = ImageFont.truetype(str(DEJAVU_REG), max(6, min(9, width // 8)))
+    try:
+        title_font = ImageFont.truetype(str(DEJAVU), max(7, min(11, width // 6)))
+    except OSError:
+        title_font = ImageFont.load_default()
+    try:
+        sub_font = ImageFont.truetype(str(DEJAVU_REG), max(6, min(9, width // 8)))
+    except OSError:
+        sub_font = ImageFont.load_default()
     x = max(4, width // 10)
     y = max(6, height // 10)
     max_width = width - x - 3
