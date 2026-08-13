@@ -35,7 +35,7 @@ jobs:
           mapfile -t SOURCE_PATHSPECS < <(
             grep -vE '^[[:space:]]*(#|$)' .github/plugin-source-paths.txt | sed 's|/\*\*$||'
           )
-          SOURCE_CHANGED="$(git diff --name-only "${BASE}...HEAD" -- "${SOURCE_PATHSPECS[@]}" || true)"
+          SOURCE_CHANGED="$(git diff --name-only "${BASE}...HEAD" -- "${SOURCE_PATHSPECS[@]}")"
           CI_CHANGED="$(git diff --name-only "${BASE}...HEAD" -- \
             "${SOURCE_PATHSPECS[@]}" \
             tests \
@@ -45,7 +45,8 @@ jobs:
             scripts/semver.mjs \
             .github/plugin-source-paths.txt \
             .github/workflows/ci.yml \
-            || true)"
+            .github/workflows/release.yml \
+            .github/workflows/codeql.yml)"
 
           echo "Changed plugin source files:"
           if [ -z "${SOURCE_CHANGED}" ]; then
@@ -167,15 +168,20 @@ jobs:
 
   # Branch ruleset requires this exact check name on every PR.
   # Native on.paths would skip the workflow for docs-only PRs and block merge.
+  # if: always() so a cancelled run still reports failure instead of a skipped required check.
   report:
     name: Test and build
     needs: [changes, build]
-    if: always() && !cancelled()
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Report CI status
         run: |
           set -euo pipefail
+          if [ "${{ needs.changes.result }}" = "cancelled" ] || [ "${{ needs.build.result }}" = "cancelled" ]; then
+            echo "CI was cancelled."
+            exit 1
+          fi
           if [ "${{ needs.changes.result }}" != "success" ]; then
             echo "Change detection failed (${{ needs.changes.result }})."
             exit 1
@@ -188,4 +194,4 @@ jobs:
             echo "Plugin test and build succeeded."
             exit 0
           fi
-          echo "No plugin source changes; skipped test, build, and version bump."
+          echo "No plugin source or test changes; skipped test, build, and version bump."
