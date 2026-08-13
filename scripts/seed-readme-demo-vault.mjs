@@ -3,7 +3,10 @@
  * Run: node scripts/seed-readme-demo-vault.mjs
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const VAULT = "/workspace/obsidian-demo";
 const TODAY = "2026-08-11";
@@ -241,26 +244,7 @@ function seedHobbyTimeLogs() {
 function seedDailyNote() {
   write(
     join(VAULT, `Daily notes/${TODAY}.md`),
-    `# Tuesday, August 11, 2026
-
-\`\`\`atomic-bookshelf
-\`\`\`
-
-## Track your activities today!
-
-\`\`\`atomic-actions
-\`\`\`
-
-\`\`\`atomic-heatmap
-activity: gym, golf, guitar, reading
-columns: 2
-rows: 2
-year: ${YEAR}
-\`\`\`
-
-\`\`\`atomic-today
-\`\`\`
-`,
+    readFileSync(join(ROOT, "examples/daily-notes/2026-08-11.md"), "utf8"),
   );
 }
 
@@ -476,7 +460,7 @@ seedDailyNote();
 
 write(
   join(VAULT, "atomics/Dashboard.md"),
-  `# Dashboard\n\n\`\`\`atomic-dashboard\nyear: ${YEAR}\n\`\`\`\n`,
+  readFileSync(join(ROOT, "examples/dashboard/Dashboard.md"), "utf8"),
 );
 
 console.log(`Seeded demo vault at ${VAULT}`);

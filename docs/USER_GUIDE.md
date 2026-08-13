@@ -192,7 +192,7 @@ Vault/
 
 ### Dashboard note example
 
-`atomics/Dashboard.md`:
+Same note as [`examples/dashboard/Dashboard.md`](../examples/dashboard/Dashboard.md). Copy it to `atomics/Dashboard.md`:
 
 ````markdown
 ---
@@ -205,6 +205,8 @@ year: 2026
 year: 2026
 ```
 ````
+
+A daily-note composition (book shelf, actions, 2×2 heatmaps, today) is in [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md).
 
 ### Heatmap note example
 

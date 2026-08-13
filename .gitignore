@@ -5,3 +5,5 @@ node_modules/
 .vscode/
 *.tsbuildinfo
 obsidian-demo/
+__pycache__/
+*.pyc
