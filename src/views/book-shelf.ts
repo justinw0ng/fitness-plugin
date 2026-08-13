@@ -31,6 +31,56 @@ export type CoverRef =
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const windowListeners = new WeakMap<HTMLElement, () => void>();
 
+type OverflowElement = {
+  className?: string;
+  style: { overflow: string };
+  parentElement: OverflowElement | null;
+};
+
+/** Codeblock wrappers that clip the hover title bubble if overflow stays hidden. */
+export function shouldUnclipBookShelfAncestor(className: string): boolean {
+  return className.split(/\s+/).some((token) => {
+    const t = token.toLowerCase();
+    return (
+      t.includes("code-block") ||
+      t.includes("codeblock") ||
+      t === "cm-embed-block" ||
+      t.includes("internal-embed")
+    );
+  });
+}
+
+/** Note scrollers must keep overflow so the pane still scrolls. */
+export function isBookShelfUnclipStop(className: string): boolean {
+  const t = className.toLowerCase();
+  return (
+    t.includes("markdown-preview-view") ||
+    t.includes("markdown-source-view") ||
+    t.includes("cm-scroller") ||
+    t.includes("workspace-leaf")
+  );
+}
+
+export function unclipBookShelfAncestors(
+  el: OverflowElement | HTMLElement,
+  maxDepth = 8,
+): void {
+  let current: OverflowElement | HTMLElement | null = el;
+  let depth = 0;
+  let reachedKnownWrapper = false;
+  while (current && depth < maxDepth) {
+    const className = current.className ?? "";
+    if (isBookShelfUnclipStop(className)) break;
+    const knownWrapper = shouldUnclipBookShelfAncestor(className);
+    if (depth === 0 || !reachedKnownWrapper || knownWrapper) {
+      current.style.overflow = "visible";
+    }
+    if (knownWrapper) reachedKnownWrapper = true;
+    current = current.parentElement;
+    depth += 1;
+  }
+}
+
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -298,9 +348,7 @@ export function renderBookShelf(
   }
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
-  el.style.overflow = "visible";
-  const host = el.parentElement;
-  if (host instanceof HTMLElement) host.style.overflow = "visible";
+  unclipBookShelfAncestors(el);
 
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
   const activityId = options.activity?.trim() || "reading";
