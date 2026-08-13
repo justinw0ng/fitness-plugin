@@ -18,7 +18,8 @@ import {
   launchObsidian,
   openAtomicSettings,
   openVaultFile,
-  runCommand,
+  queryBooks,
+  runCommandViaPalette,
   saveScreenshot,
   stopSession,
   switchToObsidianWindow,
@@ -51,15 +52,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
   let vaultPath;
   let today;
 
-  before(async () => {
-    const seeded = seedE2eVault();
-    vaultPath = seeded.vault;
-    today = seeded.today;
-    await launchObsidian(vaultPath, E2E_FILES.heatmapAll);
-    driver = await attachSelenium();
-    await switchToObsidianWindow(driver);
-    await waitForPlugin(driver);
-  });
+  before(
+    async () => {
+      const seeded = seedE2eVault();
+      vaultPath = seeded.vault;
+      today = seeded.today;
+      const launched = await launchObsidian(vaultPath, E2E_FILES.heatmapAll);
+      driver = await attachSelenium(undefined, launched.version);
+      await switchToObsidianWindow(driver);
+      await waitForPlugin(driver);
+    },
+    { timeout: 120000 },
+  );
 
   after(async () => {
     await stopSession({ driver });
@@ -154,27 +158,32 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
   it("filters the book shelf by reading status", async () => {
     await check(driver, "bookshelf-status", async () => {
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
-      await waitCss(driver, '[data-testid="atomic-book"][data-title="Currently Reading"]');
-      await waitCss(driver, '[data-testid="atomic-book"][data-title="Finished Book"]');
-      const all = await driver.findElements(By.css('[data-testid="atomic-book"]'));
+      await waitCss(driver, '[data-testid="atomic-bookshelf"]');
+      await driver.wait(async () => (await queryBooks(driver)).length === 2, 8000);
+      const all = await queryBooks(driver);
       assert.equal(all.length, 2);
+      assert.ok(all.some((book) => book.title === "Currently Reading"));
+      assert.ok(all.some((book) => book.title === "Finished Book"));
 
       await openVaultFile(driver, E2E_FILES.bookshelfReading);
-      await waitCss(driver, '[data-testid="atomic-book"][data-status="reading"]');
-      const filtered = await driver.findElements(By.css('[data-testid="atomic-book"]'));
+      await waitCss(driver, '[data-testid="atomic-bookshelf"]');
+      await driver.wait(async () => (await queryBooks(driver)).length === 1, 8000);
+      const filtered = await queryBooks(driver);
       assert.equal(filtered.length, 1);
-      assert.equal(await filtered[0].getAttribute("data-title"), "Currently Reading");
+      assert.equal(filtered[0].title, "Currently Reading");
+      assert.equal(filtered[0].status, "reading");
     });
   });
 
   it("creates a reading item and start/stops its timer", async () => {
     await check(driver, "reading-timer", async () => {
-      const ran = await runCommand(driver, "atomic-tracker:new-reading-item");
-      assert.equal(ran, true);
+      await runCommandViaPalette(driver, "New reading item");
       await fillPrompt(driver, "E2E Timer Book");
       await waitCss(driver, '[data-testid="atomic-timer-start"]');
 
-      await driver.findElement(By.css('[data-testid="atomic-timer-start"]')).click();
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-timer-start"]').click()`,
+      );
       await waitCss(driver, '[data-testid="atomic-timer-stop"]');
 
       await driver.executeAsyncScript(`
@@ -186,23 +195,29 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         }).then(() => done(true), (err) => done(String(err)));
       `);
       await waitCss(driver, '[data-testid="atomic-timer-stop"]');
-      await driver.findElement(By.css('[data-testid="atomic-timer-stop"]')).click();
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-timer-stop"]').click()`,
+      );
       await fillPrompt(driver, "selenium session");
       await waitForNotice(driver, "Logged");
 
       await openVaultFile(driver, E2E_FILES.heatmapReading);
-      const todayCell = await waitCss(
-        driver,
-        '[data-testid="atomic-heatmap"][data-activity="reading"] [data-testid="atomic-heatmap-today"]',
-      );
-      const minutes = Number(await todayCell.getAttribute("data-minutes"));
-      assert.ok(minutes >= 25, `expected reading minutes >= 25, got ${minutes}`);
+      await driver.wait(async () => {
+        const minutes = await driver.executeScript(`
+          const cell = document.querySelector(
+            '[data-testid="atomic-heatmap"][data-activity="reading"] [data-testid="atomic-heatmap-today"]',
+          );
+          return cell ? Number(cell.getAttribute("data-minutes")) : -1;
+        `);
+        return minutes >= 25;
+      }, 8000);
     });
   });
 
   it("shows settings color picker, swatches, add, enable/disable, and delete", async () => {
     await check(driver, "settings", async () => {
-      await openAtomicSettings(driver);
+      try {
+        await openAtomicSettings(driver);
 
       for (const id of ["gym", "golf", "reading"]) {
         const row = await waitCss(
@@ -254,10 +269,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         driver,
         '[data-testid="atomic-setting-activity"][data-activity-id="chess"]',
       );
-      const deleteBtn = await chessRow.findElement(By.css("button.mod-warning"));
+      const deleteBtn = await chessRow.findElement(
+        By.xpath('.//button[contains(normalize-space(.), "Delete")]'),
+      );
       await deleteBtn.click();
       const confirm = await waitCss(driver, '[data-testid="atomic-confirm-delete-modal"]');
-      await confirm.findElement(By.css("button.mod-warning")).click();
+      await confirm.findElement(
+        By.xpath('.//button[contains(normalize-space(.), "Delete")]'),
+      ).click();
 
       await driver.wait(async () => {
         const leftover = await driver.findElements(
@@ -265,15 +284,19 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         );
         return leftover.length === 0;
       }, 8000);
-
-      await closeSettings(driver);
+      } finally {
+        try {
+          await closeSettings(driver);
+        } catch {
+          // keep going so later tests can recover
+        }
+      }
     });
   });
 
   it("opens reading Bases and shows a Notice when Reading is disabled", async () => {
     await check(driver, "reading-bases", async () => {
-      const opened = await runCommand(driver, "atomic-tracker:open-reading-bookshelf");
-      assert.equal(opened, true);
+      await runCommandViaPalette(driver, "Open reading Bases");
       await driver.wait(async () => {
         const path = await driver.executeScript(
           `return app.workspace.getActiveFile()?.path || ""`,
@@ -289,7 +312,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await readingRow.findElement(By.css(".checkbox-container")).click();
       await closeSettings(driver);
 
-      await runCommand(driver, "atomic-tracker:open-reading-bookshelf");
+      await runCommandViaPalette(driver, "Open reading Bases");
       await waitForNotice(driver, "No Reading hobby configured");
 
       await openAtomicSettings(driver);
@@ -307,7 +330,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           app.internalPlugins.plugins.bases.enabled = false;
         }
       `);
-      await runCommand(driver, "atomic-tracker:open-reading-bookshelf");
+      await runCommandViaPalette(driver, "Open reading Bases");
       await waitForNotice(driver, "Enable the Bases core plugin");
     });
   });
