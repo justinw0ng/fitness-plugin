@@ -1,7 +1,7 @@
 {
   "id": "atomic-tracker",
   "name": "Atomic Tracker",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "minAppVersion": "1.5.0",
   "description": "Track exercise and hobbies with heatmaps, cues, timers, and a daily dashboard.",
   "author": "Justin Wong",
