@@ -1,15 +1,15 @@
 /**
- * Seed /workspace/obsidian-demo for README hero screenshot (Task 7).
- * Run: node scripts/seed-readme-demo-vault.mjs
+ * Seed a demo vault for README hero and user-guide screenshots.
+ * Run: node scripts/seed-readme-demo-vault.mjs [--vault PATH] [--book-limit N]
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseHeroBookLimit } from "./hero-capture-options.mjs";
+import { parseHeroBookLimit, parseSeedVault } from "./hero-capture-options.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const VAULT = "/workspace/obsidian-demo";
+const { vault: VAULT, rest: seedArgv } = parseSeedVault(process.argv.slice(2));
 const TODAY = "2026-08-11";
 const YEAR = "2026";
 
@@ -28,7 +28,7 @@ const BOOKS = [
   { title: "A Smaller Ambition", slug: "a-smaller-ambition" },
 ];
 
-const bookLimit = parseHeroBookLimit(process.argv.slice(2), BOOKS.length);
+const bookLimit = parseHeroBookLimit(seedArgv, BOOKS.length);
 const heroBooks = BOOKS.slice(0, bookLimit);
 
 const GREEN = ["#9be9a8", "#40c463", "#30a14e", "#216e39"];

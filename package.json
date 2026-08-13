@@ -1,6 +1,6 @@
 {
   "name": "obsidian-atomic",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -11,7 +11,7 @@
     "dev": "node esbuild.config.mjs",
     "test": "node --experimental-strip-types --test tests/*.mjs",
     "test:e2e": "npm run build && node --test --test-timeout=180000 e2e/*.test.mjs",
-    "docs:hero-gif": "python3 scripts/animate-hero-gif.py",
+    "docs:user-guide-screenshots": "node scripts/capture-user-guide-screenshots.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
