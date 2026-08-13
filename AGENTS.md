@@ -24,3 +24,4 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic Tracker 
   1. Disable **Readable line length** (Settings → Editor)
   2. Use **fullscreen** Obsidian
   3. Use **Light** mode
+  4. README hero GIF: `scripts/capture-readme-hero.sh` (or `npm run docs:hero-gif` from the composed still). The animation opens the rightmost shelf book.

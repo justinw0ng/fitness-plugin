@@ -11,6 +11,7 @@
     "dev": "node esbuild.config.mjs",
     "test": "node --experimental-strip-types --test tests/*.mjs",
     "test:e2e": "npm run build && node --test --test-timeout=180000 e2e/*.test.mjs",
+    "docs:hero-gif": "python3 scripts/animate-hero-gif.py",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
