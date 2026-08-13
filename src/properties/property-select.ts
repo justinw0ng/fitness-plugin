@@ -32,7 +32,7 @@ function insertOption(
   value: string,
   label: string,
 ): HTMLOptionElement {
-  const optionEl = createEl("option", { text: label, value });
+  const optionEl = selectEl.createEl("option", { text: label, value });
   selectEl.insertBefore(optionEl, before);
   return optionEl;
 }

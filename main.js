@@ -3917,7 +3917,7 @@ function appendOption(selectEl, value, label, selected = false) {
   return optionEl;
 }
 function insertOption(selectEl, before, value, label) {
-  const optionEl = createEl("option", { text: label, value });
+  const optionEl = selectEl.createEl("option", { text: label, value });
   selectEl.insertBefore(optionEl, before);
   return optionEl;
 }
