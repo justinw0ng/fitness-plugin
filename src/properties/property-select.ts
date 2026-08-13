@@ -69,6 +69,8 @@ function createPropertySelect(
   const language = getLanguage();
   const selectEl = document.createElement("select");
   selectEl.classList.add(SELECT_CLASS, "dropdown");
+  selectEl.setAttribute("data-testid", "atomic-property-select");
+  selectEl.setAttribute("data-property", property);
   selectEl.setAttribute(
     "aria-label",
     t("property.selectLabel", language, { property }),

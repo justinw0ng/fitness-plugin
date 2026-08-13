@@ -865,6 +865,7 @@ function promptText(app, title, defaultValue, language) {
         this.resolved = false;
       }
       onOpen() {
+        this.modalEl.setAttr("data-testid", "atomic-prompt-modal");
         const { contentEl } = this;
         contentEl.empty();
         contentEl.createEl("h2", { text: title });
@@ -1627,7 +1628,10 @@ function resolveCuesYear(opts, frontmatterYear2, timezone) {
 }
 async function renderCues(el, data, activityTypes, year, timezone, activity, language) {
   el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
+  const root = el.createDiv({
+    cls: "fitness-plugin",
+    attr: { "data-testid": "atomic-cues", "data-activity": activity }
+  });
   const activityType = resolveCueActivityType(activityTypes, activity);
   if (!activityType) {
     root.createEl("p", {
@@ -2715,6 +2719,9 @@ function createBook(parent, item, data, language) {
     cls: "atomic-book",
     attr: {
       type: "button",
+      "data-testid": "atomic-book",
+      "data-title": item.title,
+      "data-status": item.status,
       "aria-label": t("view.bookShelf.open", language, { title: item.title })
     }
   });
@@ -2814,7 +2821,10 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   hideAllPortedDetails();
   el.empty();
   unclipBookShelfAncestors(el);
-  const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-book-shelf",
+    attr: { "data-testid": "atomic-bookshelf" }
+  });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
     (candidate) => candidate.id === activityId
@@ -3068,7 +3078,13 @@ async function durationMap(data, activity, year) {
   return map;
 }
 async function renderOneHeatmap(root, data, activity, year, timezone, language, registry) {
-  const wrap = root.createDiv({ cls: "fitness-heatmap" });
+  const wrap = root.createDiv({
+    cls: "fitness-heatmap",
+    attr: {
+      "data-testid": "atomic-heatmap",
+      "data-activity": activity.id
+    }
+  });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
   legend.createSpan({ text: t("view.heatmap.less", language) });
@@ -3147,7 +3163,12 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language, 
     for (const day of week) {
       const color = day.isCurrentYear ? colorFor(activity, day.level) : EMPTY_CELL;
       const cell = col.createDiv({
-        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : "")
+        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : ""),
+        attr: {
+          "data-testid": day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell",
+          "data-minutes": String(day.minutes),
+          "data-date": day.fullDate
+        }
       });
       cell.style.backgroundColor = color;
       const tip = day.path ? t("view.heatmap.tooltipOpen", language, {
@@ -3207,13 +3228,15 @@ async function renderHeatmaps(el, data, activityTypes, year, timezone, language,
       text: t("view.heatmap.invalidActivities", language, {
         ids: invalidIds.join(", ")
       }),
-      cls: "fitness-muted"
+      cls: "fitness-muted",
+      attr: { "data-testid": "atomic-heatmap-invalid" }
     });
   }
   if (activities.length === 0 && invalidIds.length === 0) {
     root.createEl("p", {
       text: t("view.heatmap.noActivities", language),
-      cls: "fitness-muted"
+      cls: "fitness-muted",
+      attr: { "data-testid": "atomic-heatmap-empty" }
     });
     return;
   }
@@ -3256,7 +3279,10 @@ async function modifyCurrentNote(plugin, sourcePath, updater) {
 }
 async function renderAtomicTimer(plugin, el, sourcePath) {
   el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin atomic-timer" });
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-timer",
+    attr: { "data-testid": "atomic-timer" }
+  });
   if (!sourcePath) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -3280,7 +3306,10 @@ async function renderAtomicTimer(plugin, el, sourcePath) {
         time: frontmatter.timerStartedAt
       })
     });
-    actions.createEl("button", { text: t("view.timer.stop", plugin.settings.language) }).addEventListener("click", () => {
+    actions.createEl("button", {
+      text: t("view.timer.stop", plugin.settings.language),
+      attr: { "data-testid": "atomic-timer-stop" }
+    }).addEventListener("click", () => {
       void (async () => {
         const file = plugin.data.getFileByPath(sourcePath);
         if (!file) {
@@ -3315,10 +3344,16 @@ async function renderAtomicTimer(plugin, el, sourcePath) {
         );
       })();
     });
-    actions.createEl("button", { text: t("view.timer.resume", plugin.settings.language) }).addEventListener("click", () => {
+    actions.createEl("button", {
+      text: t("view.timer.resume", plugin.settings.language),
+      attr: { "data-testid": "atomic-timer-resume" }
+    }).addEventListener("click", () => {
       new import_obsidian3.Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
     });
-    actions.createEl("button", { text: t("view.timer.discard", plugin.settings.language) }).addEventListener("click", () => {
+    actions.createEl("button", {
+      text: t("view.timer.discard", plugin.settings.language),
+      attr: { "data-testid": "atomic-timer-discard" }
+    }).addEventListener("click", () => {
       void modifyCurrentNote(
         plugin,
         sourcePath,
@@ -3327,7 +3362,10 @@ async function renderAtomicTimer(plugin, el, sourcePath) {
     });
     return;
   }
-  actions.createEl("button", { text: t("view.timer.start", plugin.settings.language) }).addEventListener("click", () => {
+  actions.createEl("button", {
+    text: t("view.timer.start", plugin.settings.language),
+    attr: { "data-testid": "atomic-timer-start" }
+  }).addEventListener("click", () => {
     void modifyCurrentNote(
       plugin,
       sourcePath,
@@ -3831,6 +3869,8 @@ function createPropertySelect(app, spec, property, getLanguage, currentValue, on
   const language = getLanguage();
   const selectEl = document.createElement("select");
   selectEl.classList.add(SELECT_CLASS, "dropdown");
+  selectEl.setAttribute("data-testid", "atomic-property-select");
+  selectEl.setAttribute("data-property", property);
   selectEl.setAttribute(
     "aria-label",
     t("property.selectLabel", language, { property })
@@ -4156,6 +4196,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
     this.onConfirm = options.onConfirm;
   }
   onOpen() {
+    this.modalEl.setAttr("data-testid", "atomic-confirm-delete-modal");
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
     new import_obsidian6.Setting(this.contentEl).addButton(
@@ -4256,7 +4297,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
-    new import_obsidian6.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+    const addHobby = new import_obsidian6.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
         this.pendingHobbyName = value;
       })
@@ -4278,6 +4319,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
         this.display();
       })
     );
+    addHobby.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
   }
   renderActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
@@ -4305,6 +4347,8 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
         await this.saveAndRefresh();
       })
     );
+    row.settingEl.setAttr("data-testid", "atomic-setting-activity");
+    row.settingEl.setAttr("data-activity-id", activity.id);
     if (options.showCues) {
       row.addToggle(
         (toggle) => toggle.setTooltip(t("settings.enableCuesTooltip", language)).setValue(activity.supportsCues).onChange(async (value) => {
@@ -4326,13 +4370,21 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
         this.renderColorSwatches(colorSetting.controlEl, activity);
       })
     );
+    colorSetting.settingEl.setAttr("data-testid", "atomic-setting-colors");
+    colorSetting.settingEl.setAttr("data-activity-id", activity.id);
     this.renderColorSwatches(colorSetting.controlEl, activity);
   }
   renderColorSwatches(controlEl, activity) {
     controlEl.querySelectorAll(".atomic-color-swatch-row").forEach((node) => node.remove());
-    const row = controlEl.createDiv({ cls: "atomic-color-swatch-row" });
+    const row = controlEl.createDiv({
+      cls: "atomic-color-swatch-row",
+      attr: { "data-testid": "atomic-color-swatch-row" }
+    });
     for (const color of activity.colors) {
-      const swatch = row.createDiv({ cls: "atomic-color-swatch" });
+      const swatch = row.createDiv({
+        cls: "atomic-color-swatch",
+        attr: { "data-testid": "atomic-color-swatch" }
+      });
       swatch.style.backgroundColor = color;
       swatch.title = color;
     }

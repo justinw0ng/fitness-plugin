@@ -353,6 +353,9 @@ function createBook(
     cls: "atomic-book",
     attr: {
       type: "button",
+      "data-testid": "atomic-book",
+      "data-title": item.title,
+      "data-status": item.status,
       "aria-label": t("view.bookShelf.open", language, { title: item.title }),
     },
   });
@@ -475,7 +478,10 @@ export function renderBookShelf(
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
 
-  const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-book-shelf",
+    attr: { "data-testid": "atomic-bookshelf" },
+  });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
     (candidate) => candidate.id === activityId,

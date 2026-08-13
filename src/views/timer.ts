@@ -30,7 +30,10 @@ export async function renderAtomicTimer(
   sourcePath: string,
 ): Promise<void> {
   el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin atomic-timer" });
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-timer",
+    attr: { "data-testid": "atomic-timer" },
+  });
   if (!sourcePath) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -57,7 +60,10 @@ export async function renderAtomicTimer(
       }),
     });
     actions
-      .createEl("button", { text: t("view.timer.stop", plugin.settings.language) })
+      .createEl("button", {
+        text: t("view.timer.stop", plugin.settings.language),
+        attr: { "data-testid": "atomic-timer-stop" },
+      })
       .addEventListener("click", () => {
         void (async () => {
           const file = plugin.data.getFileByPath(sourcePath);
@@ -94,12 +100,18 @@ export async function renderAtomicTimer(
         })();
       });
     actions
-      .createEl("button", { text: t("view.timer.resume", plugin.settings.language) })
+      .createEl("button", {
+        text: t("view.timer.resume", plugin.settings.language),
+        attr: { "data-testid": "atomic-timer-resume" },
+      })
       .addEventListener("click", () => {
         new Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
       });
     actions
-      .createEl("button", { text: t("view.timer.discard", plugin.settings.language) })
+      .createEl("button", {
+        text: t("view.timer.discard", plugin.settings.language),
+        attr: { "data-testid": "atomic-timer-discard" },
+      })
       .addEventListener("click", () => {
         void modifyCurrentNote(plugin, sourcePath, (latest) =>
           updateTimerFrontmatter(latest, { timerStartedAtIso: null }),
@@ -109,7 +121,10 @@ export async function renderAtomicTimer(
   }
 
   actions
-    .createEl("button", { text: t("view.timer.start", plugin.settings.language) })
+    .createEl("button", {
+      text: t("view.timer.start", plugin.settings.language),
+      attr: { "data-testid": "atomic-timer-start" },
+    })
     .addEventListener("click", () => {
       void modifyCurrentNote(plugin, sourcePath, (latest) =>
         updateTimerFrontmatter(latest, {

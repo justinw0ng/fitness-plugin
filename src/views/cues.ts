@@ -36,7 +36,10 @@ export async function renderCues(
   language: Language,
 ): Promise<void> {
   el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
+  const root = el.createDiv({
+    cls: "fitness-plugin",
+    attr: { "data-testid": "atomic-cues", "data-activity": activity },
+  });
 
   const activityType = resolveCueActivityType(activityTypes, activity);
   if (!activityType) {

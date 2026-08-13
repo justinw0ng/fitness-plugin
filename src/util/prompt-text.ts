@@ -15,6 +15,7 @@ export function promptText(
       private resolved = false;
 
       onOpen() {
+        this.modalEl.setAttr("data-testid", "atomic-prompt-modal");
         const { contentEl } = this;
         contentEl.empty();
         contentEl.createEl("h2", { text: title });
