@@ -88,11 +88,12 @@ export class VaultDataSource {
     // Re-normalize with Obsidian so vault path style matches file.path
     const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
     const out: SessionMeta[] = [];
+    // Folder-scoped: getMarkdownFiles is the vault listing API; skip other paths.
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
       if (!file.path.endsWith(".md")) continue;
       const cache = this.app.metadataCache.getFileCache(file);
-      const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
+      const fm = cache?.frontmatter ?? {};
       out.push({
         path: file.path,
         basename: file.basename,
@@ -123,6 +124,7 @@ export class VaultDataSource {
     if (!prefix) return [];
     const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
     const out: HobbyItemMeta[] = [];
+    // Folder-scoped: getMarkdownFiles is the vault listing API; skip other paths.
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
       if (!file.path.endsWith(".md")) continue;
@@ -130,10 +132,7 @@ export class VaultDataSource {
       const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
-        frontmatter:
-          cache == null
-            ? null
-            : ((cache.frontmatter as Record<string, unknown> | undefined) ?? {}),
+        frontmatter: cache == null ? null : (cache.frontmatter ?? {}),
         activityId: activity.id,
       });
       if (item) out.push(item);

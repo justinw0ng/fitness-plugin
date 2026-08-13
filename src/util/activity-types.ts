@@ -51,7 +51,8 @@ function colorTuple(
   fallback: ColorTuple,
 ): ColorTuple {
   if (!Array.isArray(value) || value.length !== 4) return fallback;
-  const [first, second, third, fourth] = value;
+  const items: unknown[] = value;
+  const [first, second, third, fourth] = items;
   if (
     typeof first === "string" &&
     first.trim() !== "" &&

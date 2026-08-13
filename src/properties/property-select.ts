@@ -15,13 +15,35 @@ type RegisterOptions = {
   getLanguage: () => Language;
 };
 
+function appendOption(
+  selectEl: HTMLSelectElement,
+  value: string,
+  label: string,
+  selected = false,
+): HTMLOptionElement {
+  const optionEl = selectEl.createEl("option", { text: label, value });
+  optionEl.selected = selected;
+  return optionEl;
+}
+
+function insertOption(
+  selectEl: HTMLSelectElement,
+  before: HTMLOptionElement | null,
+  value: string,
+  label: string,
+): HTMLOptionElement {
+  const optionEl = selectEl.createEl("option", { text: label, value });
+  selectEl.insertBefore(optionEl, before);
+  return optionEl;
+}
+
 function frontmatterForFile(
   app: App,
   file: TFile | null,
 ): Record<string, unknown> | null {
   if (!file) return null;
   const cache = app.metadataCache.getFileCache(file);
-  return (cache?.frontmatter as Record<string, unknown> | undefined) ?? null;
+  return cache?.frontmatter ?? null;
 }
 
 function getFileFromElement(app: App, el: HTMLElement): TFile | null {
@@ -42,7 +64,7 @@ function getFileFromElement(app: App, el: HTMLElement): TFile | null {
 
 function readNativeValue(valueContainer: HTMLElement): string {
   const nativeInput = valueContainer.querySelector("input");
-  if (nativeInput instanceof HTMLInputElement) return nativeInput.value;
+  if (nativeInput?.instanceOf(HTMLInputElement)) return nativeInput.value;
   const nativeEditable = valueContainer.querySelector("[contenteditable]");
   return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
@@ -67,36 +89,34 @@ function createPropertySelect(
   onChange: (value: string) => void,
 ): HTMLSelectElement {
   const language = getLanguage();
-  const selectEl = document.createElement("select");
-  selectEl.classList.add(SELECT_CLASS, "dropdown");
-  selectEl.setAttribute("data-testid", "atomic-property-select");
-  selectEl.setAttribute("data-property", property);
-  selectEl.setAttribute(
-    "aria-label",
-    t("property.selectLabel", language, { property }),
-  );
+  const selectEl = createEl("select", {
+    cls: [SELECT_CLASS, "dropdown"],
+    attr: {
+      "data-testid": "atomic-property-select",
+      "data-property": property,
+      "aria-label": t("property.selectLabel", language, { property }),
+    },
+  });
 
   for (const value of spec.values) {
-    const optionEl = document.createElement("option");
-    optionEl.value = value;
-    optionEl.text = optionLabel(spec, value, language);
-    if (value === currentValue) optionEl.selected = true;
-    selectEl.appendChild(optionEl);
+    appendOption(
+      selectEl,
+      value,
+      optionLabel(spec, value, language),
+      value === currentValue,
+    );
   }
 
   if (currentValue && !spec.values.includes(currentValue)) {
-    const legacy = document.createElement("option");
-    legacy.value = currentValue;
-    legacy.text = currentValue;
-    legacy.selected = true;
-    selectEl.appendChild(legacy);
+    appendOption(selectEl, currentValue, currentValue, true);
   }
 
   if (spec.allowCustom) {
-    const customOpt = document.createElement("option");
-    customOpt.value = CUSTOM_LOCATION_SENTINEL;
-    customOpt.text = t("property.location.custom", language);
-    selectEl.appendChild(customOpt);
+    appendOption(
+      selectEl,
+      CUSTOM_LOCATION_SENTINEL,
+      t("property.location.custom", language),
+    );
   }
 
   selectEl.dataset.committedValue = currentValue || spec.values[0] || "";
@@ -124,13 +144,10 @@ function createPropertySelect(
         }
         selectEl.dataset.committedValue = trimmed;
         if (!Array.from(selectEl.options).some((o) => o.value === trimmed)) {
-          const legacy = document.createElement("option");
-          legacy.value = trimmed;
-          legacy.text = trimmed;
           const customOption = Array.from(selectEl.options).find(
             (o) => o.value === CUSTOM_LOCATION_SENTINEL,
           );
-          selectEl.insertBefore(legacy, customOption ?? null);
+          insertOption(selectEl, customOption ?? null, trimmed, trimmed);
         }
         selectEl.value = trimmed;
         onChange(trimmed);
@@ -155,26 +172,29 @@ function writePropertyValue(
   if (valueContainer) {
     const nativeInput = valueContainer.querySelector("input");
     const nativeEditable = valueContainer.querySelector("[contenteditable]");
-    if (nativeInput instanceof HTMLInputElement) {
+    if (nativeInput?.instanceOf(HTMLInputElement)) {
       nativeInput.value = value;
       nativeInput.dispatchEvent(new Event("input", { bubbles: true }));
       nativeInput.dispatchEvent(new Event("change", { bubbles: true }));
-    } else if (nativeEditable instanceof HTMLElement) {
+    } else if (nativeEditable?.instanceOf(HTMLElement)) {
       nativeEditable.textContent = value;
       nativeEditable.dispatchEvent(new InputEvent("input", { bubbles: true }));
     }
   }
 
   if (!(file instanceof TFile)) return;
-  void app.fileManager.processFrontMatter(file, (frontmatter) => {
-    frontmatter[key] = value;
-  });
+  void app.fileManager.processFrontMatter(
+    file,
+    (frontmatter: Record<string, unknown>) => {
+      frontmatter[key] = value;
+    },
+  );
 }
 
 function hideNativeEditors(valueContainer: HTMLElement): void {
   for (const child of Array.from(valueContainer.children)) {
     if (child.classList.contains(SELECT_CLASS)) continue;
-    if (child instanceof HTMLElement) {
+    if (child.instanceOf(HTMLElement)) {
       child.addClass(HIDDEN_CLASS);
     }
   }
@@ -195,13 +215,10 @@ function syncExistingSelect(
       (option) => option.value === valueToSet,
     );
     if (!hasOption) {
-      const legacy = document.createElement("option");
-      legacy.value = valueToSet;
-      legacy.text = valueToSet;
       const customOption = Array.from(selectEl.options).find(
         (option) => option.value === CUSTOM_LOCATION_SENTINEL,
       );
-      selectEl.insertBefore(legacy, customOption ?? null);
+      insertOption(selectEl, customOption ?? null, valueToSet, valueToSet);
     }
   }
 
@@ -237,16 +254,14 @@ function injectPropertySelect(
   file: TFile | null,
   forBases: boolean,
 ): void {
-  const existing = valueContainer.querySelector(
-    `.${SELECT_CLASS}`,
-  ) as HTMLSelectElement | null;
+  const existing = valueContainer.querySelector(`.${SELECT_CLASS}`);
   const currentValue = forBases
     ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "")
         .replace(/\s+/g, " ")
         .trim()
     : readNativeValue(valueContainer);
 
-  if (existing) {
+  if (existing?.instanceOf(HTMLSelectElement)) {
     syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
     return;
   }
@@ -279,20 +294,19 @@ export function registerPropertySelects(
 
   const inject = (container: ParentNode): void => {
     container.querySelectorAll(".metadata-property").forEach((propEl) => {
-      const keyEl = propEl.querySelector(
-        ".metadata-property-key-input",
-      ) as HTMLInputElement | null;
-      if (!keyEl) return;
+      const keyEl = propEl.querySelector(".metadata-property-key-input");
+      if (!keyEl?.instanceOf(HTMLInputElement)) return;
       const property = (keyEl.value || keyEl.textContent || "").trim();
       if (!property) return;
 
-      const file = getFileFromElement(app, propEl as HTMLElement);
+      if (!propEl.instanceOf(HTMLElement)) return;
+      const file = getFileFromElement(app, propEl);
       const frontmatter = frontmatterForFile(app, file);
       const spec = resolvePropertyOptions(property, { frontmatter });
       if (!spec) return;
 
       const valueContainer = propEl.querySelector(".metadata-property-value");
-      if (!(valueContainer instanceof HTMLElement)) return;
+      if (!valueContainer?.instanceOf(HTMLElement)) return;
       injectPropertySelect(
         app,
         getLanguage,
@@ -308,9 +322,9 @@ export function registerPropertySelects(
       container
         .querySelectorAll(`.bases-td[data-property="note.${property}"]`)
         .forEach((cellEl) => {
-          if (!(cellEl instanceof HTMLElement)) return;
+          if (!cellEl.instanceOf(HTMLElement)) return;
           const row = cellEl.closest(".bases-tr");
-          if (!(row instanceof HTMLElement)) return;
+          if (!row?.instanceOf(HTMLElement)) return;
 
           const link = row.querySelector(".internal-link");
           const href = link?.getAttribute("data-href") ?? "";
@@ -340,7 +354,7 @@ export function registerPropertySelects(
   let injectFrame: number | null = null;
   const scheduleInject = (): void => {
     if (injectFrame !== null) return;
-    injectFrame = requestAnimationFrame(() => {
+    injectFrame = window.requestAnimationFrame(() => {
       injectFrame = null;
       inject(document.body);
     });
@@ -358,7 +372,7 @@ export function registerPropertySelects(
   plugin.register(() => {
     observer.disconnect();
     if (injectFrame !== null) {
-      cancelAnimationFrame(injectFrame);
+      window.cancelAnimationFrame(injectFrame);
       injectFrame = null;
     }
   });

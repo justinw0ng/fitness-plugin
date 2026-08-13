@@ -8,6 +8,10 @@ import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function safeVaultPath(value: unknown, fallback: string): string {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
@@ -15,11 +19,9 @@ function safeVaultPath(value: unknown, fallback: string): string {
   return isSafeVaultFolder(trimmed) ? trimmed : fallback;
 }
 
-type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
-  activityTypes?: unknown;
-  series?: unknown;
-  cuesPath?: string;
-};
+function stringField(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
 
 function cloneActivities(activityTypes: ActivityType[]): ActivityType[] {
   return activityTypes.map((activity) => ({
@@ -68,18 +70,14 @@ function legacySeriesActivities(
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 
-export function mergeSettings(
-  raw: RawSettings | null | undefined,
-): FitnessSettings {
+export function mergeSettings(raw: unknown): FitnessSettings {
   const base = {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
   };
-  if (!raw) return base;
+  if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(
-    (raw.golfCuesPath && raw.golfCuesPath.trim()) ||
-      (raw.cuesPath && raw.cuesPath.trim()) ||
-      "",
+    stringField(raw.golfCuesPath).trim() || stringField(raw.cuesPath).trim(),
     base.golfCuesPath,
   );
 
@@ -103,9 +101,10 @@ export function mergeSettings(
     activityTypes = cloneActivities(base.activityTypes);
   }
 
+  const timezone = stringField(raw.timezone);
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
-    timezone: raw.timezone || base.timezone,
+    timezone: timezone || base.timezone,
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),

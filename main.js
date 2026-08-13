@@ -23,7 +23,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/commands/create-session.ts
 var import_obsidian2 = require("obsidian");
@@ -871,7 +871,7 @@ function promptText(app, title, defaultValue, language) {
         contentEl.createEl("h2", { text: title });
         new import_obsidian.Setting(contentEl).addText((text) => {
           text.setValue(defaultValue);
-          text.inputEl.style.width = "100%";
+          text.inputEl.setCssStyles({ width: "100%" });
           text.onChange((v) => {
             this.value = v;
           });
@@ -1114,8 +1114,8 @@ async function createGolfSession(app, data, activity, timezone, language) {
 
 // src/util/notice.ts
 function showNotice(message) {
-  const { Notice: Notice6 } = require("obsidian");
-  new Notice6(message);
+  const obsidian = require("obsidian");
+  new obsidian.Notice(message);
 }
 
 // src/util/vault-path.ts
@@ -1275,6 +1275,9 @@ async function createReadingItem(app, data, readingActivity, language) {
   }
 }
 
+// src/codeblocks.ts
+var import_obsidian4 = require("obsidian");
+
 // src/util/parse-block.ts
 function parseBlockOptions(source) {
   const out = {};
@@ -1287,6 +1290,44 @@ function parseBlockOptions(source) {
     out[m[1]] = value.replace(/^["']|["']$/g, "");
   }
   return out;
+}
+
+// src/util/block-render.ts
+var ATOMIC_BLOCK_PENDING_CLASS = "fitness-plugin atomic-block-pending";
+var ATOMIC_BLOCK_PENDING_BAR_CLASS = "atomic-block-pending-bar";
+var generations = /* @__PURE__ */ new WeakMap();
+var chains = /* @__PURE__ */ new WeakMap();
+function mountAtomicBlockShell(el) {
+  el.empty();
+  const root = el.createDiv({ cls: ATOMIC_BLOCK_PENDING_CLASS });
+  root.createDiv({ cls: ATOMIC_BLOCK_PENDING_BAR_CLASS });
+  return root;
+}
+function beginBlockRender(el) {
+  const next = (generations.get(el) ?? 0) + 1;
+  generations.set(el, next);
+  return next;
+}
+function isStaleBlockRender(el, generation) {
+  return generations.get(el) !== generation;
+}
+function currentBlockGeneration(el) {
+  return generations.get(el) ?? 0;
+}
+function invalidateBlockRenderIfCurrent(el, generation) {
+  if (!isStaleBlockRender(el, generation)) {
+    beginBlockRender(el);
+  }
+}
+function enqueueBlockRender(el, work) {
+  const generation = beginBlockRender(el);
+  const previous = chains.get(el) ?? Promise.resolve();
+  const next = previous.then(
+    () => work(generation),
+    () => work(generation)
+  );
+  chains.set(el, next);
+  return next;
 }
 
 // src/types.ts
@@ -1439,7 +1480,8 @@ function defaultHobbyFolder(label) {
 }
 function colorTuple(value, fallback) {
   if (!Array.isArray(value) || value.length !== 4) return fallback;
-  const [first, second, third, fourth] = value;
+  const items = value;
+  const [first, second, third, fourth] = items;
   if (typeof first === "string" && first.trim() !== "" && typeof second === "string" && second.trim() !== "" && typeof third === "string" && third.trim() !== "" && typeof fourth === "string" && fourth.trim() !== "") {
     return [first, second, third, fourth];
   }
@@ -2023,6 +2065,10 @@ var READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
 function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+function callPluginIdLookup(method, self, id) {
+  if (typeof method !== "function") return void 0;
+  return method.call(self, id);
+}
 function readingBookshelfBaseYaml(itemsFolder = READING_ITEMS_FOLDER, language = "en") {
   if (!isSafeVaultFolder(itemsFolder)) {
     throw new Error("Reading items folder must be a safe vault-relative folder");
@@ -2082,14 +2128,11 @@ function isBasesCorePluginEnabled(app) {
   if (!isRecord2(appRecord)) return false;
   const internalPlugins = appRecord.internalPlugins;
   if (!isRecord2(internalPlugins)) return false;
-  const getEnabledPluginById = internalPlugins.getEnabledPluginById;
-  if (typeof getEnabledPluginById === "function") {
-    try {
-      if (getEnabledPluginById.call(internalPlugins, "bases") != null) {
-        return true;
-      }
-    } catch {
+  try {
+    if (callPluginIdLookup(internalPlugins.getEnabledPluginById, internalPlugins, "bases") != null) {
+      return true;
     }
+  } catch {
   }
   const plugins = internalPlugins.plugins;
   if (isRecord2(plugins)) {
@@ -2098,14 +2141,15 @@ function isBasesCorePluginEnabled(app) {
   }
   const config = internalPlugins.config;
   if (isRecord2(config) && config.bases === true) return true;
-  const getPluginById = internalPlugins.getPluginById;
-  if (typeof getPluginById === "function") {
-    try {
-      const plugin = getPluginById.call(internalPlugins, "bases");
-      if (isRecord2(plugin) && plugin.enabled === true) return true;
-    } catch {
-      return false;
-    }
+  try {
+    const plugin = callPluginIdLookup(
+      internalPlugins.getPluginById,
+      internalPlugins,
+      "bases"
+    );
+    if (isRecord2(plugin) && plugin.enabled === true) return true;
+  } catch {
+    return false;
   }
   return false;
 }
@@ -2507,6 +2551,9 @@ function measureElementWidth(el, fallbackWidth = 0) {
 // src/views/book-shelf.ts
 var resizeObservers = /* @__PURE__ */ new WeakMap();
 var windowListeners = /* @__PURE__ */ new WeakMap();
+function setOverflowVisible(el) {
+  el.setCssStyles({ overflow: "visible" });
+}
 function shouldUnclipBookShelfAncestor(className) {
   return className.split(/\s+/).some((token) => {
     const t2 = token.toLowerCase();
@@ -2526,7 +2573,7 @@ function unclipBookShelfAncestors(el, maxDepth = 8) {
     if (isBookShelfUnclipStop(className)) break;
     const knownWrapper = shouldUnclipBookShelfAncestor(className);
     if (depth === 0 || !reachedKnownWrapper || knownWrapper) {
-      current.style.overflow = "visible";
+      setOverflowVisible(current);
     }
     if (knownWrapper) reachedKnownWrapper = true;
     current = current.parentElement;
@@ -2559,8 +2606,10 @@ function bindBookDetailPortal(button, detail) {
       bookLeft: rect.left,
       bookWidth: rect.width
     });
-    detail.style.left = `${pos.left}px`;
-    detail.style.top = `${pos.top}px`;
+    detail.setCssStyles({
+      left: `${pos.left}px`,
+      top: `${pos.top}px`
+    });
   };
   const hide = () => {
     if (!ported) return;
@@ -2571,8 +2620,7 @@ function bindBookDetailPortal(button, detail) {
       window.removeEventListener("resize", place);
     }
     detail.classList.remove("is-ported");
-    detail.style.left = "";
-    detail.style.top = "";
+    detail.setCssStyles({ left: "", top: "" });
     if (button.isConnected) button.appendChild(detail);
     else detail.remove();
   };
@@ -2867,8 +2915,8 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     paintRows(frame, items, perRow, data, language, emptyText);
   };
   layout();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(layout);
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(layout);
   });
   if (typeof ResizeObserver !== "undefined") {
     const observer = new ResizeObserver(() => layout());
@@ -3032,15 +3080,15 @@ function wireHeatmapScroll(scrollEl, registry) {
   if (typeof ResizeObserver !== "undefined") {
     const resizeObserver = new ResizeObserver(() => {
       if (userHasScrolled) return;
-      requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
         if (!userHasScrolled) applyTodayAlign();
       });
     });
     resizeObserver.observe(scrollEl);
     registry.scrolls.push(resizeObserver);
   }
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       if (!userHasScrolled) applyTodayAlign();
     });
   });
@@ -3205,7 +3253,7 @@ function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
   };
   if (typeof ResizeObserver !== "undefined") {
     const resizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(applyColumns);
+      window.requestAnimationFrame(applyColumns);
     });
     resizeObserver.observe(gridEl);
     registry.grid = resizeObserver;
@@ -3253,7 +3301,7 @@ async function renderHeatmaps(el, data, activityTypes, year, timezone, language,
       registry
     );
   }
-  if (useGrid && heatmapParent instanceof HTMLElement) {
+  if (useGrid) {
     wireHeatmapGrid(heatmapParent, layout, activities.length, registry);
   }
 }
@@ -3440,7 +3488,32 @@ function frontmatterYear(plugin, sourcePath) {
   const cache = plugin.app.metadataCache.getCache(sourcePath);
   return cache?.frontmatter?.year;
 }
+var AtomicBlockChild = class extends import_obsidian4.MarkdownRenderChild {
+  constructor(containerEl, startRender) {
+    super(containerEl);
+    this.startRender = startRender;
+    this.generation = 0;
+  }
+  onload() {
+    this.startRender();
+    this.generation = currentBlockGeneration(this.containerEl);
+  }
+  onunload() {
+    invalidateBlockRenderIfCurrent(this.containerEl, this.generation);
+  }
+};
+function renderTrackedBlock(plugin, block) {
+  return enqueueBlockRender(block.el, async (generation) => {
+    if (isStaleBlockRender(block.el, generation) || !block.el.isConnected) {
+      return;
+    }
+    await renderBlock(plugin, block.kind, block.source, block.el, {
+      sourcePath: block.sourcePath
+    });
+  });
+}
 async function renderBlock(plugin, kind, source, el, ctx) {
+  if (!el.isConnected) return;
   const opts = parseBlockOptions(source);
   const sourcePath = ctx.sourcePath || "";
   const data = plugin.data;
@@ -3526,6 +3599,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         break;
       }
       default:
+        el.empty();
         el.createEl("p", {
           text: t("view.unknownAtomicBlock", language, { kind })
         });
@@ -3544,18 +3618,21 @@ async function renderBlock(plugin, kind, source, el, ctx) {
 function registerCodeblocks(plugin) {
   const kinds = codeblockLanguages();
   for (const kind of kinds) {
-    plugin.registerMarkdownCodeBlockProcessor(
-      kind,
-      async (source, el, ctx) => {
-        plugin.trackLiveBlock({ kind, el, source, sourcePath: ctx.sourcePath });
-        await renderBlock(plugin, kind, source, el, ctx);
-      }
-    );
+    plugin.registerMarkdownCodeBlockProcessor(kind, (source, el, ctx) => {
+      const block = { kind, el, source, sourcePath: ctx.sourcePath };
+      plugin.trackLiveBlock(block);
+      mountAtomicBlockShell(el);
+      ctx.addChild(
+        new AtomicBlockChild(el, () => {
+          void renderTrackedBlock(plugin, block);
+        })
+      );
+    });
   }
 }
 
 // src/data/vault-source.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/util/hobby-time-log-cache.ts
 var HobbyTimeLogCache = class {
@@ -3665,12 +3742,12 @@ var VaultDataSource = class {
   /** Drop cached Time log parses (all paths, or one path after edit/delete). */
   invalidateHobbyTimeLogCache(path) {
     this.hobbyTimeLogCache.invalidate(
-      path ? (0, import_obsidian4.normalizePath)(path) : void 0
+      path ? (0, import_obsidian5.normalizePath)(path) : void 0
     );
   }
   /** Keep cache entries aligned when a note is renamed. */
   renameHobbyTimeLogCache(oldPath, newPath) {
-    this.hobbyTimeLogCache.rename((0, import_obsidian4.normalizePath)(oldPath), (0, import_obsidian4.normalizePath)(newPath));
+    this.hobbyTimeLogCache.rename((0, import_obsidian5.normalizePath)(oldPath), (0, import_obsidian5.normalizePath)(newPath));
   }
   /** Drop cached vault list scans (sessions / hobby items). */
   invalidateListCache() {
@@ -3698,7 +3775,7 @@ var VaultDataSource = class {
     if (cached) return cached;
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian4.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian5.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -3727,7 +3804,7 @@ var VaultDataSource = class {
     if (cached) return cached;
     const prefix = hobbyItemsScanPrefix(activity.folder);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian4.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const scanPrefix = (0, import_obsidian5.normalizePath)(prefix.replace(/\/$/, "")) + "/";
     const out = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (!file.path.startsWith(scanPrefix)) continue;
@@ -3745,15 +3822,15 @@ var VaultDataSource = class {
     return out;
   }
   async readBody(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
-    if (!(af instanceof import_obsidian4.TFile)) return "";
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(path));
+    if (!(af instanceof import_obsidian5.TFile)) return "";
     return this.app.vault.read(af);
   }
   exists(path) {
-    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
+    return !!this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(path));
   }
   async ensureFolder(folderPath) {
-    const norm = (0, import_obsidian4.normalizePath)(folderPath);
+    const norm = (0, import_obsidian5.normalizePath)(folderPath);
     if (this.app.vault.getAbstractFileByPath(norm)) return;
     const parts = norm.split("/").filter(Boolean);
     let cur = "";
@@ -3765,44 +3842,44 @@ var VaultDataSource = class {
     }
   }
   async createNote(path, content) {
-    const norm = (0, import_obsidian4.normalizePath)(path);
+    const norm = (0, import_obsidian5.normalizePath)(path);
     const parent = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
     if (parent) await this.ensureFolder(parent);
     return this.app.vault.create(norm, content);
   }
   async writeNote(path, content) {
-    const norm = (0, import_obsidian4.normalizePath)(path);
+    const norm = (0, import_obsidian5.normalizePath)(path);
     const existing = this.app.vault.getAbstractFileByPath(norm);
-    if (existing instanceof import_obsidian4.TFile) {
+    if (existing instanceof import_obsidian5.TFile) {
       await this.app.vault.process(existing, () => content);
       return existing;
     }
     return this.createNote(norm, content);
   }
   async openPath(path) {
-    const norm = (0, import_obsidian4.normalizePath)(path);
+    const norm = (0, import_obsidian5.normalizePath)(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
-    if (file instanceof import_obsidian4.TFile) {
+    if (file instanceof import_obsidian5.TFile) {
       await this.app.workspace.getLeaf(false).openFile(file);
       return;
     }
     await this.app.workspace.openLinkText(norm, "", false);
   }
   getFileByPath(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
-    return af instanceof import_obsidian4.TFile ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(path));
+    return af instanceof import_obsidian5.TFile ? af : null;
   }
   isUnderSeriesFolder(path, folders) {
-    const norm = (0, import_obsidian4.normalizePath)(path);
+    const norm = (0, import_obsidian5.normalizePath)(path);
     return folders.some((f) => {
       if (!isSafeVaultFolder(f)) return false;
-      const p = (0, import_obsidian4.normalizePath)(f);
+      const p = (0, import_obsidian5.normalizePath)(f);
       return norm === p || norm.startsWith(p + "/");
     });
   }
   getFolder(path) {
-    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(path));
-    return af instanceof import_obsidian4.TFolder ? af : null;
+    const af = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(path));
+    return af instanceof import_obsidian5.TFolder ? af : null;
   }
   /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
   resolveResourcePath(linkOrPath, sourcePath = "") {
@@ -3822,18 +3899,28 @@ var VaultDataSource = class {
       trimmed,
       sourcePath
     );
-    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian4.normalizePath)(trimmed));
-    const file = fromLink instanceof import_obsidian4.TFile ? fromLink : fromPath instanceof import_obsidian4.TFile ? fromPath : null;
+    const fromPath = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(trimmed));
+    const file = fromLink instanceof import_obsidian5.TFile ? fromLink : fromPath instanceof import_obsidian5.TFile ? fromPath : null;
     if (!file) return null;
     return this.app.vault.getResourcePath(file);
   }
 };
 
 // src/properties/property-select.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var SELECT_CLASS = "atomic-property-select";
 var HIDDEN_CLASS = "atomic-property-native-hidden";
 var SYNC_GRACE_MS = 2e3;
+function appendOption(selectEl, value, label, selected = false) {
+  const optionEl = selectEl.createEl("option", { text: label, value });
+  optionEl.selected = selected;
+  return optionEl;
+}
+function insertOption(selectEl, before, value, label) {
+  const optionEl = selectEl.createEl("option", { text: label, value });
+  selectEl.insertBefore(optionEl, before);
+  return optionEl;
+}
 function frontmatterForFile(app, file) {
   if (!file) return null;
   const cache = app.metadataCache.getFileCache(file);
@@ -3846,7 +3933,7 @@ function getFileFromElement(app, el) {
   app.workspace.iterateAllLeaves((leaf) => {
     if (leaf.view.containerEl.parentElement === leafEl) {
       const view = leaf.view;
-      if ("file" in view && view.file instanceof import_obsidian5.TFile) {
+      if ("file" in view && view.file instanceof import_obsidian6.TFile) {
         targetFile = view.file;
       }
     }
@@ -3855,7 +3942,7 @@ function getFileFromElement(app, el) {
 }
 function readNativeValue(valueContainer) {
   const nativeInput = valueContainer.querySelector("input");
-  if (nativeInput instanceof HTMLInputElement) return nativeInput.value;
+  if (nativeInput?.instanceOf(HTMLInputElement)) return nativeInput.value;
   const nativeEditable = valueContainer.querySelector("[contenteditable]");
   return (nativeEditable?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
@@ -3867,33 +3954,31 @@ function optionLabel(spec, value, language) {
 }
 function createPropertySelect(app, spec, property, getLanguage, currentValue, onChange) {
   const language = getLanguage();
-  const selectEl = document.createElement("select");
-  selectEl.classList.add(SELECT_CLASS, "dropdown");
-  selectEl.setAttribute("data-testid", "atomic-property-select");
-  selectEl.setAttribute("data-property", property);
-  selectEl.setAttribute(
-    "aria-label",
-    t("property.selectLabel", language, { property })
-  );
+  const selectEl = createEl("select", {
+    cls: [SELECT_CLASS, "dropdown"],
+    attr: {
+      "data-testid": "atomic-property-select",
+      "data-property": property,
+      "aria-label": t("property.selectLabel", language, { property })
+    }
+  });
   for (const value of spec.values) {
-    const optionEl = document.createElement("option");
-    optionEl.value = value;
-    optionEl.text = optionLabel(spec, value, language);
-    if (value === currentValue) optionEl.selected = true;
-    selectEl.appendChild(optionEl);
+    appendOption(
+      selectEl,
+      value,
+      optionLabel(spec, value, language),
+      value === currentValue
+    );
   }
   if (currentValue && !spec.values.includes(currentValue)) {
-    const legacy = document.createElement("option");
-    legacy.value = currentValue;
-    legacy.text = currentValue;
-    legacy.selected = true;
-    selectEl.appendChild(legacy);
+    appendOption(selectEl, currentValue, currentValue, true);
   }
   if (spec.allowCustom) {
-    const customOpt = document.createElement("option");
-    customOpt.value = CUSTOM_LOCATION_SENTINEL;
-    customOpt.text = t("property.location.custom", language);
-    selectEl.appendChild(customOpt);
+    appendOption(
+      selectEl,
+      CUSTOM_LOCATION_SENTINEL,
+      t("property.location.custom", language)
+    );
   }
   selectEl.dataset.committedValue = currentValue || spec.values[0] || "";
   selectEl.addEventListener("change", () => {
@@ -3913,18 +3998,15 @@ function createPropertySelect(app, spec, property, getLanguage, currentValue, on
         if (raw === null) return;
         const trimmed = raw.trim();
         if (!trimmed) {
-          new import_obsidian5.Notice(t("notice.emptyCustomLocation", language2));
+          new import_obsidian6.Notice(t("notice.emptyCustomLocation", language2));
           return;
         }
         selectEl.dataset.committedValue = trimmed;
         if (!Array.from(selectEl.options).some((o) => o.value === trimmed)) {
-          const legacy = document.createElement("option");
-          legacy.value = trimmed;
-          legacy.text = trimmed;
           const customOption = Array.from(selectEl.options).find(
             (o) => o.value === CUSTOM_LOCATION_SENTINEL
           );
-          selectEl.insertBefore(legacy, customOption ?? null);
+          insertOption(selectEl, customOption ?? null, trimmed, trimmed);
         }
         selectEl.value = trimmed;
         onChange(trimmed);
@@ -3940,24 +4022,27 @@ function writePropertyValue(app, file, key, value, valueContainer) {
   if (valueContainer) {
     const nativeInput = valueContainer.querySelector("input");
     const nativeEditable = valueContainer.querySelector("[contenteditable]");
-    if (nativeInput instanceof HTMLInputElement) {
+    if (nativeInput?.instanceOf(HTMLInputElement)) {
       nativeInput.value = value;
       nativeInput.dispatchEvent(new Event("input", { bubbles: true }));
       nativeInput.dispatchEvent(new Event("change", { bubbles: true }));
-    } else if (nativeEditable instanceof HTMLElement) {
+    } else if (nativeEditable?.instanceOf(HTMLElement)) {
       nativeEditable.textContent = value;
       nativeEditable.dispatchEvent(new InputEvent("input", { bubbles: true }));
     }
   }
-  if (!(file instanceof import_obsidian5.TFile)) return;
-  void app.fileManager.processFrontMatter(file, (frontmatter) => {
-    frontmatter[key] = value;
-  });
+  if (!(file instanceof import_obsidian6.TFile)) return;
+  void app.fileManager.processFrontMatter(
+    file,
+    (frontmatter) => {
+      frontmatter[key] = value;
+    }
+  );
 }
 function hideNativeEditors(valueContainer) {
   for (const child of Array.from(valueContainer.children)) {
     if (child.classList.contains(SELECT_CLASS)) continue;
-    if (child instanceof HTMLElement) {
+    if (child.instanceOf(HTMLElement)) {
       child.addClass(HIDDEN_CLASS);
     }
   }
@@ -3971,13 +4056,10 @@ function syncExistingSelect(selectEl, spec, currentValue, fallbackValue) {
       (option) => option.value === valueToSet
     );
     if (!hasOption) {
-      const legacy = document.createElement("option");
-      legacy.value = valueToSet;
-      legacy.text = valueToSet;
       const customOption = Array.from(selectEl.options).find(
         (option) => option.value === CUSTOM_LOCATION_SENTINEL
       );
-      selectEl.insertBefore(legacy, customOption ?? null);
+      insertOption(selectEl, customOption ?? null, valueToSet, valueToSet);
     }
   }
   if (selectEl.value !== valueToSet) {
@@ -4002,11 +4084,9 @@ function stopBasesPointerCapture(selectEl) {
   }
 }
 function injectPropertySelect(app, getLanguage, property, spec, valueContainer, file, forBases) {
-  const existing = valueContainer.querySelector(
-    `.${SELECT_CLASS}`
-  );
+  const existing = valueContainer.querySelector(`.${SELECT_CLASS}`);
   const currentValue = forBases ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "").replace(/\s+/g, " ").trim() : readNativeValue(valueContainer);
-  if (existing) {
+  if (existing?.instanceOf(HTMLSelectElement)) {
     syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
     return;
   }
@@ -4033,18 +4113,17 @@ function registerPropertySelects(plugin, options) {
   const { getLanguage } = options;
   const inject = (container) => {
     container.querySelectorAll(".metadata-property").forEach((propEl) => {
-      const keyEl = propEl.querySelector(
-        ".metadata-property-key-input"
-      );
-      if (!keyEl) return;
+      const keyEl = propEl.querySelector(".metadata-property-key-input");
+      if (!keyEl?.instanceOf(HTMLInputElement)) return;
       const property = (keyEl.value || keyEl.textContent || "").trim();
       if (!property) return;
+      if (!propEl.instanceOf(HTMLElement)) return;
       const file = getFileFromElement(app, propEl);
       const frontmatter = frontmatterForFile(app, file);
       const spec = resolvePropertyOptions(property, { frontmatter });
       if (!spec) return;
       const valueContainer = propEl.querySelector(".metadata-property-value");
-      if (!(valueContainer instanceof HTMLElement)) return;
+      if (!valueContainer?.instanceOf(HTMLElement)) return;
       injectPropertySelect(
         app,
         getLanguage,
@@ -4057,15 +4136,15 @@ function registerPropertySelects(plugin, options) {
     });
     for (const property of DROPDOWN_PROPERTY_NAMES) {
       container.querySelectorAll(`.bases-td[data-property="note.${property}"]`).forEach((cellEl) => {
-        if (!(cellEl instanceof HTMLElement)) return;
+        if (!cellEl.instanceOf(HTMLElement)) return;
         const row = cellEl.closest(".bases-tr");
-        if (!(row instanceof HTMLElement)) return;
+        if (!row?.instanceOf(HTMLElement)) return;
         const link = row.querySelector(".internal-link");
         const href = link?.getAttribute("data-href") ?? "";
         const file = href ? app.metadataCache.getFirstLinkpathDest(href, "") : null;
         const frontmatter = frontmatterForFile(
           app,
-          file instanceof import_obsidian5.TFile ? file : null
+          file instanceof import_obsidian6.TFile ? file : null
         );
         const spec = resolvePropertyOptions(property, { frontmatter });
         if (!spec) return;
@@ -4075,7 +4154,7 @@ function registerPropertySelects(plugin, options) {
           property,
           spec,
           cellEl,
-          file instanceof import_obsidian5.TFile ? file : null,
+          file instanceof import_obsidian6.TFile ? file : null,
           true
         );
       });
@@ -4084,7 +4163,7 @@ function registerPropertySelects(plugin, options) {
   let injectFrame = null;
   const scheduleInject = () => {
     if (injectFrame !== null) return;
-    injectFrame = requestAnimationFrame(() => {
+    injectFrame = window.requestAnimationFrame(() => {
       injectFrame = null;
       inject(document.body);
     });
@@ -4100,7 +4179,7 @@ function registerPropertySelects(plugin, options) {
   plugin.register(() => {
     observer.disconnect();
     if (injectFrame !== null) {
-      cancelAnimationFrame(injectFrame);
+      window.cancelAnimationFrame(injectFrame);
       injectFrame = null;
     }
   });
@@ -4111,14 +4190,20 @@ function registerPropertySelects(plugin, options) {
 }
 
 // src/settings.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/util/merge-settings.ts
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 function safeVaultPath(value, fallback) {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
   if (!trimmed) return fallback;
   return isSafeVaultFolder(trimmed) ? trimmed : fallback;
+}
+function stringField(value) {
+  return typeof value === "string" ? value : "";
 }
 function cloneActivities(activityTypes) {
   return activityTypes.map((activity) => ({
@@ -4155,9 +4240,9 @@ function mergeSettings(raw) {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes)
   };
-  if (!raw) return base;
+  if (!isRecord3(raw)) return base;
   const golfCuesPath = safeVaultPath(
-    raw.golfCuesPath && raw.golfCuesPath.trim() || raw.cuesPath && raw.cuesPath.trim() || "",
+    stringField(raw.golfCuesPath).trim() || stringField(raw.cuesPath).trim(),
     base.golfCuesPath
   );
   const fromActivityTypes = normalizeActivities(
@@ -4176,9 +4261,10 @@ function mergeSettings(raw) {
   } else {
     activityTypes = cloneActivities(base.activityTypes);
   }
+  const timezone = stringField(raw.timezone);
   return {
     language: isLanguage(raw.language) ? raw.language : DEFAULT_LANGUAGE,
-    timezone: raw.timezone || base.timezone,
+    timezone: timezone || base.timezone,
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
@@ -4187,7 +4273,7 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
-var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
+var ConfirmDeleteActivityModal = class extends import_obsidian7.Modal {
   constructor(app, options) {
     super(app);
     this.message = options.message;
@@ -4199,7 +4285,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
     this.modalEl.setAttr("data-testid", "atomic-confirm-delete-modal");
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian6.Setting(this.contentEl).addButton(
+    new import_obsidian7.Setting(this.contentEl).addButton(
       (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
     ).addButton(
       (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
@@ -4209,7 +4295,7 @@ var ConfirmDeleteActivityModal = class extends import_obsidian6.Modal {
     );
   }
 };
-var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -4220,28 +4306,28 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
     const { containerEl } = this;
     const language = this.plugin.settings.language;
     containerEl.empty();
-    new import_obsidian6.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+    new import_obsidian7.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
         this.plugin.settings.language = value;
         await this.plugin.saveSettings();
         this.display();
         await this.plugin.refreshAll();
-        new import_obsidian6.Notice(t("notice.reloadForCommands", value));
+        new import_obsidian7.Notice(t("notice.reloadForCommands", value));
       })
     );
-    new import_obsidian6.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
+    new import_obsidian7.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
-        this.plugin.refreshAll();
+        void this.plugin.refreshAll();
       })
     );
-    new import_obsidian6.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+    new import_obsidian7.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         if (!isSafeVaultFolder(next)) {
-          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian7.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         this.plugin.settings.dashboardPath = next;
@@ -4264,11 +4350,11 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   }
   renderExerciseTypes(containerEl) {
     const language = this.plugin.settings.language;
-    new import_obsidian6.Setting(containerEl).setName(t("settings.exerciseTypes", language)).setDesc(t("settings.exerciseTypesDesc", language)).setHeading();
+    new import_obsidian7.Setting(containerEl).setName(t("settings.exerciseTypes", language)).setDesc(t("settings.exerciseTypesDesc", language)).setHeading();
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
     }
-    new import_obsidian6.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
+    new import_obsidian7.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
         this.pendingExerciseName = value;
       })
@@ -4276,7 +4362,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingExerciseName.trim();
         if (!name) {
-          new import_obsidian6.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
+          new import_obsidian7.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
           return;
         }
         const activity = createExerciseActivityType(name);
@@ -4293,11 +4379,11 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   }
   renderHobbyTypes(containerEl) {
     const language = this.plugin.settings.language;
-    new import_obsidian6.Setting(containerEl).setName(t("settings.hobbyTypes", language)).setDesc(t("settings.hobbyTypesDesc", language)).setHeading();
+    new import_obsidian7.Setting(containerEl).setName(t("settings.hobbyTypes", language)).setDesc(t("settings.hobbyTypesDesc", language)).setHeading();
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
-    const addHobby = new import_obsidian6.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
+    const addHobby = new import_obsidian7.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
       (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
         this.pendingHobbyName = value;
       })
@@ -4305,7 +4391,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
       (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = this.pendingHobbyName.trim();
         if (!name) {
-          new import_obsidian6.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
+          new import_obsidian7.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
           return;
         }
         const activity = createHobbyActivityType(name);
@@ -4324,7 +4410,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   renderActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
     const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
-    const row = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+    const row = new import_obsidian7.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
       (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
         await this.saveAndRefresh();
@@ -4340,7 +4426,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
       (text) => text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian6.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian7.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         activity.folder = folder;
@@ -4362,7 +4448,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
         this.confirmDeleteActivity(activity);
       })
     );
-    const colorSetting = new import_obsidian6.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+    const colorSetting = new import_obsidian7.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
         activity.colors = shadesFromBaseColor(value);
@@ -4406,7 +4492,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
     );
     await this.saveAndRefresh();
     this.display();
-    new import_obsidian6.Notice(
+    new import_obsidian7.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label
       })
@@ -4471,7 +4557,7 @@ function pathAffectsAtomicRefresh(path, roots, liveBlockSourcePaths) {
 
 // src/main.ts
 var REFRESH_DEBOUNCE_MS = 300;
-var FitnessPlugin = class extends import_obsidian7.Plugin {
+var FitnessPlugin = class extends import_obsidian8.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -4480,8 +4566,9 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   }
   async onload() {
     this.data = new VaultDataSource(this.app);
-    await this.loadSettings();
     registerCodeblocks(this);
+    await this.loadSettings();
+    this.scheduleRefresh();
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language
     });
@@ -4526,7 +4613,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian8.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -4537,7 +4624,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian8.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -4586,7 +4673,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
     );
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
-        if (!(file instanceof import_obsidian7.TFile)) return;
+        if (!(file instanceof import_obsidian8.TFile)) return;
         this.handleVaultPathChange(file.path);
       })
     );
@@ -4627,12 +4714,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   async refreshAll() {
     this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);
     await Promise.all(
-      this.liveBlocks.map((block) => {
-        const ctx = {
-          sourcePath: block.sourcePath
-        };
-        return renderBlock(this, block.kind, block.source, block.el, ctx);
-      })
+      this.liveBlocks.map((block) => renderTrackedBlock(this, block))
     );
   }
   liveBlockSourcePaths() {
@@ -4668,12 +4750,12 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian7.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian8.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
       let settled = false;
-      const modal = new class extends import_obsidian7.FuzzySuggestModal {
+      const modal = new class extends import_obsidian8.FuzzySuggestModal {
         getItems() {
           return activities;
         }
@@ -4723,7 +4805,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian7.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian8.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createGymSession(
@@ -4737,7 +4819,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian7.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian8.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createGolfSession(
@@ -4751,7 +4833,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian7.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian8.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
@@ -4764,7 +4846,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian7.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian8.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);

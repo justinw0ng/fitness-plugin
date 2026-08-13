@@ -90,7 +90,7 @@ function wireHeatmapScroll(
   if (typeof ResizeObserver !== "undefined") {
     const resizeObserver = new ResizeObserver(() => {
       if (userHasScrolled) return;
-      requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
         if (!userHasScrolled) applyTodayAlign();
       });
     });
@@ -98,8 +98,8 @@ function wireHeatmapScroll(
     registry.scrolls.push(resizeObserver);
   }
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       if (!userHasScrolled) applyTodayAlign();
     });
   });
@@ -322,7 +322,7 @@ function wireHeatmapGrid(
 
   if (typeof ResizeObserver !== "undefined") {
     const resizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(applyColumns);
+      window.requestAnimationFrame(applyColumns);
     });
     resizeObserver.observe(gridEl);
     registry.grid = resizeObserver;
@@ -387,7 +387,7 @@ export async function renderHeatmaps(
     );
   }
 
-  if (useGrid && heatmapParent instanceof HTMLElement) {
+  if (useGrid) {
     wireHeatmapGrid(heatmapParent, layout, activities.length, registry);
   }
 }
