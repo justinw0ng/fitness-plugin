@@ -51,34 +51,46 @@ wait_for_window() {
   return 1
 }
 
-title_bar_height() {
+measure_crop_top() {
   local win="$1"
   python3 - "$win" <<'PY'
 import re
 import subprocess
 import sys
 
+DEFAULT = 30
 win = sys.argv[1]
 try:
     out = subprocess.check_output(["xwininfo", "-id", win, "-frame"], text=True, stderr=subprocess.DEVNULL)
 except subprocess.CalledProcessError:
-    print(0)
+    print(DEFAULT)
     raise SystemExit
 
-def parse_block(text: str) -> dict[str, int]:
-    values: dict[str, int] = {}
-    for line in text.splitlines():
-        match = re.match(r"\s*([^:]+):\s*(-?\d+)", line)
-        if match:
-            values[match.group(1).strip()] = int(match.group(2))
-    return values
+blocks: list[dict[str, int]] = []
+current: dict[str, int] = {}
+for line in out.splitlines():
+    if line.startswith("xwininfo:"):
+        if current:
+            blocks.append(current)
+        current = {}
+        continue
+    match = re.match(r"\s*([^:]+):\s*(-?\d+)", line)
+    if match:
+        current[match.group(1).strip()] = int(match.group(2))
+if current:
+    blocks.append(current)
 
-outer = parse_block(out.split("xwininfo:", 1)[0])
-inner = parse_block(out.split("xwininfo:", 1)[1] if "xwininfo:" in out else "")
-if not outer or not inner:
-    print(0)
+if len(blocks) < 2:
+    print(DEFAULT)
+    raise SystemExit
+
+outer_y = blocks[0].get("Absolute upper-left Y")
+inner_y = blocks[1].get("Absolute upper-left Y")
+if outer_y is None or inner_y is None:
+    print(DEFAULT)
 else:
-    print(max(0, inner.get("Absolute upper-left Y", 0) - outer.get("Absolute upper-left Y", 0)))
+    measured = max(0, inner_y - outer_y)
+    print(measured if measured > 0 else DEFAULT)
 PY
 }
 
@@ -94,28 +106,59 @@ app.write_text(json.dumps(data, indent=2) + "\n")
 PY
 }
 
-finalize_screenshot() {
+detect_and_crop_screenshot() {
   local source="$1"
   local dest="$2"
   local width="$3"
   local height="$4"
-  local crop_top="$5"
-  python3 - "$source" "$dest" "$width" "$height" "$crop_top" <<'PY'
+  python3 - "$source" "$dest" "$width" "$height" <<'PY'
 import sys
 from pathlib import Path
 
 from PIL import Image
 
-source, dest, width_s, height_s, crop_top_s = sys.argv[1:6]
+source, dest, width_s, height_s = sys.argv[1:5]
 width = int(width_s)
 height = int(height_s)
-crop_top = int(crop_top_s)
-image = Image.open(source)
-if crop_top > 0:
-    image = image.crop((0, crop_top, width, crop_top + height))
-elif image.size != (width, height):
-    image = image.crop((0, 0, width, height))
-image.save(dest)
+image = Image.open(source).convert("RGB")
+
+def row_is_tab_bar(y: int, threshold: int = 240, min_ratio: float = 0.8) -> bool:
+    white = 0
+    for x in range(width):
+        r, g, b = image.getpixel((x, y))
+        if r >= threshold and g >= threshold and b >= threshold:
+            white += 1
+    return white / width >= min_ratio
+
+crop_top = 0
+for y in range(image.height):
+    if row_is_tab_bar(y):
+        crop_top = y
+        break
+
+if crop_top == 0:
+    r, g, b = image.getpixel((width // 2, 0))
+    if not (r >= 240 and g >= 240 and b >= 240):
+        print(
+            f"ERROR: could not detect OS title-bar strip to crop in {source}; "
+            f"top row RGB=({r},{g},{b})",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+
+if crop_top + height > image.height:
+    print(
+        f"ERROR: crop_top={crop_top} + height={height} exceeds capture height {image.height}",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
+cropped = image.crop((0, crop_top, width, crop_top + height))
+if cropped.size != (width, height):
+    print(f"ERROR: cropped size {cropped.size} != expected ({width}, {height})", file=sys.stderr)
+    raise SystemExit(1)
+
+cropped.save(dest)
 Path(source).unlink(missing_ok=True)
 PY
 }
@@ -151,14 +194,15 @@ capture_daily_note() {
 
   xdotool windowactivate --sync "$win"
   xdotool key --window "$win" Escape
+  xdotool windowmove --sync "$win" 0 0
+
+  local crop_top
+  crop_top=$(measure_crop_top "$win")
+  local capture_height=$((height + crop_top))
+
   wmctrl -i -r "$win" -b add,undecorated 2>/dev/null || true
   sleep 0.5
 
-  local title_bar
-  title_bar=$(title_bar_height "$win")
-  local capture_height=$((height + title_bar))
-
-  xdotool windowmove --sync "$win" 0 0
   xdotool windowsize --sync "$win" "$width" "$capture_height"
   xdotool windowactivate --sync "$win"
   xdotool key --window "$win" ctrl+Home || true
@@ -174,7 +218,7 @@ capture_daily_note() {
 
   local raw="${destination}.raw.png"
   screenshot_window "$width" "$capture_height" "$raw"
-  finalize_screenshot "$raw" "$destination" "$width" "$height" "$title_bar"
+  detect_and_crop_screenshot "$raw" "$destination" "$width" "$height"
   if [[ ! -s "$destination" ]]; then
     echo "ERROR: screenshot was not created: $destination" >&2
     exit 1
