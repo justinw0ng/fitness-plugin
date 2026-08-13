@@ -215,8 +215,11 @@ test("flat mobile books do not paint a spine strip over the cover", () => {
 
 test("cover images apply coverObjectPosition after load", () => {
   const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
-  assert.match(src, /coverObjectPosition\(/);
-  assert.match(src, /addEventListener\("load"/);
+  assert.match(src, /bindCoverObjectPosition\(img\)/);
+  assert.match(
+    src,
+    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load"/,
+  );
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
