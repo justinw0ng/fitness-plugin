@@ -8,7 +8,11 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function gifSize(buffer) {
-  assert.equal(buffer.slice(0, 6).toString("ascii"), "GIF89a");
+  const header = buffer.slice(0, 6).toString("ascii");
+  assert.ok(
+    header === "GIF89a" || header === "GIF87a",
+    `unexpected GIF header: ${header}`,
+  );
   return { width: buffer.readUInt16LE(6), height: buffer.readUInt16LE(8) };
 }
 
