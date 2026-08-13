@@ -152,7 +152,13 @@ async function renderOneHeatmap(
   language: Language,
   registry: HeatmapObserverRegistry,
 ): Promise<void> {
-  const wrap = root.createDiv({ cls: "fitness-heatmap" });
+  const wrap = root.createDiv({
+    cls: "fitness-heatmap",
+    attr: {
+      "data-testid": "atomic-heatmap",
+      "data-activity": activity.id,
+    },
+  });
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
 
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
@@ -259,6 +265,11 @@ async function renderOneHeatmap(
           (day.isToday ? " is-today" : "") +
           (day.isCurrentYear ? "" : " is-faded") +
           (day.path ? " is-link" : ""),
+        attr: {
+          "data-testid": day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell",
+          "data-minutes": String(day.minutes),
+          "data-date": day.fullDate,
+        },
       });
       cell.style.backgroundColor = color;
       const tip = day.path
@@ -347,12 +358,14 @@ export async function renderHeatmaps(
         ids: invalidIds.join(", "),
       }),
       cls: "fitness-muted",
+      attr: { "data-testid": "atomic-heatmap-invalid" },
     });
   }
   if (activities.length === 0 && invalidIds.length === 0) {
     root.createEl("p", {
       text: t("view.heatmap.noActivities", language),
       cls: "fitness-muted",
+      attr: { "data-testid": "atomic-heatmap-empty" },
     });
     return;
   }

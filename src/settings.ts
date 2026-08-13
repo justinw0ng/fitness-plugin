@@ -44,6 +44,7 @@ class ConfirmDeleteActivityModal extends Modal {
   }
 
   onOpen(): void {
+    this.modalEl.setAttr("data-testid", "atomic-confirm-delete-modal");
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
     new Setting(this.contentEl)
@@ -197,7 +198,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
 
-    new Setting(containerEl)
+    const addHobby = new Setting(containerEl)
       .setName(t("settings.addHobbyType", language))
       .setDesc(t("settings.addHobbyTypeDesc", language))
       .addText((text) =>
@@ -226,6 +227,7 @@ export class FitnessSettingTab extends PluginSettingTab {
           this.display();
         }),
       );
+    addHobby.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
   }
 
   private renderActivityRows(
@@ -276,6 +278,8 @@ export class FitnessSettingTab extends PluginSettingTab {
             await this.saveAndRefresh();
           }),
       );
+    row.settingEl.setAttr("data-testid", "atomic-setting-activity");
+    row.settingEl.setAttr("data-activity-id", activity.id);
 
     if (options.showCues) {
       row.addToggle((toggle) =>
@@ -310,15 +314,23 @@ export class FitnessSettingTab extends PluginSettingTab {
           this.renderColorSwatches(colorSetting.controlEl, activity);
         }),
       );
+    colorSetting.settingEl.setAttr("data-testid", "atomic-setting-colors");
+    colorSetting.settingEl.setAttr("data-activity-id", activity.id);
 
     this.renderColorSwatches(colorSetting.controlEl, activity);
   }
 
   private renderColorSwatches(controlEl: HTMLElement, activity: ActivityType): void {
     controlEl.querySelectorAll(".atomic-color-swatch-row").forEach((node) => node.remove());
-    const row = controlEl.createDiv({ cls: "atomic-color-swatch-row" });
+    const row = controlEl.createDiv({
+      cls: "atomic-color-swatch-row",
+      attr: { "data-testid": "atomic-color-swatch-row" },
+    });
     for (const color of activity.colors) {
-      const swatch = row.createDiv({ cls: "atomic-color-swatch" });
+      const swatch = row.createDiv({
+        cls: "atomic-color-swatch",
+        attr: { "data-testid": "atomic-color-swatch" },
+      });
       swatch.style.backgroundColor = color;
       swatch.title = color;
     }

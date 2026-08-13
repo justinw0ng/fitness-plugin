@@ -1,6 +1,6 @@
 {
   "name": "obsidian-atomic",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -10,12 +10,14 @@
     "build": "node esbuild.config.mjs production",
     "dev": "node esbuild.config.mjs",
     "test": "node --experimental-strip-types --test tests/*.mjs",
+    "test:e2e": "npm run build && node --test --test-timeout=180000 e2e/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
     "esbuild": "^0.28.1",
     "obsidian": "^1.5.7-1",
+    "selenium-webdriver": "^4.47.0",
     "typescript": "^5.3.3"
   }
 }

@@ -52,6 +52,7 @@ test("ci.yml change detection uses the plugin source path list", () => {
   assert.match(ci, /plugin-source-paths\.txt/);
   assert.match(ci, /git diff --name-only/);
   assert.match(ci, /^\s+tests\s*\\$/m);
+  assert.match(ci, /^\s+e2e\s*\\$/m);
   assert.match(ci, /\.github\/workflows\/release\.yml/);
   assert.match(ci, /needs\.changes\.outputs\.source == 'true'/);
   assert.doesNotMatch(ci, /\|\| true/);
