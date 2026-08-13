@@ -248,10 +248,15 @@ test("isBookShelfUnclipStop keeps note scroll containers intact", () => {
 
 test("unclipBookShelfAncestors opens codeblock overflow and stops at the note scroller", () => {
   const scroller = { className: "cm-scroller", style: { overflow: "auto" }, parentElement: null };
+  const sizer = {
+    className: "markdown-preview-sizer",
+    style: { overflow: "auto" },
+    parentElement: scroller,
+  };
   const preview = {
     className: "cm-preview-code-block markdown-rendered-code-block",
     style: { overflow: "hidden" },
-    parentElement: scroller,
+    parentElement: sizer,
   };
   const host = {
     className: "",
@@ -265,6 +270,7 @@ test("unclipBookShelfAncestors opens codeblock overflow and stops at the note sc
   assert.equal(el.style.overflow, "visible");
   assert.equal(host.style.overflow, "visible");
   assert.equal(preview.style.overflow, "visible");
+  assert.equal(sizer.style.overflow, "auto");
   assert.equal(scroller.style.overflow, "auto");
 });
 

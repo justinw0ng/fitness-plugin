@@ -2520,6 +2520,12 @@ function measureElementWidth(el, fallbackWidth = 0) {
 // src/views/book-shelf.ts
 var resizeObservers = /* @__PURE__ */ new WeakMap();
 var windowListeners = /* @__PURE__ */ new WeakMap();
+function shouldUnclipBookShelfAncestor(className) {
+  return className.split(/\s+/).some((token) => {
+    const t2 = token.toLowerCase();
+    return t2.includes("code-block") || t2.includes("codeblock") || t2 === "cm-embed-block" || t2.includes("internal-embed");
+  });
+}
 function isBookShelfUnclipStop(className) {
   const t2 = className.toLowerCase();
   return t2.includes("markdown-preview-view") || t2.includes("markdown-source-view") || t2.includes("cm-scroller") || t2.includes("workspace-leaf");
@@ -2527,10 +2533,15 @@ function isBookShelfUnclipStop(className) {
 function unclipBookShelfAncestors(el, maxDepth = 8) {
   let current = el;
   let depth = 0;
+  let reachedKnownWrapper = false;
   while (current && depth < maxDepth) {
     const className = current.className ?? "";
     if (isBookShelfUnclipStop(className)) break;
-    current.style.overflow = "visible";
+    const knownWrapper = shouldUnclipBookShelfAncestor(className);
+    if (depth === 0 || !reachedKnownWrapper || knownWrapper) {
+      current.style.overflow = "visible";
+    }
+    if (knownWrapper) reachedKnownWrapper = true;
     current = current.parentElement;
     depth += 1;
   }

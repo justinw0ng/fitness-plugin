@@ -67,10 +67,15 @@ export function unclipBookShelfAncestors(
 ): void {
   let current: OverflowElement | HTMLElement | null = el;
   let depth = 0;
+  let reachedKnownWrapper = false;
   while (current && depth < maxDepth) {
     const className = current.className ?? "";
     if (isBookShelfUnclipStop(className)) break;
-    current.style.overflow = "visible";
+    const knownWrapper = shouldUnclipBookShelfAncestor(className);
+    if (depth === 0 || !reachedKnownWrapper || knownWrapper) {
+      current.style.overflow = "visible";
+    }
+    if (knownWrapper) reachedKnownWrapper = true;
     current = current.parentElement;
     depth += 1;
   }
