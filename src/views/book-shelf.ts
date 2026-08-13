@@ -35,7 +35,12 @@ type OverflowElement = {
   className?: string;
   style: { overflow: string };
   parentElement: OverflowElement | null;
+  setCssStyles: (styles: { overflow: string }) => void;
 };
+
+function setOverflowVisible(el: OverflowElement | HTMLElement): void {
+  el.setCssStyles({ overflow: "visible" });
+}
 
 /** Codeblock wrappers that clip the hover title bubble if overflow stays hidden. */
 export function shouldUnclipBookShelfAncestor(className: string): boolean {
@@ -73,7 +78,7 @@ export function unclipBookShelfAncestors(
     if (isBookShelfUnclipStop(className)) break;
     const knownWrapper = shouldUnclipBookShelfAncestor(className);
     if (depth === 0 || !reachedKnownWrapper || knownWrapper) {
-      current.style.overflow = "visible";
+      setOverflowVisible(current);
     }
     if (knownWrapper) reachedKnownWrapper = true;
     current = current.parentElement;
@@ -120,8 +125,10 @@ function bindBookDetailPortal(
       bookLeft: rect.left,
       bookWidth: rect.width,
     });
-    detail.style.left = `${pos.left}px`;
-    detail.style.top = `${pos.top}px`;
+    detail.setCssStyles({
+      left: `${pos.left}px`,
+      top: `${pos.top}px`,
+    });
   };
 
   const hide = (): void => {
@@ -133,8 +140,7 @@ function bindBookDetailPortal(
       window.removeEventListener("resize", place);
     }
     detail.classList.remove("is-ported");
-    detail.style.left = "";
-    detail.style.top = "";
+    detail.setCssStyles({ left: "", top: "" });
     if (button.isConnected) button.appendChild(detail);
     else detail.remove();
   };
@@ -534,8 +540,8 @@ export function renderBookShelf(
   };
 
   layout();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(layout);
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(layout);
   });
 
   if (typeof ResizeObserver !== "undefined") {

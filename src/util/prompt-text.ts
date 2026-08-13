@@ -21,7 +21,7 @@ export function promptText(
         contentEl.createEl("h2", { text: title });
         new Setting(contentEl).addText((text) => {
           text.setValue(defaultValue);
-          text.inputEl.style.width = "100%";
+          text.inputEl.setCssStyles({ width: "100%" });
           text.onChange((v) => {
             this.value = v;
           });

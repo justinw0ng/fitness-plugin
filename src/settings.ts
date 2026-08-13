@@ -106,7 +106,7 @@ export class FitnessSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
             await this.plugin.saveSettings();
-            this.plugin.refreshAll();
+            void this.plugin.refreshAll();
           }),
       );
 
