@@ -101,25 +101,40 @@ async function launchForCapture(vaultPath, filePath) {
   return { child, version, vaultId };
 }
 
-function xdotoolResize(width, height) {
-  const search = spawnSync("xdotool", ["search", "--name", "Obsidian"], {
-    encoding: "utf8",
-  });
-  const ids = (search.stdout || "").trim().split("\n").filter(Boolean);
-  for (const id of ids) {
-    spawnSync("xdotool", ["windowmove", "--sync", id, "0", "0"]);
-    spawnSync("xdotool", ["windowsize", "--sync", id, String(width), String(height)]);
-    spawnSync("xdotool", ["windowactivate", "--sync", id]);
+function spawnXdotool(args) {
+  const result = spawnSync("xdotool", args, { encoding: "utf8" });
+  if (result.error?.code === "ENOENT") {
+    return { missing: true, result };
   }
+  return { missing: false, result };
+}
+
+function xdotoolResize(width, height) {
+  const search = spawnXdotool(["search", "--name", "Obsidian"]);
+  if (search.missing) return { missing: true };
+  const ids = (search.result.stdout || "").trim().split("\n").filter(Boolean);
+  for (const id of ids) {
+    spawnXdotool(["windowmove", "--sync", id, "0", "0"]);
+    spawnXdotool(["windowsize", "--sync", id, String(width), String(height)]);
+    spawnXdotool(["windowactivate", "--sync", id]);
+  }
+  return { missing: false };
 }
 
 async function resizeWindow(driver, width, height) {
+  let setRectOk = false;
   try {
     await driver.manage().window().setRect({ x: 0, y: 0, width, height });
+    setRectOk = true;
   } catch {
     // Electron sometimes rejects setRect; xdotool is the fallback.
   }
-  xdotoolResize(width, height);
+  const xdo = xdotoolResize(width, height);
+  if (xdo.missing && !setRectOk) {
+    throw new Error(
+      "Could not resize the Obsidian window. Electron rejected setRect and xdotool is not installed. Install xdotool (apt install xdotool) or allow window.setRect.",
+    );
+  }
   await sleep(400);
 }
 

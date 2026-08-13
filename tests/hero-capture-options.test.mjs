@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  DEFAULT_DEMO_VAULT,
   DEFAULT_HERO_BOOK_LIMIT,
   parseHeroBookLimit,
+  parseSeedVault,
 } from "../scripts/hero-capture-options.mjs";
 
 test("parseHeroBookLimit defaults to 12", () => {
@@ -39,4 +41,33 @@ test("parseHeroBookLimit rejects unknown arguments", () => {
     () => parseHeroBookLimit(["--books", "3"], 12),
     /Unknown argument: --books/,
   );
+});
+
+test("parseSeedVault defaults to the demo vault and leaves other args", () => {
+  assert.equal(DEFAULT_DEMO_VAULT, "/workspace/obsidian-demo");
+  assert.deepEqual(parseSeedVault([]), {
+    vault: DEFAULT_DEMO_VAULT,
+    rest: [],
+  });
+  assert.deepEqual(parseSeedVault(["--book-limit", "3"]), {
+    vault: DEFAULT_DEMO_VAULT,
+    rest: ["--book-limit", "3"],
+  });
+});
+
+test("parseSeedVault accepts --vault and --vault=", () => {
+  assert.deepEqual(parseSeedVault(["--vault", "/tmp/guide-vault"]), {
+    vault: "/tmp/guide-vault",
+    rest: [],
+  });
+  assert.deepEqual(
+    parseSeedVault(["--vault=/tmp/other", "--book-limit", "3"]),
+    { vault: "/tmp/other", rest: ["--book-limit", "3"] },
+  );
+});
+
+test("parseSeedVault rejects a missing path", () => {
+  assert.throws(() => parseSeedVault(["--vault"]), /requires a path/);
+  assert.throws(() => parseSeedVault(["--vault", "--book-limit"]), /requires a path/);
+  assert.throws(() => parseSeedVault(["--vault="]), /requires a path/);
 });

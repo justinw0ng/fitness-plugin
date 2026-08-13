@@ -1,6 +1,6 @@
 /**
- * Seed /workspace/obsidian-demo with original demo covers, then add the notes
- * used by user-guide screenshot capture.
+ * Seed a demo vault with original demo covers, then add the notes used by
+ * user-guide screenshot capture. Defaults to /workspace/obsidian-demo.
  *
  * Demo titles and cover art are invented typographic pieces (see
  * docs/demo-covers/). Do not point cover fields at publisher art or Open Library.
@@ -9,9 +9,10 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { DEFAULT_DEMO_VAULT } from "./hero-capture-options.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-export const USER_GUIDE_VAULT = "/workspace/obsidian-demo";
+export const USER_GUIDE_VAULT = DEFAULT_DEMO_VAULT;
 
 export const TIMER_ITEM_TITLE = "The Unhurried Advantage";
 export const OPEN_COVER_TITLE = "The Honest Hour";
@@ -122,14 +123,15 @@ Chapter 3 now.
   );
 }
 
+export const BOOK_SHELF_NOTE = [
+  "```atomic-bookshelf",
+  "activity: reading",
+  "```",
+  "",
+].join("\n");
+
 export function writeUserGuideNotes(vault = USER_GUIDE_VAULT) {
-  writeFileSync(
-    join(vault, "atomics/hobbies/Reading/Book Shelf.md"),
-    `\`\`\`atomic-bookshelf
-activity: reading
-\`\`\`
-`,
-  );
+  writeFileSync(join(vault, "atomics/hobbies/Reading/Book Shelf.md"), BOOK_SHELF_NOTE);
 }
 
 export function patchObsidianConfig(vault = USER_GUIDE_VAULT) {
@@ -173,8 +175,12 @@ export function assertOriginalDemoNotes(vault = USER_GUIDE_VAULT) {
   }
 }
 
+export function seedDemoVaultArgs(vault = USER_GUIDE_VAULT) {
+  return [join(ROOT, "scripts/seed-readme-demo-vault.mjs"), "--vault", vault];
+}
+
 export function prepareUserGuideVault(vault = USER_GUIDE_VAULT) {
-  const seed = spawnSync("node", [join(ROOT, "scripts/seed-readme-demo-vault.mjs")], {
+  const seed = spawnSync("node", seedDemoVaultArgs(vault), {
     cwd: ROOT,
     encoding: "utf8",
   });
@@ -191,6 +197,6 @@ export function prepareUserGuideVault(vault = USER_GUIDE_VAULT) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  prepareUserGuideVault();
-  console.log(`Prepared user-guide vault at ${USER_GUIDE_VAULT}`);
+  const vault = prepareUserGuideVault();
+  console.log(`Prepared user-guide vault at ${vault}`);
 }

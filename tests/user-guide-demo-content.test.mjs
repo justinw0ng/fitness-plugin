@@ -2,14 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
+  BOOK_SHELF_NOTE,
   DEMO_AUTHORS,
   FORBIDDEN_PUBLISHER_TITLES,
   OPEN_COVER_TITLE,
   TIMER_ITEM_TITLE,
+  USER_GUIDE_VAULT,
   assertOriginalDemoNotes,
   patchReadingItems,
+  seedDemoVaultArgs,
   writeUserGuideNotes,
 } from "../scripts/prepare-user-guide-vault.mjs";
 
@@ -65,8 +69,33 @@ cover: ""
       join(vault, "atomics/hobbies/Reading/Book Shelf.md"),
       "utf8",
     );
-    assert.match(shelf, /atomic-bookshelf/);
+    assert.equal(shelf, BOOK_SHELF_NOTE);
+    assert.equal(shelf, "```atomic-bookshelf\nactivity: reading\n```\n");
+    assert.doesNotMatch(shelf, /^ /m);
   } finally {
     rmSync(vault, { recursive: true, force: true });
   }
+});
+
+test("prepareUserGuideVault seeds the vault it patches", () => {
+  const vault = "/tmp/atomic-user-guide-vault";
+  const args = seedDemoVaultArgs(vault);
+  assert.equal(args.at(-2), "--vault");
+  assert.equal(args.at(-1), vault);
+  assert.notEqual(vault, USER_GUIDE_VAULT);
+  assert.deepEqual(seedDemoVaultArgs(), [
+    args[0],
+    "--vault",
+    USER_GUIDE_VAULT,
+  ]);
+});
+
+test("capture script continues without xdotool when setRect works", () => {
+  const src = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "..", "scripts/capture-user-guide-screenshots.mjs"),
+    "utf8",
+  );
+  assert.match(src, /error\?\.code === "ENOENT"/);
+  assert.match(src, /xdotool is not installed/);
+  assert.match(src, /setRectOk/);
 });

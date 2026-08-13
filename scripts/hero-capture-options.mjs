@@ -1,4 +1,34 @@
 export const DEFAULT_HERO_BOOK_LIMIT = 12;
+export const DEFAULT_DEMO_VAULT = "/workspace/obsidian-demo";
+
+export function parseSeedVault(argv, fallback = DEFAULT_DEMO_VAULT) {
+  const rest = [];
+  let vault = fallback;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--vault") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("-")) {
+        throw new Error("--vault requires a path");
+      }
+      vault = value;
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--vault=")) {
+      const value = arg.slice("--vault=".length);
+      if (!value) {
+        throw new Error("--vault requires a path");
+      }
+      vault = value;
+      continue;
+    }
+    rest.push(arg);
+  }
+
+  return { vault, rest };
+}
 
 export function parseHeroBookLimit(argv, maxBooks) {
   let raw = null;
