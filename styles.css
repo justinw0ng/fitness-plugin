@@ -269,7 +269,7 @@
 .fitness-plugin .atomic-book-shelf-frame {
   border: 1px solid var(--background-modifier-border);
   border-radius: 12px;
-  /* Frame chrome only — bubble room lives in row padding so overflow-x cannot clip it. */
+  /* Frame chrome only. Title bubbles portal outside this box on hover. */
   padding: 8px 4px 6px;
   overflow: visible;
   background:
@@ -292,9 +292,9 @@
   justify-content: flex-start;
   gap: var(--atomic-book-gap);
   min-height: var(--atomic-book-height);
-  /* Top padding keeps the hover bubble inside this scrollport (overflow-x: auto
-     otherwise computes overflow-y to auto and clips it). */
-  padding: 52px 4px 0;
+  /* Room for the hover lift only. Title bubbles are portaled to document.body
+     because overflow-x: auto computes overflow-y to auto and would clip them. */
+  padding: 12px 4px 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   perspective: 1400px;
@@ -684,21 +684,18 @@
   }
 }
 
-.fitness-plugin .atomic-book-detail {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
+.atomic-book-detail {
+  --atomic-book-detail-bg: #1e1e1e;
+  --atomic-book-detail-fg: #fff;
   width: max-content;
   max-width: min(200px, 72vw);
   box-sizing: border-box;
-  transform: translateX(-50%) translateY(8px);
-  opacity: 0;
   pointer-events: none;
   border: 0;
   border-radius: 8px;
   padding: 8px 10px;
-  background: var(--background-modifier-message, #1e1e1e);
-  color: var(--text-on-accent, #fff);
+  background: var(--atomic-book-detail-bg);
+  color: var(--atomic-book-detail-fg);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   text-align: left;
   white-space: normal;
@@ -706,31 +703,53 @@
   word-wrap: break-word;
   word-break: break-word;
   hyphens: auto;
+}
+
+.fitness-plugin .atomic-book-detail {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
   transition:
     opacity 200ms ease,
     transform 200ms ease;
   z-index: 20;
 }
 
-.fitness-plugin .atomic-book-detail::after {
+/* Escapes the shelf scrollport (overflow-x: auto clips overflow-y). */
+.atomic-book-detail.is-ported {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: auto;
+  transform: translate(-50%, -100%);
+  opacity: 1;
+  z-index: var(--layer-tooltip, 10000);
+}
+
+.atomic-book-detail::after {
   content: "";
   position: absolute;
   top: 100%;
   left: 50%;
   margin-left: -6px;
   border: 6px solid transparent;
-  border-top-color: var(--background-modifier-message, #1e1e1e);
+  border-top-color: var(--atomic-book-detail-bg);
 }
 
-.fitness-plugin .atomic-book:hover .atomic-book-detail,
-.fitness-plugin .atomic-book:focus-visible .atomic-book-detail,
-.fitness-plugin .atomic-book:active .atomic-book-detail,
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-detail {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+.theme-dark .atomic-book-detail {
+  --atomic-book-detail-bg: #fff;
+  --atomic-book-detail-fg: #111;
+  background: #fff;
+  color: #111;
 }
 
-.fitness-plugin .atomic-book-detail-title {
+.theme-dark .atomic-book-detail::after {
+  border-top-color: #fff;
+}
+
+.atomic-book-detail-title {
   font-weight: 700;
   font-size: 12px;
   line-height: 1.25;
@@ -740,8 +759,8 @@
   word-break: break-word;
 }
 
-.fitness-plugin .atomic-book-detail-author,
-.fitness-plugin .atomic-book-detail-description {
+.atomic-book-detail-author,
+.atomic-book-detail-description {
   color: inherit;
   opacity: 0.8;
   font-size: 11px;
@@ -801,7 +820,8 @@
   .fitness-plugin .atomic-book-volume,
   .fitness-plugin .atomic-book-cover,
   .fitness-plugin .atomic-book-pages,
-  .fitness-plugin .atomic-book-detail {
+  .fitness-plugin .atomic-book-detail,
+  .atomic-book-detail.is-ported {
     transition: none;
   }
 

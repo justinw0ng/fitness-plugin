@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  bookDetailFixedPosition,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -301,6 +302,29 @@ test("unclipBookShelfAncestors opens codeblock overflow and stops at the note sc
   assert.equal(scroller.style.overflow, "auto");
 });
 
+test("bookDetailFixedPosition centers the bubble above the book", () => {
+  assert.deepEqual(
+    bookDetailFixedPosition({
+      bookTop: 200,
+      bookLeft: 40,
+      bookWidth: 108,
+      gap: 8,
+    }),
+    { left: 94, top: 192 },
+  );
+});
+
+test("book shelf ports hover details to document.body", () => {
+  const source = readFileSync(
+    join(repoRoot, "src/views/book-shelf.ts"),
+    "utf8",
+  );
+  assert.match(source, /ownerDocument/);
+  assert.match(source, /appendChild\(detail\)/);
+  assert.match(source, /bookDetailFixedPosition/);
+  assert.match(source, /is-ported/);
+});
+
 test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {
   assert.match(
     stylesCss,
@@ -316,7 +340,15 @@ test("book shelf CSS lets cover hover reach the book button and keeps the title 
   );
   assert.match(
     stylesCss,
-    /\.atomic-book-detail[^{]*\{[^}]*background:[^;]*--background-modifier-message/s,
+    /\.atomic-book-detail\.is-ported[^{]*\{[^}]*position:\s*fixed/s,
+  );
+  assert.match(
+    stylesCss,
+    /\.theme-dark[\s\S]*?\.atomic-book-detail[\s\S]*?background:\s*#fff/,
+  );
+  assert.match(
+    stylesCss,
+    /\.theme-dark[\s\S]*?\.atomic-book-detail[\s\S]*?color:\s*#111/,
   );
   assert.match(
     stylesCss,

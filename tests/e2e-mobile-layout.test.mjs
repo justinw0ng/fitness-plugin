@@ -182,11 +182,15 @@ test("parseCoverRef rejects javascript and non-raster data URLs", () => {
 
 test("book shelf window resize listener is only a ResizeObserver fallback", () => {
   const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
-  const listener = src.indexOf('window.addEventListener("resize"');
-  assert.ok(listener > 0);
-  const observerCheck = src.lastIndexOf("typeof ResizeObserver", listener);
+  const fallback = src.indexOf("const onWindowResize");
+  assert.ok(fallback > 0);
+  const observerCheck = src.lastIndexOf("typeof ResizeObserver", fallback);
   assert.ok(observerCheck > 0);
-  assert.match(src.slice(observerCheck, listener), /return;/);
+  assert.match(src.slice(observerCheck, fallback), /return;/);
+  assert.match(
+    src.slice(fallback),
+    /window\.addEventListener\("resize", onWindowResize\)/,
+  );
 });
 
 test("flat mobile books do not paint a spine strip over the cover", () => {

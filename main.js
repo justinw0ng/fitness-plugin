@@ -2546,6 +2546,69 @@ function unclipBookShelfAncestors(el, maxDepth = 8) {
     depth += 1;
   }
 }
+function bookDetailFixedPosition(args) {
+  const gap = args.gap ?? 8;
+  return {
+    left: args.bookLeft + args.bookWidth / 2,
+    top: args.bookTop - gap
+  };
+}
+var activeDetailHides = /* @__PURE__ */ new Set();
+function hideAllPortedDetails() {
+  for (const hide of [...activeDetailHides]) hide();
+}
+function bindBookDetailPortal(button, detail) {
+  const doc = button.ownerDocument;
+  let ported = false;
+  const place = () => {
+    if (!ported) return;
+    const rect = button.getBoundingClientRect();
+    const pos = bookDetailFixedPosition({
+      bookTop: rect.top,
+      bookLeft: rect.left,
+      bookWidth: rect.width
+    });
+    detail.style.left = `${pos.left}px`;
+    detail.style.top = `${pos.top}px`;
+  };
+  const hide = () => {
+    if (!ported) return;
+    ported = false;
+    activeDetailHides.delete(hide);
+    doc.removeEventListener("scroll", place, true);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", place);
+    }
+    detail.classList.remove("is-ported");
+    detail.style.left = "";
+    detail.style.top = "";
+    if (button.isConnected) button.appendChild(detail);
+    else detail.remove();
+  };
+  const show = () => {
+    const body = doc.body;
+    if (!body) return;
+    if (ported) {
+      place();
+      return;
+    }
+    hideAllPortedDetails();
+    ported = true;
+    activeDetailHides.add(hide);
+    detail.classList.add("is-ported");
+    body.appendChild(detail);
+    place();
+    doc.addEventListener("scroll", place, true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", place);
+    }
+  };
+  button.addEventListener("pointerenter", show);
+  button.addEventListener("pointerleave", hide);
+  button.addEventListener("focus", show);
+  button.addEventListener("blur", hide);
+  return { show, hide };
+}
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -2669,18 +2732,6 @@ function createBook(parent, item, data, language) {
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
-    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
-      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
-      return;
-    }
-    void data.openPath(item.path);
-  });
   const titleClass = titleLengthClass(item.title);
   const volume = button.createDiv({ cls: "atomic-book-volume" });
   const pages = volume.createDiv({ cls: "atomic-book-pages" });
@@ -2726,8 +2777,23 @@ function createBook(parent, item, data, language) {
       text: item.description
     });
   }
+  const portal = bindBookDetailPortal(button, detail);
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      portal.show();
+      return;
+    }
+    void data.openPath(item.path);
+  });
 }
 function paintRows(frame, items, perRow, data, language, emptyText) {
+  hideAllPortedDetails();
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
@@ -2757,6 +2823,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     window.removeEventListener("resize", previousWindowListener);
     windowListeners.delete(el);
   }
+  hideAllPortedDetails();
   el.empty();
   unclipBookShelfAncestors(el);
   const root = el.createDiv({ cls: "fitness-plugin atomic-book-shelf" });
