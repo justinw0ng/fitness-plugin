@@ -4,18 +4,46 @@
 set -euo pipefail
 
 export DISPLAY=:1
-VAULT_ID="demo0000000001"
+VAULT_PATH="${VAULT_PATH:-/workspace/obsidian-demo}"
 DAILY_FILE="Daily notes/2026-08-11.md"
 SHOT_DIR="/tmp/atomic-hero-shots"
 DESKTOP_SHOT="${SHOT_DIR}/desktop.png"
 MOBILE_SHOT="${SHOT_DIR}/mobile.png"
 OUT="/workspace/docs/images/atomic-daily-hero.png"
+
+resolve_vault_id() {
+  if [[ -n "${VAULT_ID:-}" ]]; then
+    printf '%s\n' "$VAULT_ID"
+    return 0
+  fi
+  python3 - "$VAULT_PATH" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target = Path(sys.argv[1]).resolve()
+config = Path.home() / ".config/obsidian/obsidian.json"
+if config.is_file():
+    for vault_id, info in json.loads(config.read_text()).get("vaults", {}).items():
+        if Path(info.get("path", "")).resolve() == target:
+            print(vault_id)
+            raise SystemExit(0)
+print(target.name)
+PY
+}
+
+VAULT_ID="$(resolve_vault_id)"
+
 OBSIDIAN="${OBSIDIAN:-/opt/Obsidian/obsidian}"
 if [ ! -x "$OBSIDIAN" ]; then
-  OBSIDIAN="$(command -v obsidian)"
+  OBSIDIAN="$(command -v obsidian || true)"
+fi
+if [ -z "$OBSIDIAN" ] || [ ! -x "$OBSIDIAN" ]; then
+  echo "ERROR: Obsidian not found. Install Obsidian or set OBSIDIAN=/path/to/obsidian" >&2
+  exit 1
 fi
 
-mkdir -p "$SHOT_DIR" /home/ubuntu/.config/obsidian
+mkdir -p "$SHOT_DIR" "${HOME}/.config/obsidian"
 
 OBS_PID=""
 

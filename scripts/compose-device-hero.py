@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ModuleNotFoundError:
+    print(
+        "ERROR: Pillow is required. Install it with: python3 -m pip install Pillow",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
 
 WIDTH, HEIGHT = 1600, 900
 BACKGROUND = "#F5F2EC"
