@@ -269,8 +269,8 @@
 .fitness-plugin .atomic-book-shelf-frame {
   border: 1px solid var(--background-modifier-border);
   border-radius: 12px;
-  /* Room above books for the hover title bubble (wraps; can be multi-line). */
-  padding: 36px 4px 6px;
+  /* Frame chrome only — bubble room lives in row padding so overflow-x cannot clip it. */
+  padding: 8px 4px 6px;
   overflow: visible;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
@@ -292,9 +292,19 @@
   justify-content: flex-start;
   gap: var(--atomic-book-gap);
   min-height: var(--atomic-book-height);
-  padding: 0 4px;
+  /* Top padding keeps the hover bubble inside this scrollport (overflow-x: auto
+     otherwise computes overflow-y to auto and clips it). */
+  padding: 52px 4px 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Live Preview / Reading view codeblocks clip abspos hover bubbles otherwise. */
+.cm-preview-code-block:has(.atomic-book-shelf),
+.cm-embed-block:has(.atomic-book-shelf),
+.markdown-rendered-code-block:has(.atomic-book-shelf),
+.internal-embed:has(.atomic-book-shelf) {
+  overflow: visible !important;
 }
 
 .fitness-plugin .atomic-book-shelf-plank {
@@ -324,21 +334,27 @@
   transform: translateY(0);
   transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
   z-index: 1;
-  overflow: visible;
+  overflow: visible !important;
   white-space: normal;
+}
+
+/* Cover art / 3D faces must not steal hover from the button (aria-label tooltip). */
+.fitness-plugin .atomic-book * {
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book:hover,
 .fitness-plugin .atomic-book:focus-visible {
   transform: translateY(-8px);
   outline: none;
-  z-index: 3;
+  z-index: 6;
 }
 
 .fitness-plugin .atomic-book-volume {
   position: absolute;
   inset: 0;
   transform: none;
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book-pages,
@@ -436,6 +452,7 @@
   object-position: center;
   border-radius: 3px 4px 4px 3px;
   display: block;
+  pointer-events: none !important;
 }
 
 .fitness-plugin .atomic-book-cover-title {
@@ -609,18 +626,19 @@
 .fitness-plugin .atomic-book-detail {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--atomic-book-height) - 12px);
-  width: min(180px, 72vw);
-  max-width: 220px;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: min(200px, 72vw);
   box-sizing: border-box;
   transform: translateX(-50%) translateY(8px);
   opacity: 0;
   pointer-events: none;
-  border: 1px solid var(--background-modifier-border);
+  border: 0;
   border-radius: 8px;
   padding: 8px 10px;
-  background: var(--background-primary);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  background: var(--background-modifier-message, #1e1e1e);
+  color: var(--text-on-accent, #fff);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -630,7 +648,17 @@
   transition:
     opacity 200ms ease,
     transform 200ms ease;
-  z-index: 5;
+  z-index: 20;
+}
+
+.fitness-plugin .atomic-book-detail::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: var(--background-modifier-message, #1e1e1e);
 }
 
 .fitness-plugin .atomic-book:hover .atomic-book-detail,
@@ -651,7 +679,8 @@
 
 .fitness-plugin .atomic-book-detail-author,
 .fitness-plugin .atomic-book-detail-description {
-  color: var(--text-muted);
+  color: inherit;
+  opacity: 0.8;
   font-size: 11px;
   margin-top: 3px;
   line-height: 1.3;
