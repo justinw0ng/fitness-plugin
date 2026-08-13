@@ -872,6 +872,10 @@
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
     transform: none;
   }
+
+  .atomic-block-pending-bar {
+    animation: none;
+  }
 }
 
 /* Settings tab: stack dense bilingual activity rows and show shade previews. */

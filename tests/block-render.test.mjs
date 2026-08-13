@@ -8,6 +8,7 @@ import {
   ATOMIC_BLOCK_PENDING_CLASS,
   beginBlockRender,
   enqueueBlockRender,
+  invalidateBlockRenderIfCurrent,
   isStaleBlockRender,
   mountAtomicBlockShell,
 } from "../src/util/block-render.ts";
@@ -78,6 +79,18 @@ test("enqueueBlockRender skips a stale queued render", async () => {
   assert.deepEqual(order, ["second"]);
 });
 
+test("invalidateBlockRenderIfCurrent only bumps when that generation is still current", () => {
+  const el = {};
+  const first = beginBlockRender(el);
+  invalidateBlockRenderIfCurrent(el, first);
+  assert.equal(isStaleBlockRender(el, first), true);
+
+  const second = beginBlockRender(el);
+  const third = beginBlockRender(el);
+  invalidateBlockRenderIfCurrent(el, second);
+  assert.equal(isStaleBlockRender(el, third), false);
+});
+
 test("styles hide unprocessed atomic fences and style the pending shell", () => {
   assert.match(styles, /\.fitness-plugin\.atomic-block-pending/);
   assert.match(styles, /\.atomic-block-pending-bar/);
@@ -87,7 +100,7 @@ test("styles hide unprocessed atomic fences and style the pending shell", () => 
   );
   assert.match(
     styles,
-    /\.cm-preview-code-block:has\(>\s*pre\s*>\s*code\[class\*="language-atomic-"\]\):not\(:has\(\.fitness-plugin\)\)/,
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.atomic-block-pending-bar[\s\S]*animation:\s*none/,
   );
 });
 
@@ -108,5 +121,5 @@ test("codeblock processor returns void without awaiting renderBlock", () => {
     /async\s*\(source,\s*el,\s*ctx\)\s*=>\s*\{[\s\S]*await renderBlock/,
   );
   assert.match(codeblocksSrc, /enqueueBlockRender/);
-  assert.match(codeblocksSrc, /MarkdownRenderChild/);
+  assert.match(codeblocksSrc, /invalidateBlockRenderIfCurrent/);
 });

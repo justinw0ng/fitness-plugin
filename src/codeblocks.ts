@@ -2,8 +2,9 @@ import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian
 import type FitnessPlugin from "./main";
 import { parseBlockOptions } from "./util/parse-block";
 import {
-  beginBlockRender,
+  currentBlockGeneration,
   enqueueBlockRender,
+  invalidateBlockRenderIfCurrent,
   isStaleBlockRender,
   mountAtomicBlockShell,
 } from "./util/block-render";
@@ -40,6 +41,8 @@ function frontmatterYear(
 }
 
 class AtomicBlockChild extends MarkdownRenderChild {
+  private generation = 0;
+
   constructor(
     containerEl: HTMLElement,
     private readonly startRender: () => void,
@@ -49,12 +52,11 @@ class AtomicBlockChild extends MarkdownRenderChild {
 
   onload(): void {
     this.startRender();
+    this.generation = currentBlockGeneration(this.containerEl);
   }
 
   onunload(): void {
-    if (!this.containerEl.isConnected) {
-      beginBlockRender(this.containerEl);
-    }
+    invalidateBlockRenderIfCurrent(this.containerEl, this.generation);
   }
 }
 

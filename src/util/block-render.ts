@@ -26,6 +26,19 @@ export function isStaleBlockRender(el: object, generation: number): boolean {
   return generations.get(el) !== generation;
 }
 
+export function currentBlockGeneration(el: object): number {
+  return generations.get(el) ?? 0;
+}
+
+export function invalidateBlockRenderIfCurrent(
+  el: object,
+  generation: number,
+): void {
+  if (!isStaleBlockRender(el, generation)) {
+    beginBlockRender(el);
+  }
+}
+
 export function enqueueBlockRender(
   el: object,
   work: (generation: number) => Promise<void>,
