@@ -2621,6 +2621,39 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
+var COVER_SPINE_WIDE_RATIO = 0.72;
+function coverObjectPosition(naturalWidth, naturalHeight) {
+  if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0) {
+    return "center";
+  }
+  return naturalWidth / naturalHeight > COVER_SPINE_WIDE_RATIO ? "right center" : "center";
+}
+function bindCoverObjectPosition(img) {
+  const apply = () => {
+    img.style.objectPosition = coverObjectPosition(
+      img.naturalWidth,
+      img.naturalHeight
+    );
+  };
+  if (img.complete) apply();
+  else img.addEventListener("load", apply, { once: true });
+}
+var COVER_OPEN_CLASS = "is-cover-open";
+function hoverFinePointer(media) {
+  return Boolean(media?.matches);
+}
+function bookClickOpensNote(options) {
+  return options.hoverFine || options.coverOpen;
+}
+function hoverFineMedia() {
+  if (typeof matchMedia !== "function") return null;
+  return matchMedia("(hover: hover) and (pointer: fine)");
+}
+function closeOpenCovers(root) {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
+  });
+}
 function titleLengthClass(title) {
   const length = title.trim().length;
   if (length > 36) return "is-title-xs";
@@ -2638,6 +2671,14 @@ function createBook(parent, item, data, language) {
   button.style.setProperty("--atomic-book-color", item.spineColor);
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      return;
+    }
     void data.openPath(item.path);
   });
   const titleClass = titleLengthClass(item.title);
@@ -2655,10 +2696,11 @@ function createBook(parent, item, data, language) {
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    face.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" }
     });
+    bindCoverObjectPosition(img);
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),

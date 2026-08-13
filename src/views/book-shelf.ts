@@ -189,6 +189,68 @@ export function resolveCoverSrc(
   return data.resolveResourcePath(ref.path, sourcePath);
 }
 
+/**
+ * Upright covers are ~2:3. Wider images usually include a left-edge spine
+ * (Hardcover-style 3D renders, photos of physical books). Pin to the right
+ * so object-fit:cover shows the front face, matching desktop shelves.
+ */
+const COVER_SPINE_WIDE_RATIO = 0.72;
+
+export function coverObjectPosition(
+  naturalWidth: number,
+  naturalHeight: number,
+): string {
+  if (
+    !Number.isFinite(naturalWidth) ||
+    !Number.isFinite(naturalHeight) ||
+    naturalWidth <= 0 ||
+    naturalHeight <= 0
+  ) {
+    return "center";
+  }
+  return naturalWidth / naturalHeight > COVER_SPINE_WIDE_RATIO
+    ? "right center"
+    : "center";
+}
+
+function bindCoverObjectPosition(img: HTMLImageElement): void {
+  const apply = (): void => {
+    img.style.objectPosition = coverObjectPosition(
+      img.naturalWidth,
+      img.naturalHeight,
+    );
+  };
+  if (img.complete) apply();
+  else img.addEventListener("load", apply, { once: true });
+}
+
+const COVER_OPEN_CLASS = "is-cover-open";
+
+export function hoverFinePointer(
+  media: Pick<MediaQueryList, "matches"> | null | undefined,
+): boolean {
+  return Boolean(media?.matches);
+}
+
+/** Coarse pointers peek the cover first; a second tap opens the note. */
+export function bookClickOpensNote(options: {
+  hoverFine: boolean;
+  coverOpen: boolean;
+}): boolean {
+  return options.hoverFine || options.coverOpen;
+}
+
+function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
+  if (typeof matchMedia !== "function") return null;
+  return matchMedia("(hover: hover) and (pointer: fine)");
+}
+
+function closeOpenCovers(root: ParentNode): void {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
+  });
+}
+
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
 export function titleLengthClass(title: string): string {
   const length = title.trim().length;
@@ -213,6 +275,14 @@ function createBook(
   button.style.setProperty("--atomic-book-color", item.spineColor);
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      return;
+    }
     void data.openPath(item.path);
   });
 
@@ -232,10 +302,11 @@ function createBook(
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    face.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" },
     });
+    bindCoverObjectPosition(img);
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),

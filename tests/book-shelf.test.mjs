@@ -7,6 +7,9 @@ import {
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
+  coverObjectPosition,
+  bookClickOpensNote,
+  hoverFinePointer,
   isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
@@ -201,6 +204,30 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
     resolveCoverSrc("", data, "atomics/hobbies/Reading/Items/Current.md"),
     null,
   );
+});
+
+test("bookClickOpensNote waits for a second tap on coarse pointers", () => {
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), true);
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: true }), true);
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: false }), false);
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: true }), true);
+});
+
+test("hoverFinePointer follows the hover+fine media query", () => {
+  assert.equal(hoverFinePointer(null), false);
+  assert.equal(hoverFinePointer({ matches: false }), false);
+  assert.equal(hoverFinePointer({ matches: true }), true);
+});
+
+test("coverObjectPosition crops wide 3D mockups to the front face", () => {
+  // Upright 2:3 (and the shelf face ~80×124) stay centered.
+  assert.equal(coverObjectPosition(400, 600), "center");
+  assert.equal(coverObjectPosition(80, 124), "center");
+  // Photos / 3D renders that include a left spine are wider than 2:3.
+  assert.equal(coverObjectPosition(500, 600), "right center");
+  assert.equal(coverObjectPosition(510, 600), "right center");
+  assert.equal(coverObjectPosition(0, 600), "center");
+  assert.equal(coverObjectPosition(400, 0), "center");
 });
 
 test("titleLengthClass shrinks type for long book titles", () => {

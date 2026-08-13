@@ -189,6 +189,47 @@ test("book shelf window resize listener is only a ResizeObserver fallback", () =
   assert.match(src.slice(observerCheck, listener), /return;/);
 });
 
+test("flat mobile books do not paint a spine strip over the cover", () => {
+  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
+  assert.ok(hoverAt > 0);
+  const flat = styles.slice(0, hoverAt);
+  const hover = styles.slice(hoverAt);
+
+  assert.match(
+    flat,
+    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*display:\s*none/s,
+  );
+  assert.match(
+    hover,
+    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*display:\s*block/s,
+  );
+  assert.match(
+    hover,
+    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*rotateY\(90deg\)/s,
+  );
+  assert.match(
+    styles,
+    /\.atomic-book-cover-image\s*\{[^}]*position:\s*absolute/s,
+  );
+});
+
+test("cover-open animation is available without hover-fine pointers", () => {
+  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
+  assert.ok(hoverAt > 0);
+  const flat = styles.slice(0, hoverAt);
+  assert.match(flat, /is-cover-open/);
+  assert.match(flat, /rotateY\(-155deg\)/);
+});
+
+test("cover images apply coverObjectPosition after load", () => {
+  const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
+  assert.match(src, /bindCoverObjectPosition\(img\)/);
+  assert.match(
+    src,
+    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load", apply, \{ once: true \}/,
+  );
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.match(styles, /scrollbar-width:\s*none/);
   assert.match(styles, /::-webkit-scrollbar/);
