@@ -18,6 +18,19 @@ test("daily note example includes bookshelf, actions, 2x2 heatmap, and today", (
   assert.match(md, /```atomic-today\n```/);
 });
 
+test("daily note template uses Obsidian date tokens and omits a hardcoded year", () => {
+  const md = readExample("templates/Atomic daily note.md");
+  assert.match(md, /# \{\{date:dddd, MMMM D, YYYY\}\}/);
+  assert.match(md, /```atomic-bookshelf\n```/);
+  assert.match(md, /```atomic-actions\n```/);
+  assert.match(
+    md,
+    /```atomic-heatmap\nactivity: gym, golf, guitar, reading\ncolumns: 2\nrows: 2\n```/,
+  );
+  assert.match(md, /```atomic-today\n```/);
+  assert.doesNotMatch(md, /year:\s*\d{4}/);
+});
+
 test("dashboard example is the yearly atomic-dashboard note", () => {
   const md = readExample("dashboard/Dashboard.md");
   assert.match(md, /^---\nyear: 2026\n---/m);
