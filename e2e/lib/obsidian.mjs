@@ -202,6 +202,7 @@ export async function switchToObsidianWindow(driver, timeoutMs = 60000) {
         `);
         if (state.workspace && state.markdown) return handle;
         if (state.workspace && !state.settings) fallback = handle;
+        if (state.workspace) fallback = fallback ?? handle;
         last = await driver.getTitle();
       } catch (error) {
         last = error instanceof Error ? error.message : String(error);
@@ -327,9 +328,10 @@ export async function runCommandViaPalette(driver, query) {
 export async function openAtomicSettings(driver) {
   await switchToObsidianWindow(driver, 8000);
   await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
-  await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
   await sleep(150);
   await driver.executeScript(`
+    const app = window.app;
+    if (!app || !app.setting) throw new Error("window.app.setting missing");
     if (app.setting.shouldUsePopout) {
       app.setting.shouldUsePopout = () => false;
     }
@@ -346,7 +348,8 @@ export async function openAtomicSettings(driver) {
     const items = Array.from(document.querySelectorAll(".vertical-tab-nav-item"));
     const tab = items.find((el) => /atomic tracker/i.test(el.textContent || ""));
     if (tab) tab.click();
-    if (app.setting && app.setting.openTabById) {
+    const app = window.app;
+    if (app && app.setting && app.setting.openTabById) {
       app.setting.openTabById("atomic-tracker");
     }
     return !!document.querySelector('[data-testid="atomic-setting-activity"]');
@@ -374,9 +377,14 @@ async function switchToWindowMatching(driver, predicate, timeoutMs = 8000) {
 }
 
 export async function closeSettings(driver) {
-  await driver.executeScript(`
-    if (app.setting && app.setting.close) app.setting.close();
-  `);
+  try {
+    await driver.executeScript(`
+      const app = window.app;
+      if (app && app.setting && app.setting.close) app.setting.close();
+    `);
+  } catch {
+    // settings window may not expose app
+  }
   await sleep(200);
   await switchToObsidianWindow(driver, 8000);
 }
