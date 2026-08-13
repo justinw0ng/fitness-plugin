@@ -449,7 +449,7 @@ function extractYmdFromPath(path) {
 
 // src/i18n/locales/en.ts
 var en = {
-  "settings.title": "Atomic",
+  "settings.title": "Atomic Tracker",
   "settings.language": "Language",
   "settings.languageDesc": "Choose the plugin UI language. Existing notes and frontmatter are not rewritten.",
   "settings.languageOption.zh-Hant-en": "Traditional Chinese & English",
@@ -458,10 +458,6 @@ var en = {
   "settings.timezoneDesc": "IANA timezone for today and session dates (e.g. Asia/Hong_Kong).",
   "settings.dashboardPath": "Dashboard path",
   "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard.",
-  "settings.legacyBlocks": "Allow legacy `fitness-*` blocks",
-  "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate.",
-  "settings.migrateFitness": "Migrate from Fitness to Atomic",
-  "settings.migrateFitnessDesc": "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases.",
   "settings.exerciseTypes": "Exercise types",
   "settings.exerciseTypesDesc": "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name>.",
   "settings.addExerciseType": "Add exercise type",
@@ -485,27 +481,24 @@ var en = {
   "settings.hobbyNamePlaceholder": "Chess",
   "settings.hobbyFolderPlaceholder": "atomics/hobbies/Name",
   "settings.delete": "Delete",
-  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic settings? Vault notes are not deleted.",
+  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic Tracker settings? Vault notes are not deleted.",
   "command.newGymSession": "New gym session",
   "command.newGolfSession": "New golf session",
   "command.newExerciseSession": "New exercise session",
   "command.newReadingItem": "New reading item",
   "command.newHobbyItem": "New hobby item",
-  "command.createReadingBookshelf": "Create Obsidian bases of reading notes",
-  "command.openReadingBookshelf": "Open Obsidian bases of reading notes",
+  "command.createReadingBookshelf": "Create reading Bases",
+  "command.openReadingBookshelf": "Open reading Bases",
   "command.createBookShelf": "Create book shelf",
   "command.openBookShelf": "Open book shelf",
   "command.openDashboard": "Open dashboard",
   "notice.created": "Created: {path}",
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names.",
-  "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration.",
   "notice.enterExerciseType": "Enter an exercise type name first.",
   "notice.enterHobbyType": "Enter a general habit name first.",
   "notice.activityDeleted": "Removed {label} from settings.",
   "notice.noHobbyActivities": "No enabled general habits configured",
   "notice.folderUnsafe": "Folder must be a safe vault-relative path.",
-  "notice.migrationComplete": "Migrated Fitness to Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors.",
-  "notice.migrationFailed": "Failed to migrate from Fitness to Atomic: {message}",
   "notice.noExerciseActivities": "No exercise activities configured",
   "notice.noGymActivity": "No gym activity configured",
   "notice.noGolfActivity": "No golf activity configured",
@@ -521,11 +514,11 @@ var en = {
   "notice.openedExistingHobbyItem": "Opened existing {label} item: {path}",
   "notice.hobbyItemFailed": "Could not create hobby item: {message}",
   "notice.bookShelfFailed": "Could not create book shelf: {message}",
-  "notice.createdReadingBookshelf": "Created Obsidian Bases of reading notes: {path}",
-  "notice.updatedReadingBookshelf": "Updated Obsidian Bases of reading notes: {path}",
-  "notice.readingBookshelfExists": "Obsidian Bases of reading notes already exists: {path}",
-  "notice.readingBookshelfFailed": "Could not create Obsidian Bases of reading notes: {message}",
-  "notice.enableBases": "Enable the Bases core plugin to use Obsidian Bases of reading notes.",
+  "notice.createdReadingBookshelf": "Created reading Bases: {path}",
+  "notice.updatedReadingBookshelf": "Updated reading Bases: {path}",
+  "notice.readingBookshelfExists": "Reading Bases already exists: {path}",
+  "notice.readingBookshelfFailed": "Could not create reading Bases: {message}",
+  "notice.enableBases": "Enable the Bases core plugin to use reading Bases.",
   "notice.createdBookShelf": "Created book shelf: {path}",
   "notice.bookShelfExists": "Book shelf already exists: {path}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note.",
@@ -588,7 +581,6 @@ var en = {
   "property.location.custom": "Custom\u2026",
   "property.weightUnit.kg": "kg",
   "property.weightUnit.lb": "lb",
-  "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks.",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf.",
   "view.unknownAtomicBlock": "Unknown block: {kind}",
   "view.atomicError": "Error: {message}",
@@ -651,7 +643,7 @@ var en = {
 
 // src/i18n/locales/zh-Hant-en.ts
 var zhHantEn = {
-  "settings.title": "Atomic",
+  "settings.title": "Atomic Tracker",
   "settings.language": "Language / \u8A9E\u8A00",
   "settings.languageDesc": "Choose plugin UI language / \u9078\u64C7\u5916\u639B\u4ECB\u9762\u8A9E\u8A00\u3002Existing notes are not rewritten / \u4E0D\u6703\u6539\u5BEB\u73FE\u6709\u7B46\u8A18\u3002",
   "settings.languageOption.zh-Hant-en": "Traditional Chinese & English / \u7E41\u9AD4\u4E2D\u6587\uFF0B\u82F1\u6587",
@@ -660,10 +652,6 @@ var zhHantEn = {
   "settings.timezoneDesc": "IANA timezone for today and session dates / \u7528\u65BC\u300C\u4ECA\u65E5\u300D\u548C\u8A13\u7DF4\u65E5\u671F\u7684 IANA \u6642\u5340 (e.g. Asia/Hong_Kong)\u3002",
   "settings.dashboardPath": "Dashboard path / \u5100\u8868\u677F\u8DEF\u5F91",
   "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard / Open dashboard \u6703\u958B\u555F\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
-  "settings.legacyBlocks": "Allow legacy `fitness-*` blocks / \u5141\u8A31\u820A\u7248 `fitness-*` \u5340\u584A",
-  "settings.legacyBlocksDesc": "Keep supporting old Fitness codeblock names. Turn off after migrating notes, or use Migrate / \u4FDD\u7559\u820A Fitness codeblock \u540D\u7A31\u652F\u63F4\uFF1B\u9077\u79FB\u7B46\u8A18\u5F8C\u53EF\u95DC\u9589\u3002",
-  "settings.migrateFitness": "Migrate from Fitness to Atomic / \u5F9E Fitness \u9077\u79FB\u81F3 Atomic",
-  "settings.migrateFitnessDesc": "Move legacy Fitness dashboard/Gym/Golf paths, rewrite fitness-* fences to atomic-*, update settings, and disable legacy aliases / \u642C\u79FB\u820A Fitness dashboard/Gym/Golf \u8DEF\u5F91\u3001\u6539\u5BEB fitness-* fences\u3001\u66F4\u65B0\u8A2D\u5B9A\u4E26\u505C\u7528\u820A\u5225\u540D\u3002",
   "settings.exerciseTypes": "Exercise types / \u904B\u52D5\u985E\u578B",
   "settings.exerciseTypesDesc": "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name> / \u8A13\u7DF4\u7B46\u8A18\u5B58\u65BC\u5404\u6D3B\u52D5\u8CC7\u6599\u593E\uFF0C\u65B0\u904B\u52D5\u985E\u578B\u9810\u8A2D\u653E\u5728 atomics/exercise/<Name>\u3002",
   "settings.addExerciseType": "Add exercise type / \u65B0\u589E\u904B\u52D5\u985E\u578B",
@@ -687,27 +675,24 @@ var zhHantEn = {
   "settings.hobbyNamePlaceholder": "Chess / \u4E0B\u68CB",
   "settings.hobbyFolderPlaceholder": "atomics/hobbies/Name",
   "settings.delete": "Delete / \u522A\u9664",
-  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic settings? Vault notes are not deleted / \u8981\u5F9E Atomic \u8A2D\u5B9A\u79FB\u9664\u300C{label}\u300D\u55CE\uFF1F\u4E0D\u6703\u522A\u9664 vault \u7B46\u8A18\u3002",
+  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic Tracker settings? Vault notes are not deleted / \u8981\u5F9E Atomic Tracker \u8A2D\u5B9A\u79FB\u9664\u300C{label}\u300D\u55CE\uFF1F\u4E0D\u6703\u522A\u9664 vault \u7B46\u8A18\u3002",
   "command.newGymSession": "New gym session / \u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
   "command.newGolfSession": "New golf session / \u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
   "command.newExerciseSession": "New exercise session / \u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
   "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
   "command.newHobbyItem": "New hobby item / \u65B0\u589E\u8208\u8DA3\u9805\u76EE",
-  "command.createReadingBookshelf": "Create Obsidian bases of reading notes / \u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases",
-  "command.openReadingBookshelf": "Open Obsidian bases of reading notes / \u958B\u555F\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases",
+  "command.createReadingBookshelf": "Create reading Bases / \u5EFA\u7ACB\u95B1\u8B80 Bases",
+  "command.openReadingBookshelf": "Open reading Bases / \u958B\u555F\u95B1\u8B80 Bases",
   "command.createBookShelf": "Create book shelf / \u5EFA\u7ACB\u66F8\u67B6",
   "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
   "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
   "notice.created": "Created / \u5DF2\u5EFA\u7ACB: {path}",
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names / \u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
-  "notice.legacyBlocksSaved": "Legacy fitness-* setting saved. Reload the plugin or Obsidian to apply registration / \u820A\u7248 fitness-* \u8A2D\u5B9A\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u5957\u7528\u8A3B\u518A\u3002",
   "notice.enterExerciseType": "Enter an exercise type name first / \u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
   "notice.enterHobbyType": "Enter a general habit name first / \u8ACB\u5148\u8F38\u5165\u4E00\u822C\u7FD2\u6163\u540D\u7A31\u3002",
   "notice.activityDeleted": "Removed {label} from settings / \u5DF2\u5F9E\u8A2D\u5B9A\u79FB\u9664 {label}\u3002",
   "notice.noHobbyActivities": "No enabled general habits configured / \u5C1A\u672A\u8A2D\u5B9A\u5DF2\u555F\u7528\u7684\u4E00\u822C\u7FD2\u6163",
   "notice.folderUnsafe": "Folder must be a safe vault-relative path / \u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
-  "notice.migrationComplete": "Migrated Fitness \u2192 Atomic: moved {movedPaths} {pathWord}, skipped {skippedPaths} existing {destinationWord}, rewrote {replacements} {blockWord} in {changedFiles} {fileWord}. Legacy fitness-* aliases disabled; reload the plugin or Obsidian to drop registered legacy processors / \u5DF2\u9077\u79FB Fitness \u2192 Atomic\uFF1A\u642C\u79FB {movedPaths} \u500B\u8DEF\u5F91\uFF0C\u7565\u904E {skippedPaths} \u500B\u65E2\u6709\u76EE\u7684\u5730\uFF0C\u5728 {changedFiles} \u500B\u6A94\u6848\u6539\u5BEB {replacements} \u500B\u5340\u584A\u3002\u5DF2\u505C\u7528\u820A fitness-* \u5225\u540D\uFF1B\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u79FB\u9664\u5DF2\u8A3B\u518A\u7684\u820A\u8655\u7406\u5668\u3002",
-  "notice.migrationFailed": "Failed to migrate from Fitness to Atomic / Fitness \u9077\u79FB\u81F3 Atomic \u5931\u6557: {message}",
   "notice.noExerciseActivities": "No exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
   "notice.noGymActivity": "No gym activity configured / \u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
   "notice.noGolfActivity": "No golf activity configured / \u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
@@ -723,11 +708,11 @@ var zhHantEn = {
   "notice.openedExistingHobbyItem": "Opened existing {label} item / \u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
   "notice.hobbyItemFailed": "Could not create hobby item / \u7121\u6CD5\u5EFA\u7ACB\u8208\u8DA3\u9805\u76EE: {message}",
   "notice.bookShelfFailed": "Could not create book shelf / \u7121\u6CD5\u5EFA\u7ACB\u66F8\u67B6: {message}",
-  "notice.createdReadingBookshelf": "Created Obsidian Bases of reading notes / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {path}",
-  "notice.updatedReadingBookshelf": "Updated Obsidian Bases of reading notes / \u5DF2\u66F4\u65B0\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {path}",
-  "notice.readingBookshelfExists": "Obsidian Bases of reading notes already exists / \u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases \u5DF2\u5B58\u5728: {path}",
-  "notice.readingBookshelfFailed": "Could not create Obsidian Bases of reading notes / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases: {message}",
-  "notice.enableBases": "Enable the Bases core plugin to use Obsidian Bases of reading notes / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80\u7B46\u8A18\u7684 Obsidian Bases\u3002",
+  "notice.createdReadingBookshelf": "Created reading Bases / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bases: {path}",
+  "notice.updatedReadingBookshelf": "Updated reading Bases / \u5DF2\u66F4\u65B0\u95B1\u8B80 Bases: {path}",
+  "notice.readingBookshelfExists": "Reading Bases already exists / \u95B1\u8B80 Bases \u5DF2\u5B58\u5728: {path}",
+  "notice.readingBookshelfFailed": "Could not create reading Bases / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80 Bases: {message}",
+  "notice.enableBases": "Enable the Bases core plugin to use reading Bases / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bases\u3002",
   "notice.createdBookShelf": "Created book shelf / \u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
   "notice.bookShelfExists": "Book shelf already exists / \u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
@@ -790,7 +775,6 @@ var zhHantEn = {
   "property.location.custom": "Custom\u2026 / \u81EA\u8A02\u2026",
   "property.weightUnit.kg": "kg",
   "property.weightUnit.lb": "lb",
-  "view.legacyDisabled": "Legacy fitness-* blocks are disabled. Use atomic-* blocks / \u820A\u7248 fitness-* \u5340\u584A\u5DF2\u505C\u7528\uFF0C\u8ACB\u4F7F\u7528 atomic-* \u5340\u584A\u3002",
   "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
   "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
   "view.atomicError": "Error / \u932F\u8AA4: {message}",
@@ -1371,7 +1355,6 @@ var DEFAULT_SETTINGS = {
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
-  deprecatedFitnessBlocksEnabled: true,
   activityTypes: DEFAULT_ACTIVITY_TYPES
 };
 
@@ -3268,8 +3251,7 @@ async function modifyCurrentNote(plugin, sourcePath, updater) {
     new import_obsidian3.Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
     return;
   }
-  const original = await plugin.app.vault.read(file);
-  await plugin.app.vault.modify(file, updater(original));
+  await plugin.app.vault.process(file, updater);
   plugin.scheduleRefresh();
 }
 async function renderAtomicTimer(plugin, el, sourcePath) {
@@ -3324,7 +3306,7 @@ async function renderAtomicTimer(plugin, el, sourcePath) {
           stoppedAtIso: (/* @__PURE__ */ new Date()).toISOString(),
           note
         });
-        await plugin.app.vault.modify(file, result.markdown);
+        await plugin.app.vault.process(file, () => result.markdown);
         plugin.scheduleRefresh();
         new import_obsidian3.Notice(
           t("notice.timerLogged", plugin.settings.language, {
@@ -3404,35 +3386,13 @@ var ATOMIC_CODEBLOCK_LANGUAGES = [
   "atomic-timer",
   "atomic-bookshelf"
 ];
-var FITNESS_CODEBLOCK_ALIASES = [
-  "fitness-heatmap",
-  "fitness-today",
-  "fitness-dashboard",
-  "fitness-actions",
-  "fitness-golf-cues",
-  "fitness-gym-cues",
-  "fitness-cues"
-];
-var FITNESS_TO_ATOMIC = {
-  "fitness-heatmap": "atomic-heatmap",
-  "fitness-today": "atomic-today",
-  "fitness-dashboard": "atomic-dashboard",
-  "fitness-actions": "atomic-actions",
-  "fitness-golf-cues": "atomic-golf-cues",
-  "fitness-gym-cues": "atomic-gym-cues",
-  "fitness-cues": "atomic-golf-cues"
-};
-function codeblockLanguages(deprecatedFitnessBlocksEnabled) {
-  return deprecatedFitnessBlocksEnabled ? [...ATOMIC_CODEBLOCK_LANGUAGES, ...FITNESS_CODEBLOCK_ALIASES] : [...ATOMIC_CODEBLOCK_LANGUAGES];
-}
-function resolveCodeblockKind(kind) {
-  return FITNESS_TO_ATOMIC[kind] ?? kind;
+function codeblockLanguages() {
+  return [...ATOMIC_CODEBLOCK_LANGUAGES];
 }
 function resolveCueActivity(kind, options) {
-  const resolvedKind = resolveCodeblockKind(kind);
-  if (resolvedKind === "atomic-golf-cues") return "golf";
-  if (resolvedKind === "atomic-gym-cues") return "gym";
-  if (resolvedKind !== "atomic-cues") return null;
+  if (kind === "atomic-golf-cues") return "golf";
+  if (kind === "atomic-gym-cues") return "gym";
+  if (kind !== "atomic-cues") return null;
   const activity = options.activity?.trim();
   return activity || null;
 }
@@ -3450,18 +3410,8 @@ async function renderBlock(plugin, kind, source, el, ctx) {
   const activityTypes = settings.activityTypes;
   const tz = settings.timezone;
   const language = settings.language;
-  const resolvedKind = resolveCodeblockKind(kind);
   try {
-    if (kind.startsWith("fitness-") && !settings.deprecatedFitnessBlocksEnabled) {
-      el.empty();
-      const root = el.createDiv({ cls: "fitness-plugin" });
-      root.createEl("p", {
-        text: t("view.legacyDisabled", language),
-        cls: "fitness-muted"
-      });
-      return;
-    }
-    switch (resolvedKind) {
+    switch (kind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
         await renderHeatmaps(
@@ -3499,7 +3449,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
       case "atomic-golf-cues":
       case "atomic-gym-cues":
       case "atomic-cues": {
-        const activity = resolveCueActivity(resolvedKind, opts);
+        const activity = resolveCueActivity(kind, opts);
         if (!activity) {
           el.empty();
           const root = el.createDiv({ cls: "fitness-plugin" });
@@ -3554,7 +3504,7 @@ async function renderBlock(plugin, kind, source, el, ctx) {
   }
 }
 function registerCodeblocks(plugin) {
-  const kinds = codeblockLanguages(plugin.settings.deprecatedFitnessBlocksEnabled);
+  const kinds = codeblockLanguages();
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(
       kind,
@@ -3786,7 +3736,7 @@ var VaultDataSource = class {
     const norm = (0, import_obsidian4.normalizePath)(path);
     const existing = this.app.vault.getAbstractFileByPath(norm);
     if (existing instanceof import_obsidian4.TFile) {
-      await this.app.vault.modify(existing, content);
+      await this.app.vault.process(existing, () => content);
       return existing;
     }
     return this.createNote(norm, content);
@@ -4123,123 +4073,6 @@ function registerPropertySelects(plugin, options) {
 // src/settings.ts
 var import_obsidian6 = require("obsidian");
 
-// src/util/migrate-fitness.ts
-var MOVE_DEFINITIONS = [
-  {
-    kind: "dashboard",
-    from: "Fitness/Dashboard.md",
-    to: "atomics/Dashboard.md"
-  },
-  { kind: "gym", from: "Gym", to: "atomics/exercise/Gym" },
-  { kind: "golf", from: "Golf", to: "atomics/exercise/Golf" }
-];
-var FENCE_REWRITES = {
-  "fitness-heatmap": "atomic-heatmap",
-  "fitness-today": "atomic-today",
-  "fitness-dashboard": "atomic-dashboard",
-  "fitness-actions": "atomic-actions",
-  "fitness-golf-cues": "atomic-golf-cues",
-  "fitness-cues": "atomic-golf-cues",
-  "fitness-gym-cues": "atomic-gym-cues"
-};
-var OPEN_RE = /^( {0,3})(```+|~~~+)([^\n]*)$/;
-var CLOSE_RE = /^( {0,3})(```+|~~~+)[ \t]*$/;
-function normalizePath2(path) {
-  return path.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "").trim();
-}
-function pathExists(existingPaths, path) {
-  const normalized = normalizePath2(path);
-  for (const existingPath of existingPaths) {
-    const existing = normalizePath2(existingPath);
-    if (existing === normalized || existing.startsWith(`${normalized}/`)) {
-      return true;
-    }
-  }
-  return false;
-}
-function moveWasPlanned(moves, from) {
-  return moves.some((move) => move.from === from);
-}
-function patchActivityFolders(settings, moves) {
-  let changed = false;
-  const next = settings.activityTypes.map((activity) => {
-    if (moveWasPlanned(moves, "Gym") && activity.folder === "Gym") {
-      changed = true;
-      return { ...activity, folder: "atomics/exercise/Gym" };
-    }
-    if (moveWasPlanned(moves, "Golf") && activity.folder === "Golf") {
-      changed = true;
-      return { ...activity, folder: "atomics/exercise/Golf" };
-    }
-    return activity;
-  });
-  return changed ? next : void 0;
-}
-function planFitnessMigration(input) {
-  const moves = [];
-  const skippedMoves = [];
-  for (const definition of MOVE_DEFINITIONS) {
-    if (!isSafeVaultFolder(definition.from) || !isSafeVaultFolder(definition.to)) {
-      continue;
-    }
-    if (!pathExists(input.existingPaths, definition.from)) continue;
-    const move = { from: definition.from, to: definition.to };
-    if (pathExists(input.existingPaths, definition.to)) {
-      skippedMoves.push(move);
-    } else {
-      moves.push(move);
-    }
-  }
-  const settingsPatch = {};
-  if (moveWasPlanned(moves, "Fitness/Dashboard.md") && input.settings.dashboardPath === "Fitness/Dashboard.md") {
-    settingsPatch.dashboardPath = "atomics/Dashboard.md";
-  }
-  if (moveWasPlanned(moves, "Golf") && input.settings.golfCuesPath === "Golf/Cues.md") {
-    settingsPatch.golfCuesPath = "atomics/exercise/Golf/Cues.md";
-  }
-  if (moveWasPlanned(moves, "Gym") && input.settings.gymCuesPath === "Gym/Cues.md") {
-    settingsPatch.gymCuesPath = "atomics/exercise/Gym/Cues.md";
-  }
-  const activityTypes = patchActivityFolders(input.settings, moves);
-  if (activityTypes) settingsPatch.activityTypes = activityTypes;
-  return { moves, skippedMoves, settingsPatch };
-}
-function parseInfoLanguage(info) {
-  return info.trim().split(/\s+/, 1)[0] || "";
-}
-function rewriteFitnessFences(markdown) {
-  const lines = String(markdown).split(/\r?\n/);
-  let open = null;
-  let replacements = 0;
-  const out = lines.map((line) => {
-    if (open) {
-      const close = line.match(CLOSE_RE);
-      if (close && close[2][0] === open.marker && close[2].length >= open.length) {
-        open = null;
-      }
-      return line;
-    }
-    const match = line.match(OPEN_RE);
-    if (!match) return line;
-    const indent = match[1];
-    const fence = match[2];
-    const info = match[3] ?? "";
-    const marker = fence[0] === "~" ? "~" : "`";
-    const length = fence.length;
-    const lang = parseInfoLanguage(info);
-    const replacement = FENCE_REWRITES[lang];
-    open = { marker, length };
-    if (!replacement) return line;
-    replacements += 1;
-    const rest = info.replace(new RegExp(`^\\s*${lang}\\b`), replacement);
-    return `${indent}${fence}${rest}`;
-  });
-  return {
-    markdown: out.join(markdown.includes("\r\n") ? "\r\n" : "\n"),
-    replacements
-  };
-}
-
 // src/util/merge-settings.ts
 function safeVaultPath(value, fallback) {
   if (typeof value !== "string") return fallback;
@@ -4309,7 +4142,6 @@ function mergeSettings(raw) {
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
-    deprecatedFitnessBlocksEnabled: raw.deprecatedFitnessBlocksEnabled === false || raw.deprecatedFitnessCuesEnabled === false ? false : true,
     activityTypes
   };
 }
@@ -4347,7 +4179,6 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
     const { containerEl } = this;
     const language = this.plugin.settings.language;
     containerEl.empty();
-    containerEl.createEl("h2", { text: t("settings.title", language) });
     new import_obsidian6.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
@@ -4378,19 +4209,6 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
     );
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
-    new import_obsidian6.Setting(containerEl).setName(t("settings.legacyBlocks", language)).setDesc(t("settings.legacyBlocksDesc", language)).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled).onChange(async (value) => {
-        this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
-        await this.plugin.saveSettings();
-        this.plugin.refreshAll();
-        new import_obsidian6.Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
-      })
-    );
-    new import_obsidian6.Setting(containerEl).setName(t("settings.migrateFitness", language)).setDesc(t("settings.migrateFitnessDesc", language)).addButton(
-      (button) => button.setButtonText(t("settings.migrateFitness", language)).setCta().onClick(() => {
-        void this.migrateFromFitnessToAtomic();
-      })
-    );
   }
   async saveAndRefresh() {
     await this.plugin.saveSettings();
@@ -4405,11 +4223,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   }
   renderExerciseTypes(containerEl) {
     const language = this.plugin.settings.language;
-    containerEl.createEl("h3", { text: t("settings.exerciseTypes", language) });
-    containerEl.createEl("p", {
-      text: t("settings.exerciseTypesDesc", language),
-      cls: "setting-item-description"
-    });
+    new import_obsidian6.Setting(containerEl).setName(t("settings.exerciseTypes", language)).setDesc(t("settings.exerciseTypesDesc", language)).setHeading();
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
     }
@@ -4438,11 +4252,7 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
   }
   renderHobbyTypes(containerEl) {
     const language = this.plugin.settings.language;
-    containerEl.createEl("h3", { text: t("settings.hobbyTypes", language) });
-    containerEl.createEl("p", {
-      text: t("settings.hobbyTypesDesc", language),
-      cls: "setting-item-description"
-    });
+    new import_obsidian6.Setting(containerEl).setName(t("settings.hobbyTypes", language)).setDesc(t("settings.hobbyTypesDesc", language)).setHeading();
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
     }
@@ -4550,71 +4360,6 @@ var FitnessSettingTab = class extends import_obsidian6.PluginSettingTab {
       })
     );
   }
-  async ensureParentFolder(path) {
-    const normalized = (0, import_obsidian6.normalizePath)(path);
-    const slash = normalized.lastIndexOf("/");
-    if (slash <= 0) return;
-    await this.plugin.data.ensureFolder(normalized.slice(0, slash));
-  }
-  async migrateFromFitnessToAtomic() {
-    const existingPaths = new Set(
-      this.app.vault.getAllLoadedFiles().map((file) => file.path)
-    );
-    const plan = planFitnessMigration({
-      existingPaths,
-      settings: this.plugin.settings
-    });
-    let movedPaths = 0;
-    let skippedPaths = plan.skippedMoves.length;
-    let changedFiles = 0;
-    let replacements = 0;
-    try {
-      for (const move of plan.moves) {
-        const from = (0, import_obsidian6.normalizePath)(move.from);
-        const to = (0, import_obsidian6.normalizePath)(move.to);
-        const source = this.app.vault.getAbstractFileByPath(from);
-        const destination = this.app.vault.getAbstractFileByPath(to);
-        if (!source || destination) {
-          skippedPaths += 1;
-          continue;
-        }
-        await this.ensureParentFolder(to);
-        await this.app.vault.rename(source, to);
-        movedPaths += 1;
-      }
-      for (const file of this.app.vault.getMarkdownFiles()) {
-        const original = await this.app.vault.read(file);
-        const result = rewriteFitnessFences(original);
-        if (result.replacements === 0) continue;
-        await this.app.vault.modify(file, result.markdown);
-        changedFiles += 1;
-        replacements += result.replacements;
-      }
-      Object.assign(this.plugin.settings, plan.settingsPatch);
-      this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
-      await this.plugin.saveSettings();
-      this.plugin.refreshAll();
-      this.display();
-      new import_obsidian6.Notice(
-        t("notice.migrationComplete", this.plugin.settings.language, {
-          movedPaths,
-          pathWord: movedPaths === 1 ? "path" : "paths",
-          skippedPaths,
-          destinationWord: skippedPaths === 1 ? "destination" : "destinations",
-          replacements,
-          blockWord: replacements === 1 ? "block" : "blocks",
-          changedFiles,
-          fileWord: changedFiles === 1 ? "file" : "files"
-        })
-      );
-    } catch (err) {
-      console.error("Fitness to Atomic migration failed", err);
-      const message = err instanceof Error ? err.message : String(err);
-      new import_obsidian6.Notice(
-        t("notice.migrationFailed", this.plugin.settings.language, { message })
-      );
-    }
-  }
 };
 
 // src/util/refresh-path.ts
@@ -4690,42 +4435,42 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.addCommand({
-      id: "fitness-new-gym-session",
+      id: "new-gym-session",
       name: t("command.newGymSession", this.settings.language),
       callback: () => {
         void this.createGymSession();
       }
     });
     this.addCommand({
-      id: "fitness-new-golf-session",
+      id: "new-golf-session",
       name: t("command.newGolfSession", this.settings.language),
       callback: () => {
         void this.createGolfSession();
       }
     });
     this.addCommand({
-      id: "atomic-new-exercise-session",
+      id: "new-exercise-session",
       name: t("command.newExerciseSession", this.settings.language),
       callback: () => {
         void this.createExerciseSession();
       }
     });
     this.addCommand({
-      id: "atomic-new-reading-item",
+      id: "new-reading-item",
       name: t("command.newReadingItem", this.settings.language),
       callback: () => {
         void this.createReadingItem();
       }
     });
     this.addCommand({
-      id: "atomic-new-hobby-item",
+      id: "new-hobby-item",
       name: t("command.newHobbyItem", this.settings.language),
       callback: () => {
         void this.createHobbyItem();
       }
     });
     this.addCommand({
-      id: "atomic-create-reading-bookshelf",
+      id: "create-reading-bookshelf",
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
@@ -4736,7 +4481,7 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
       }
     });
     this.addCommand({
-      id: "atomic-open-reading-bookshelf",
+      id: "open-reading-bookshelf",
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
@@ -4747,21 +4492,21 @@ var FitnessPlugin = class extends import_obsidian7.Plugin {
       }
     });
     this.addCommand({
-      id: "atomic-create-book-shelf",
+      id: "create-book-shelf",
       name: t("command.createBookShelf", this.settings.language),
       callback: () => {
         void createBookShelfHostCommand(this.data, this.settings.language);
       }
     });
     this.addCommand({
-      id: "atomic-open-book-shelf",
+      id: "open-book-shelf",
       name: t("command.openBookShelf", this.settings.language),
       callback: () => {
         void openBookShelfHostCommand(this.data, this.settings.language);
       }
     });
     this.addCommand({
-      id: "fitness-open-dashboard",
+      id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
       callback: () => {
         void this.openDashboard();
