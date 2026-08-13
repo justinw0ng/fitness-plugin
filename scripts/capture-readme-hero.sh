@@ -412,33 +412,21 @@ capture_daily_note() {
   xdotool windowactivate --sync "$win"
   xdotool key --window "$win" ctrl+Home || true
   xdotool mousemove 1910 10
-  sleep 6
+  sleep 12
 
   local raw="${destination}.raw.png"
-  local min_unique="${6:-40000}"
-  local deadline=$((SECONDS + 90))
+  local min_striped="${6:-8}"
+  local deadline=$((SECONDS + 120))
   while true; do
     screenshot_window "$width" "$capture_height" "$raw"
     detect_and_crop_screenshot "$raw" "$destination" "$width" "$height"
     scrub_hero_scrollbars "$destination"
-    if python3 - "$destination" "$min_unique" <<'PY'
-import sys
-from PIL import Image
-
-path, min_unique_s = sys.argv[1], sys.argv[2]
-min_unique = int(min_unique_s)
-image = Image.open(path).convert("RGB")
-width, height = image.size
-band = image.crop((0, int(height * 0.08), width, int(height * 0.38)))
-unique = len(band.getcolors(2_000_000) or [])
-print(f"shelf unique={unique} min={min_unique}")
-raise SystemExit(0 if unique >= min_unique else 1)
-PY
+    if python3 /workspace/scripts/verify-hero-covers.py "$destination" "$min_striped"
     then
       break
     fi
     if (( SECONDS >= deadline )); then
-      echo "ERROR: book covers did not render in time: $destination" >&2
+      echo "ERROR: typographic book covers did not render in time: $destination" >&2
       exit 1
     fi
     sleep 2
@@ -453,25 +441,8 @@ PY
 
 verify_shelf_covers() {
   local image="$1"
-  local min_unique="$2"
-  python3 - "$image" "$min_unique" <<'PY'
-import sys
-from PIL import Image
-
-path, min_unique_s = sys.argv[1], sys.argv[2]
-min_unique = int(min_unique_s)
-image = Image.open(path).convert("RGB")
-width, height = image.size
-band = image.crop((0, int(height * 0.08), width, int(height * 0.38)))
-unique = len(band.getcolors(2_000_000) or [])
-if unique < min_unique:
-    print(
-        f"ERROR: {path} shelf band has {unique} unique colors; expected at least {min_unique} for rendered covers",
-        file=sys.stderr,
-    )
-    raise SystemExit(1)
-print(f"shelf covers ok {path} unique={unique}")
-PY
+  local min_striped="$2"
+  python3 /workspace/scripts/verify-hero-covers.py "$image" "$min_striped"
 }
 
 if pgrep -x obsidian >/dev/null 2>&1; then
@@ -484,17 +455,17 @@ node /workspace/scripts/seed-readme-demo-vault.mjs
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 2500
+capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 8
 echo "Saved desktop $(wc -c < "$DESKTOP_SHOT") bytes"
-verify_shelf_covers "$DESKTOP_SHOT" 2500
+verify_shelf_covers "$DESKTOP_SHOT" 8
 
 node /workspace/scripts/seed-readme-demo-vault.mjs --book-limit 3
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 800
+capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 2
 echo "Saved mobile $(wc -c < "$MOBILE_SHOT") bytes"
-verify_shelf_covers "$MOBILE_SHOT" 800
+verify_shelf_covers "$MOBILE_SHOT" 2
 
 python3 /workspace/scripts/compose-device-hero.py \
   --desktop "$DESKTOP_SHOT" \
