@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - ".github/dependabot.yml"
-      - ".github/workflows/ci.yml"
-      - ".github/workflows/codeql.yml"
+    # Allowlist must match .github/plugin-source-paths.txt (see tests/ci-paths.test.mjs).
+    paths:
+      - "src/**"
+      - "styles.css"
+      - "manifest.json"
+      - "versions.json"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "esbuild.config.mjs"
   workflow_dispatch:
 
 permissions:
