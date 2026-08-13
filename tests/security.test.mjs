@@ -72,3 +72,11 @@ test("yamlScalar double-quotes and escapes", () => {
   assert.equal(yamlScalar("line1\nline2"), `"line1\\nline2"`);
   assert.equal(yamlScalar("a: b"), `"a: b"`);
 });
+
+test("parseCoverRef does not treat script URLs as images", async () => {
+  const { parseCoverRef } = await import("../src/views/book-shelf.ts");
+  assert.deepEqual(parseCoverRef("javascript:alert(1)"), { kind: "none" });
+  assert.deepEqual(parseCoverRef("data:image/svg+xml,<svg onload=alert(1)>"), {
+    kind: "none",
+  });
+});

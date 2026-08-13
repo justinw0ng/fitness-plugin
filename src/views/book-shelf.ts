@@ -6,6 +6,12 @@ import type { ActivityType, HobbyItemMeta } from "../types";
 import { DEFAULT_READING_STATUS, matchesBookShelfStatus, resolveBookShelfStatuses, statusRank } from "../core/reading-status.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems } from "../util/book-shelf-layout.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { measureElementWidth } from "../util/element-width.ts";
+
+export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems };
 
 export type BookShelfItem = {
   path: string;
@@ -22,13 +28,8 @@ export type CoverRef =
   | { kind: "vault"; path: string }
   | { kind: "none" };
 
-/** Default upright book face; ~2:3 so typical cover art fills the width. */
-const BOOK_WIDTH_PX = 108;
-const BOOK_GAP_PX = 8;
-/** Horizontal inset of the book row: frame 6*2 + row 2*2 + books 4*2. */
-const ROW_PADDING_PX = 24;
-
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
+const windowListeners = new WeakMap<HTMLElement, () => void>();
 
 type OverflowElement = {
   className?: string;
@@ -147,15 +148,20 @@ export function buildBookShelfItems(
     );
 }
 
+const SAFE_REMOTE_COVER =
+  /^(https?:\/\/|app:\/\/)/i;
+const SAFE_RASTER_DATA_COVER =
+  /^data:image\/(png|jpe?g|gif|webp|avif|bmp)(;|,)/i;
+
 /** Normalize frontmatter cover values into URL or vault path refs. */
 export function parseCoverRef(raw: string): CoverRef {
   const value = raw.trim();
   if (!value) return { kind: "none" };
-  if (
-    /^https?:\/\//i.test(value) ||
-    /^app:\/\//i.test(value) ||
-    /^data:image\//i.test(value)
-  ) {
+  if (/^(javascript|vbscript|data):/i.test(value)) {
+    if (SAFE_RASTER_DATA_COVER.test(value)) return { kind: "url", src: value };
+    return { kind: "none" };
+  }
+  if (SAFE_REMOTE_COVER.test(value)) {
     return { kind: "url", src: value };
   }
 
@@ -176,29 +182,6 @@ export function resolveCoverSrc(
   if (ref.kind === "none") return null;
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
-}
-
-/** How many upright books fit on one plank for the current editor width. */
-export function booksPerRow(
-  containerWidth: number,
-  bookWidth = BOOK_WIDTH_PX,
-  gap = BOOK_GAP_PX,
-  padding = ROW_PADDING_PX,
-): number {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return 1;
-  const available = Math.max(0, containerWidth - padding);
-  const per = Math.floor((available + gap) / (bookWidth + gap));
-  return Math.max(1, per);
-}
-
-export function chunkItems<T>(items: T[], size: number): T[][] {
-  const rowSize = Math.max(1, Math.floor(size));
-  if (!items.length) return [[]];
-  const rows: T[][] = [];
-  for (let index = 0; index < items.length; index += rowSize) {
-    rows.push(items.slice(index, index + rowSize));
-  }
-  return rows;
 }
 
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
@@ -302,6 +285,12 @@ function paintRows(
   }
 }
 
+function applyBookSize(frame: HTMLElement, bookWidth: number): void {
+  const height = bookHeightForWidth(bookWidth);
+  frame.style.setProperty("--atomic-book-width", `${bookWidth}px`);
+  frame.style.setProperty("--atomic-book-height", `${height}px`);
+}
+
 export function renderBookShelf(
   el: HTMLElement,
   data: VaultDataSource,
@@ -311,6 +300,11 @@ export function renderBookShelf(
 ): void {
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
+  const previousWindowListener = windowListeners.get(el);
+  if (previousWindowListener) {
+    window.removeEventListener("resize", previousWindowListener);
+    windowListeners.delete(el);
+  }
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
@@ -350,22 +344,46 @@ export function renderBookShelf(
         })
       : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
-  let lastPerRow = -1;
+  let lastKey = "";
 
   const layout = (): void => {
-    const perRow = booksPerRow(
-      frame.clientWidth || frame.getBoundingClientRect().width,
-    );
-    if (perRow === lastPerRow && frame.childElementCount > 0) return;
-    lastPerRow = perRow;
+    const fallback =
+      typeof window !== "undefined" && Number.isFinite(window.innerWidth)
+        ? window.innerWidth
+        : DEFAULT_BOOK_WIDTH_PX * 3 + BOOK_GAP_PX * 2 + ROW_PADDING_PX;
+    const width = measureElementWidth(frame, fallback);
+    const bookWidth = bookWidthForContainer(width);
+    const perRow = booksPerRow(width, bookWidth);
+    const key = `${bookWidth}:${perRow}`;
+    if (key === lastKey && frame.childElementCount > 0) return;
+    lastKey = key;
+    applyBookSize(frame, bookWidth);
     paintRows(frame, items, perRow, data, language, emptyText);
   };
 
   layout();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(layout);
+  });
 
   if (typeof ResizeObserver !== "undefined") {
     const observer = new ResizeObserver(() => layout());
     observer.observe(frame);
     resizeObservers.set(el, observer);
+    return;
   }
+
+  // Fallback only: a window listener holds `el` until removed, so it would
+  // leak across note unmounts until the next resize if registered alongside
+  // ResizeObserver (which Obsidian's WebViews always provide).
+  const onWindowResize = (): void => {
+    if (!el.isConnected) {
+      window.removeEventListener("resize", onWindowResize);
+      windowListeners.delete(el);
+      return;
+    }
+    layout();
+  };
+  window.addEventListener("resize", onWindowResize);
+  windowListeners.set(el, onWindowResize);
 }
