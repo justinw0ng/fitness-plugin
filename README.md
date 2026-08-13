@@ -6,7 +6,11 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 **Guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 
-![Atomic daily note](docs/images/atomic-daily-hero.png)
+![Atomic on desktop and mobile](docs/images/atomic-daily-hero.png)
+
+Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
+
+Daily note template setup: [examples/README.md](examples/README.md#use-the-daily-note-template).
 
 ## What it does
 

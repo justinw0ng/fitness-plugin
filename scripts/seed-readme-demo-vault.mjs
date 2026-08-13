@@ -3,7 +3,11 @@
  * Run: node scripts/seed-readme-demo-vault.mjs
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseHeroBookLimit } from "./hero-capture-options.mjs";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const VAULT = "/workspace/obsidian-demo";
 const TODAY = "2026-08-11";
@@ -23,6 +27,9 @@ const BOOKS = [
   { title: "Remarkably Bright Creatures", cover: "https://covers.openlibrary.org/b/id/12019989-L.jpg" },
   { title: "Atomic Habits", cover: "https://covers.openlibrary.org/b/id/12539702-L.jpg" },
 ];
+
+const bookLimit = parseHeroBookLimit(process.argv.slice(2), BOOKS.length);
+const heroBooks = BOOKS.slice(0, bookLimit);
 
 const GREEN = ["#9be9a8", "#40c463", "#30a14e", "#216e39"];
 const ORANGE = ["#ffd8a8", "#ffa94d", "#f76707", "#d9480f"];
@@ -220,7 +227,7 @@ function seedHobbyTimeLogs() {
     return sum + (m ? Number(m[1]) : 0);
   }, 0);
 
-  const [first, ...rest] = BOOKS;
+  const [first, ...rest] = heroBooks;
   write(
     join(VAULT, `atomics/hobbies/Reading/Items/${first.title}.md`),
     readingItem(first.title, first.cover, readingTotal, readingLogs),
@@ -241,26 +248,7 @@ function seedHobbyTimeLogs() {
 function seedDailyNote() {
   write(
     join(VAULT, `Daily notes/${TODAY}.md`),
-    `# Tuesday, August 11, 2026
-
-\`\`\`atomic-bookshelf
-\`\`\`
-
-## Track your activities today!
-
-\`\`\`atomic-actions
-\`\`\`
-
-\`\`\`atomic-heatmap
-activity: gym, golf, guitar, reading
-columns: 2
-rows: 2
-year: ${YEAR}
-\`\`\`
-
-\`\`\`atomic-today
-\`\`\`
-`,
+    readFileSync(join(ROOT, "examples/daily-notes/2026-08-11.md"), "utf8"),
   );
 }
 
@@ -278,6 +266,7 @@ function seedObsidianConfig() {
         baseFontSize: 16,
         showLineNumber: false,
         strictLineBreaks: false,
+        livePreview: true,
       },
       null,
       2,
@@ -290,37 +279,12 @@ function seedObsidianConfig() {
       {
         theme: "moonstone",
         accentColor: "",
-        showRibbon: false,
-        enabledCssSnippets: ["readme-hero-fullscreen"],
+        showRibbon: true,
+        enabledCssSnippets: [],
       },
       null,
       2,
     ),
-  );
-
-  write(
-    join(obsidianDir, "snippets/readme-hero-fullscreen.css"),
-    `/* Hide chrome so the README hero is the note only. */
-.workspace-ribbon,
-.workspace-split.mod-left-split,
-.workspace-split.mod-right-split,
-.workspace-tab-header-container,
-.view-header,
-.status-bar,
-.titlebar,
-.workspace-drawer-backdrop {
-  display: none !important;
-}
-
-.workspace-split.mod-root {
-  margin: 0 !important;
-}
-
-.markdown-preview-view,
-.markdown-source-view {
-  padding-top: 24px;
-}
-`,
   );
 
   write(
@@ -476,7 +440,7 @@ seedDailyNote();
 
 write(
   join(VAULT, "atomics/Dashboard.md"),
-  `# Dashboard\n\n\`\`\`atomic-dashboard\nyear: ${YEAR}\n\`\`\`\n`,
+  readFileSync(join(ROOT, "examples/dashboard/Dashboard.md"), "utf8"),
 );
 
-console.log(`Seeded demo vault at ${VAULT}`);
+console.log(`Seeded demo vault at ${VAULT} with ${bookLimit} books`);
