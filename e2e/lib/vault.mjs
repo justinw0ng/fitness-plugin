@@ -10,7 +10,8 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { homedir, tmpdir } from "node:os";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -49,6 +50,41 @@ function ensureDir(p) {
 function write(p, content) {
   ensureDir(dirname(p));
   writeFileSync(p, content, "utf8");
+}
+
+export function assertSafeE2eVaultPath(vaultPath) {
+  if (typeof vaultPath !== "string" || !vaultPath.trim()) {
+    throw new Error("E2E vault path is empty");
+  }
+  const resolved = resolve(vaultPath);
+  const repoRoot = resolve(ROOT);
+  const forbidden = [
+    resolve("/"),
+    repoRoot,
+    resolve(homedir()),
+    resolve(tmpdir()),
+    resolve("/tmp"),
+    resolve("/var"),
+    resolve("/usr"),
+    resolve("/etc"),
+  ];
+  if (forbidden.includes(resolved)) {
+    throw new Error(`Refusing to delete ${resolved}`);
+  }
+  if (resolved.startsWith(repoRoot + sep)) {
+    throw new Error(`Refusing to delete ${resolved} (inside the repository)`);
+  }
+  const tmpPrefix = resolve(tmpdir()) + sep;
+  const underTmp =
+    resolved.startsWith(tmpPrefix) ||
+    resolved.startsWith("/tmp/") ||
+    resolved.startsWith("/var/tmp/");
+  const e2eNamed = /e2e/i.test(basename(resolved));
+  if (!underTmp && !e2eNamed) {
+    throw new Error(
+      `Refusing to wipe ${resolved}. Use a temp directory or a path whose name contains "e2e".`,
+    );
+  }
 }
 
 function readingItem({ title, status, totalMin, timeLog }) {
@@ -276,6 +312,7 @@ export function seedE2eVault(options = {}) {
   const year = today.slice(0, 4);
   const deploy = options.deployPlugin !== false;
 
+  assertSafeE2eVaultPath(vault);
   if (existsSync(vault)) rmSync(vault, { recursive: true, force: true });
   ensureDir(vault);
   seedObsidianConfig(vault);

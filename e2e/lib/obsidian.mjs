@@ -2,7 +2,7 @@
  * Launch Obsidian with Chrome DevTools and attach Selenium.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Builder, By, Key, until } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome.js";
@@ -27,10 +27,21 @@ export function findObsidianBinary() {
   return null;
 }
 
+export const DEFAULT_DISPLAY = ":1";
+
+export function resolveDisplay() {
+  if (process.env.DISPLAY) return process.env.DISPLAY;
+  if (existsSync("/tmp/.X11-unix/X1")) return DEFAULT_DISPLAY;
+  if (existsSync("/tmp/.X11-unix/X0")) return ":0";
+  return "";
+}
+
 export function e2eSkipReason() {
   if (process.env.SKIP_E2E === "1") return "SKIP_E2E=1";
   if (!findObsidianBinary()) return "Obsidian is not installed";
-  if (!process.env.DISPLAY) return "DISPLAY is not set";
+  if (!resolveDisplay()) {
+    return "No X display (DISPLAY unset and no X11 socket)";
+  }
   return "";
 }
 
@@ -85,11 +96,23 @@ export async function ensureChromeDriver(chromeVersion) {
   writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
   const unzip = spawnSync(
     "python3",
-    ["-c", "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])", zipPath, cacheDir],
+    [
+      "-c",
+      "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])",
+      zipPath,
+      cacheDir,
+    ],
     { encoding: "utf8" },
   );
+  if (unzip.error) {
+    throw new Error(
+      `Failed to unzip ChromeDriver (${unzip.error.code || "spawn"}): ${unzip.error.message}`,
+    );
+  }
   if (unzip.status !== 0) {
-    throw new Error(`Failed to unzip ChromeDriver: ${unzip.stderr || unzip.stdout}`);
+    const detail =
+      (unzip.stderr || unzip.stdout || "").trim() || `exit ${unzip.status}`;
+    throw new Error(`Failed to unzip ChromeDriver: ${detail}`);
   }
   const nested = join(cacheDir, "chromedriver-linux64", "chromedriver");
   const resolved = existsSync(nested) ? nested : binary;
@@ -98,8 +121,11 @@ export async function ensureChromeDriver(chromeVersion) {
   }
   chmodSync(resolved, 0o755);
   if (resolved !== binary) {
-    spawnSync("cp", [resolved, binary]);
+    copyFileSync(resolved, binary);
     chmodSync(binary, 0o755);
+  }
+  if (!existsSync(binary)) {
+    throw new Error(`ChromeDriver was unzipped but not installed at ${binary}`);
   }
   return binary;
 }
@@ -132,7 +158,7 @@ export async function launchObsidian(vaultPath, filePath) {
       uri,
     ],
     {
-      env: { ...process.env, DISPLAY: process.env.DISPLAY || ":1" },
+      env: { ...process.env, DISPLAY: resolveDisplay() || DEFAULT_DISPLAY },
       detached: true,
       stdio: ["ignore", "ignore", "ignore"],
     },

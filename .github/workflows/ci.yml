@@ -39,6 +39,7 @@ jobs:
           CI_CHANGED="$(git diff --name-only "${BASE}...HEAD" -- \
             "${SOURCE_PATHSPECS[@]}" \
             tests \
+            e2e \
             scripts/ensure-pr-version.mjs \
             scripts/check-version-conflict.mjs \
             scripts/bump-version.mjs \
