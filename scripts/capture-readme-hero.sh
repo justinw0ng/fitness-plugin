@@ -61,7 +61,7 @@ start_obsidian() {
   local encoded
   encoded=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${DAILY_FILE}'))")
   local uri="obsidian://open?vault=${VAULT_ID}&file=${encoded}"
-  setsid "$OBSIDIAN" --no-sandbox "$uri" >/tmp/obsidian-hero.log 2>&1 &
+  setsid "$OBSIDIAN" --no-sandbox --disable-gpu --disable-software-rasterizer "$uri" >/tmp/obsidian-hero.log 2>&1 &
   OBS_PID=$!
 }
 
@@ -165,6 +165,35 @@ write_note_only_snippet() {
   padding-top: 20px !important;
   padding-left: 28px !important;
   padding-right: 28px !important;
+}
+
+/* Hide all scrollbars in hero captures only (this snippet is capture-only). */
+body {
+  --scrollbar-thumb-bg: transparent !important;
+  --scrollbar-active-thumb-bg: transparent !important;
+  --scrollbar-bg: transparent !important;
+}
+
+body *,
+body *::-webkit-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+body *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.fitness-plugin .atomic-book-row-books,
+.fitness-plugin .fitness-heatmap-scroll {
+  overflow: hidden !important;
+}
+
+.fitness-plugin .atomic-book-shelf-row {
+  overflow: hidden !important;
 }
 CSS
 }
@@ -275,6 +304,70 @@ Path(source).unlink(missing_ok=True)
 PY
 }
 
+scrub_hero_scrollbars() {
+  local image="$1"
+  python3 - "$image" <<'PY'
+import statistics
+import sys
+from pathlib import Path
+
+from PIL import Image
+
+path = Path(sys.argv[1])
+image = Image.open(path).convert("RGB")
+width, height = image.size
+pixels = image.load()
+
+x_start = int(width * 0.06)
+x_end = int(width * 0.94)
+y_start = int(height * 0.20)
+y_end = int(height * 0.38)
+
+def row_stats(y: int) -> tuple[float, float]:
+    row = [pixels[x, y] for x in range(x_start, x_end, 2)]
+    luma = [sum(channel) / 3 for channel in row]
+    return sum(luma) / len(luma), statistics.pstdev(luma)
+
+def is_scrollbar_pixel(r: int, g: int, b: int) -> bool:
+    luma = (r + g + b) / 3
+    return 225 <= luma <= 240 and max(r, g, b) - min(r, g, b) < 18
+
+runs = []
+run_start = None
+for y in range(y_start, y_end):
+    mean, std = row_stats(y)
+    is_track = std < 8 and 228 <= mean <= 240
+    if is_track:
+        if run_start is None:
+            run_start = y
+        continue
+    if run_start is not None:
+        runs.append((run_start, y - 1))
+        run_start = None
+if run_start is not None:
+    runs.append((run_start, y_end - 1))
+
+for start, end in runs:
+    track_height = end - start + 1
+    if track_height < 1 or track_height > 25:
+        continue
+    fill = (245, 245, 245)
+    for sample_y in range(end + 1, min(y_end, end + 24)):
+        mean, std = row_stats(sample_y)
+        if std < 3 and mean >= 242:
+            sample_row = [pixels[x, sample_y] for x in range(x_start, x_end, 4)]
+            fill = tuple(sorted(channel)[len(sample_row) // 2] for channel in zip(*sample_row))
+            break
+    for y in range(start, end + 1):
+        for x in range(x_start, x_end):
+            r, g, b = pixels[x, y]
+            if is_scrollbar_pixel(r, g, b):
+                pixels[x, y] = fill
+
+image.save(path)
+PY
+}
+
 screenshot_window() {
   local width="$1"
   local height="$2"
@@ -327,6 +420,7 @@ capture_daily_note() {
   while true; do
     screenshot_window "$width" "$capture_height" "$raw"
     detect_and_crop_screenshot "$raw" "$destination" "$width" "$height"
+    scrub_hero_scrollbars "$destination"
     if python3 - "$destination" "$min_unique" <<'PY'
 import sys
 from PIL import Image
