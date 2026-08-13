@@ -2,7 +2,7 @@
 
 Step-by-step setup for the Obsidian Atomic Tracker plugin: gym and golf sessions, Reading timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
 
-Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian in Light mode; macOS and Windows look the same aside from window chrome.
+Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian in Light mode; macOS and Windows look the same aside from window chrome. Book-shelf and Reading shots use original typographic demo covers with invented titles, not publisher artwork.
 
 ---
 
@@ -394,6 +394,8 @@ Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknow
 ![Book shelf](./images/atomic-book-shelf.png)
 
 ![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
+
+The screenshots above show the same invented demo set as the README hero (`docs/demo-covers/`). Your vault can use any local or remote cover image.
 
 The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks. Covers are a bit smaller than earlier builds so they sit closer to Obsidian’s UI scale. A row always keeps **at least three books**; if the pane is too narrow even at the minimum cover size, that row scrolls horizontally (scrollbar hidden) instead of wrapping to one or two books. Wider panes still wrap extra books onto the next plank. Hover/focus on a desktop pointer rolls the cover open on a spine hinge (local CSS 3D). On iOS and Android, the first tap opens the cover the same way; a second tap opens the book note. Desktop click still opens the note immediately. No Framer runtime.
 

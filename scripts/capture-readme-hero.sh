@@ -473,3 +473,10 @@ python3 /workspace/scripts/compose-device-hero.py \
   --out "$OUT"
 
 echo "Saved $OUT ($(wc -c < "$OUT") bytes)"
+
+GIF_OUT="/workspace/docs/images/atomic-daily-hero.gif"
+python3 /workspace/scripts/animate-hero-gif.py \
+  --desktop "$DESKTOP_SHOT" \
+  --mobile "$MOBILE_SHOT" \
+  --out "$GIF_OUT"
+echo "Saved $GIF_OUT ($(wc -c < "$GIF_OUT") bytes)"
