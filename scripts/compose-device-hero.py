@@ -16,14 +16,18 @@ DESKTOP_CARD = (80, 180, 1340, 890)
 DESKTOP_INSET = 12
 PHONE_FRAME = (1220, 240, 1520, 860)
 PHONE_INSET = 12
+REPO = Path(__file__).resolve().parents[1]
+JERSEY_FONT = REPO / "docs/fonts/Jersey20-Regular.ttf"
+DEJAVU_DIR = Path("/usr/share/fonts/truetype/dejavu")
 
 
-def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+def font(size: int, bold: bool = False, jersey: bool = False) -> ImageFont.FreeTypeFont:
+    if jersey:
+        if not JERSEY_FONT.is_file():
+            raise FileNotFoundError(f"missing Jersey 20 font: {JERSEY_FONT}")
+        return ImageFont.truetype(str(JERSEY_FONT), size)
     filename = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-    return ImageFont.truetype(
-        f"/usr/share/fonts/truetype/dejavu/{filename}",
-        size,
-    )
+    return ImageFont.truetype(str(DEJAVU_DIR / filename), size)
 
 
 def rounded_mask(size: tuple[int, int], radius: int) -> Image.Image:
@@ -48,12 +52,12 @@ def compose(desktop: Image.Image, mobile: Image.Image) -> Image.Image:
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
 
-    draw.text((80, 40), "ATOMIC", fill=TEXT, font=font(16, bold=True))
+    draw.text((80, 36), "ATOMIC", fill=TEXT, font=font(28, jersey=True))
     draw.text(
-        (80, 76),
+        (80, 68),
         "Your habits. One daily note.",
         fill=TEXT,
-        font=font(56, bold=True),
+        font=font(56, jersey=True),
     )
     right_label = "Atomic for Obsidian"
     right_box = draw.textbbox((0, 0), right_label, font=font(15))

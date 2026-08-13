@@ -266,6 +266,7 @@ function seedObsidianConfig() {
         baseFontSize: 16,
         showLineNumber: false,
         strictLineBreaks: false,
+        livePreview: true,
       },
       null,
       2,

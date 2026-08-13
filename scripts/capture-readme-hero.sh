@@ -94,15 +94,94 @@ else:
 PY
 }
 
-patch_desktop_capture_appearance() {
+install_minimal_theme() {
+  local dest="/workspace/obsidian-demo/.obsidian/themes/Minimal"
+  mkdir -p "$dest"
+  if [[ ! -f "$dest/theme.css" || ! -f "$dest/manifest.json" ]]; then
+    rm -rf /tmp/obsidian-minimal
+    git clone --depth 1 https://github.com/kepano/obsidian-minimal.git /tmp/obsidian-minimal
+    cp /tmp/obsidian-minimal/theme.css /tmp/obsidian-minimal/manifest.json "$dest/"
+  fi
+}
+
+write_note_only_snippet() {
+  local snippet_dir="/workspace/obsidian-demo/.obsidian/snippets"
+  mkdir -p "$snippet_dir"
+  cat > "${snippet_dir}/hero-note-only.css" <<'CSS'
+.workspace-ribbon,
+.workspace-split.mod-left-split,
+.workspace-split.mod-right-split,
+.status-bar,
+.titlebar,
+.titlebar-button-container,
+.view-header,
+.workspace-tab-header-container,
+.workspace-sidedock-vault-profile,
+.mod-root .workspace-tabs .workspace-tab-header-container,
+.sidebar-toggle-button,
+.workspace-drawer-vault-profile {
+  display: none !important;
+}
+
+.workspace-split.mod-root,
+.workspace-leaf,
+.workspace-leaf-content,
+.view-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: 100% !important;
+}
+
+.markdown-preview-view,
+.markdown-source-view.mod-cm6 .cm-scroller {
+  padding-top: 20px !important;
+  padding-left: 28px !important;
+  padding-right: 28px !important;
+}
+CSS
+}
+
+patch_capture_appearance() {
   python3 - <<'PY'
 import json
 from pathlib import Path
 
-app = Path("/workspace/obsidian-demo/.obsidian/app.json")
-data = json.loads(app.read_text())
-data["baseFontSize"] = 13
-app.write_text(json.dumps(data, indent=2) + "\n")
+vault = Path("/workspace/obsidian-demo/.obsidian")
+app = json.loads((vault / "app.json").read_text())
+app["readableLineLength"] = False
+app["livePreview"] = True
+app["baseFontSize"] = 15
+(vault / "app.json").write_text(json.dumps(app, indent=2) + "\n")
+
+appearance = json.loads((vault / "appearance.json").read_text())
+appearance["theme"] = "moonstone"
+appearance["cssTheme"] = "Minimal"
+appearance["showRibbon"] = False
+appearance["enabledCssSnippets"] = ["hero-note-only"]
+(vault / "appearance.json").write_text(json.dumps(appearance, indent=2) + "\n")
+
+workspace = vault / "workspace.json"
+if workspace.exists():
+    data = json.loads(workspace.read_text())
+    if "left" in data:
+        data["left"]["collapsed"] = True
+    if "right" in data:
+        data["right"]["collapsed"] = True
+
+    def force_preview(node):
+        if not isinstance(node, dict):
+            return
+        state = node.get("state")
+        if node.get("type") == "leaf" and isinstance(state, dict) and state.get("type") == "markdown":
+            inner = state.setdefault("state", {})
+            inner["mode"] = "preview"
+            inner["source"] = False
+            inner["file"] = "Daily notes/2026-08-11.md"
+        for child in node.get("children", []):
+            force_preview(child)
+
+    force_preview(data.get("main", {}))
+    workspace.write_text(json.dumps(data, indent=2) + "\n")
 PY
 }
 
@@ -122,23 +201,28 @@ width = int(width_s)
 height = int(height_s)
 image = Image.open(source).convert("RGB")
 
-def row_is_tab_bar(y: int, threshold: int = 240, min_ratio: float = 0.8) -> bool:
-    white = 0
-    for x in range(width):
+def row_is_note_canvas(y: int, min_luma: float = 220, min_ratio: float = 0.75) -> bool:
+    light = 0
+    step = 4
+    sampled = 0
+    for x in range(0, width, step):
         r, g, b = image.getpixel((x, y))
-        if r >= threshold and g >= threshold and b >= threshold:
-            white += 1
-    return white / width >= min_ratio
+        luma = 0.299 * r + 0.587 * g + 0.114 * b
+        if luma >= min_luma:
+            light += 1
+        sampled += 1
+    return sampled > 0 and light / sampled >= min_ratio
 
 crop_top = 0
 for y in range(image.height):
-    if row_is_tab_bar(y):
+    if row_is_note_canvas(y):
         crop_top = y
         break
 
 if crop_top == 0:
     r, g, b = image.getpixel((width // 2, 0))
-    if not (r >= 240 and g >= 240 and b >= 240):
+    luma = 0.299 * r + 0.587 * g + 0.114 * b
+    if luma < 220:
         print(
             f"ERROR: could not detect OS title-bar strip to crop in {source}; "
             f"top row RGB=({r},{g},{b})",
@@ -206,25 +290,66 @@ capture_daily_note() {
   xdotool windowsize --sync "$win" "$width" "$capture_height"
   xdotool windowactivate --sync "$win"
   xdotool key --window "$win" ctrl+Home || true
-  sleep "$wait_seconds"
-
-  if [[ "$zoom_steps" -gt 0 ]]; then
-    for _ in $(seq 1 "$zoom_steps"); do
-      xdotool key --window "$win" ctrl+minus
-      sleep 0.4
-    done
-    sleep 1
-  fi
+  xdotool mousemove 1910 10
+  sleep 6
 
   local raw="${destination}.raw.png"
-  screenshot_window "$width" "$capture_height" "$raw"
-  detect_and_crop_screenshot "$raw" "$destination" "$width" "$height"
+  local min_unique="${6:-40000}"
+  local deadline=$((SECONDS + 90))
+  while true; do
+    screenshot_window "$width" "$capture_height" "$raw"
+    detect_and_crop_screenshot "$raw" "$destination" "$width" "$height"
+    if python3 - "$destination" "$min_unique" <<'PY'
+import sys
+from PIL import Image
+
+path, min_unique_s = sys.argv[1], sys.argv[2]
+min_unique = int(min_unique_s)
+image = Image.open(path).convert("RGB")
+width, height = image.size
+band = image.crop((0, int(height * 0.08), width, int(height * 0.38)))
+unique = len(band.getcolors(2_000_000) or [])
+print(f"shelf unique={unique} min={min_unique}")
+raise SystemExit(0 if unique >= min_unique else 1)
+PY
+    then
+      break
+    fi
+    if (( SECONDS >= deadline )); then
+      echo "ERROR: book covers did not render in time: $destination" >&2
+      exit 1
+    fi
+    sleep 2
+  done
   if [[ ! -s "$destination" ]]; then
     echo "ERROR: screenshot was not created: $destination" >&2
     exit 1
   fi
   stop_obsidian
   sleep 2
+}
+
+verify_shelf_covers() {
+  local image="$1"
+  local min_unique="$2"
+  python3 - "$image" "$min_unique" <<'PY'
+import sys
+from PIL import Image
+
+path, min_unique_s = sys.argv[1], sys.argv[2]
+min_unique = int(min_unique_s)
+image = Image.open(path).convert("RGB")
+width, height = image.size
+band = image.crop((0, int(height * 0.08), width, int(height * 0.38)))
+unique = len(band.getcolors(2_000_000) or [])
+if unique < min_unique:
+    print(
+        f"ERROR: {path} shelf band has {unique} unique colors; expected at least {min_unique} for photo covers",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+print(f"shelf covers ok {path} unique={unique}")
+PY
 }
 
 if pgrep -x obsidian >/dev/null 2>&1; then
@@ -234,22 +359,20 @@ if pgrep -x obsidian >/dev/null 2>&1; then
 fi
 
 node /workspace/scripts/seed-readme-demo-vault.mjs
-patch_desktop_capture_appearance
-capture_daily_note 1600 900 "$DESKTOP_SHOT" 18 2
+install_minimal_theme
+write_note_only_snippet
+patch_capture_appearance
+capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 40000
 echo "Saved desktop $(wc -c < "$DESKTOP_SHOT") bytes"
+verify_shelf_covers "$DESKTOP_SHOT" 40000
 
 node /workspace/scripts/seed-readme-demo-vault.mjs --book-limit 3
-python3 - <<'PY'
-import json
-from pathlib import Path
-workspace = Path("/workspace/obsidian-demo/.obsidian/workspace.json")
-data = json.loads(workspace.read_text())
-if "left" in data:
-    data["left"]["collapsed"] = True
-workspace.write_text(json.dumps(data, indent=2) + "\n")
-PY
-capture_daily_note 390 844 "$MOBILE_SHOT" 10
+install_minimal_theme
+write_note_only_snippet
+patch_capture_appearance
+capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 12000
 echo "Saved mobile $(wc -c < "$MOBILE_SHOT") bytes"
+verify_shelf_covers "$MOBILE_SHOT" 8000
 
 python3 /workspace/scripts/compose-device-hero.py \
   --desktop "$DESKTOP_SHOT" \
