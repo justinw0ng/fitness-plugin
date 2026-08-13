@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mergeSettings } from "../src/util/merge-settings.ts";
-import { rewriteFitnessCuesFences } from "../src/util/migrate-cues.ts";
 
-test("mergeSettings defaults include golf/gym paths and legacy on", () => {
+test("mergeSettings defaults include golf/gym paths and Reading", () => {
   const s = mergeSettings(null);
   assert.equal(s.dashboardPath, "atomics/Dashboard.md");
   assert.equal(s.golfCuesPath, "atomics/exercise/Golf/Cues.md");
@@ -56,7 +55,6 @@ test("mergeSettings defaults include golf/gym paths and legacy on", () => {
     s.activityTypes.find((activity) => activity.id === "reading")?.folder,
     "atomics/hobbies/Reading",
   );
-  assert.equal(s.deprecatedFitnessBlocksEnabled, true);
   assert.equal("cuesPath" in s, false);
   assert.equal("series" in s, false);
 });
@@ -188,18 +186,8 @@ test("mergeSettings prefers golfCuesPath over cuesPath", () => {
   assert.equal(s.golfCuesPath, "New.md");
 });
 
-test("mergeSettings respects deprecatedFitnessBlocksEnabled false", () => {
-  const s = mergeSettings({ deprecatedFitnessBlocksEnabled: false });
-  assert.equal(s.deprecatedFitnessBlocksEnabled, false);
-});
-
 test("mergeSettings keeps language en when set", () => {
   assert.equal(mergeSettings({ language: "en" }).language, "en");
-});
-
-test("mergeSettings maps legacy cue flag false to fitness block aliases off", () => {
-  const s = mergeSettings({ deprecatedFitnessCuesEnabled: false });
-  assert.equal(s.deprecatedFitnessBlocksEnabled, false);
 });
 
 test("mergeSettings prefers stored activityTypes over legacy series", () => {
@@ -242,56 +230,6 @@ test("mergeSettings rejects unsafe activity folders and falls back to defaults",
   });
 
   assert.deepEqual(s.activityTypes.map((activity) => activity.id), ["gym", "golf", "reading"]);
-});
-
-test("rewriteFitnessCuesFences rewrites fence language only", () => {
-  const input = `# Cues\n\nUse fitness-cues in prose.\n\n\`\`\`fitness-cues\nyear: 2026\n\`\`\`\n`;
-  const { markdown, replacements } = rewriteFitnessCuesFences(input);
-  assert.equal(replacements, 1);
-  assert.match(markdown, /```fitness-golf-cues\n/);
-  assert.match(markdown, /Use fitness-cues in prose/);
-  assert.doesNotMatch(markdown, /```fitness-cues\b/);
-});
-
-test("rewriteFitnessCuesFences is idempotent for new name", () => {
-  const input = "```fitness-golf-cues\n```\n";
-  const { markdown, replacements } = rewriteFitnessCuesFences(input);
-  assert.equal(replacements, 0);
-  assert.equal(markdown, input);
-});
-
-test("rewriteFitnessCuesFences handles tildes and info strings", () => {
-  const input = "~~~fitness-cues extra\nyear: 1\n~~~\n";
-  const { markdown, replacements } = rewriteFitnessCuesFences(input);
-  assert.equal(replacements, 1);
-  assert.match(markdown, /~~~fitness-golf-cues extra\n/);
-});
-
-test("rewriteFitnessCuesFences ignores nested fences inside docs samples", () => {
-  const input = [
-    "Example:",
-    "````markdown",
-    "```fitness-cues",
-    "year: 2026",
-    "```",
-    "````",
-    "",
-    "```fitness-cues",
-    "year: 2026",
-    "```",
-    "",
-  ].join("\n");
-  const { markdown, replacements } = rewriteFitnessCuesFences(input);
-  assert.equal(replacements, 1);
-  assert.match(markdown, /````markdown\n```fitness-cues\n/);
-  assert.match(markdown, /\n```fitness-golf-cues\n/);
-});
-
-test("rewriteFitnessCuesFences rewrites indented top-level fences", () => {
-  const input = "  ```fitness-cues\nyear: 1\n  ```\n";
-  const { markdown, replacements } = rewriteFitnessCuesFences(input);
-  assert.equal(replacements, 1);
-  assert.match(markdown, /^ {2}```fitness-golf-cues\n/);
 });
 
 test("mergeSettings rejects unsafe dashboard and cue paths", () => {

@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-atomic",
-  "name": "Atomic",
-  "version": "1.0.21",
+  "id": "atomic-tracker",
+  "name": "Atomic Tracker",
+  "version": "1.0.22",
   "minAppVersion": "1.5.0",
-  "description": "Habit tracker for exercise and hobbies — heatmaps, cues, timers, and dashboards under atomics/.",
+  "description": "Track exercise and hobbies with heatmaps, cues, timers, and a daily dashboard.",
   "author": "Justin Wong",
   "authorUrl": "https://github.com/justinw0ng/obsidian-atomic",
   "isDesktopOnly": false

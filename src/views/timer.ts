@@ -20,8 +20,7 @@ async function modifyCurrentNote(
     new Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
     return;
   }
-  const original = await plugin.app.vault.read(file);
-  await plugin.app.vault.modify(file, updater(original));
+  await plugin.app.vault.process(file, updater);
   plugin.scheduleRefresh();
 }
 
@@ -85,7 +84,7 @@ export async function renderAtomicTimer(
             stoppedAtIso: new Date().toISOString(),
             note,
           });
-          await plugin.app.vault.modify(file, result.markdown);
+          await plugin.app.vault.process(file, () => result.markdown);
           plugin.scheduleRefresh();
           new Notice(
             t("notice.timerLogged", plugin.settings.language, {

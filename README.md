@@ -1,12 +1,12 @@
-# Atomic
+# Atomic Tracker
 
 Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
-**Install:** download `obsidian-atomic-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases) and unzip into `<vault>/.obsidian/plugins/` (so you get `obsidian-atomic/main.js`, `manifest.json`, and `styles.css`).
+**Install:** Settings → Community plugins → Browse → search **Atomic Tracker**. Until the directory listing is live, download `atomic-tracker-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases) and unzip into `<vault>/.obsidian/plugins/` (so you get `atomic-tracker/main.js`, `manifest.json`, and `styles.css`).
 
 **Guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 
-![Atomic on desktop and mobile](docs/images/atomic-daily-hero.png)
+![Atomic Tracker on desktop and mobile](docs/images/atomic-daily-hero.png)
 
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
@@ -19,7 +19,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)
 
-Settings → Atomic → Language: Traditional Chinese & English (`zh-Hant-en`, default) or English (`en`). Changing language never rewrites existing notes.
+Settings → Atomic Tracker → Language: Traditional Chinese & English (`zh-Hant-en`, default) or English (`en`). Changing language never rewrites existing notes.
 
 ## Default vault layout
 
@@ -41,6 +41,10 @@ atomics/
         └── Items/<Book>.md
 ```
 
-## Upgrade from Fitness
+## Privacy
 
-**Settings → Atomic → Migrate from Fitness to Atomic** moves legacy paths when the Atomic destination is empty, rewrites `fitness-*` fences to `atomic-*`, updates settings, and turns off legacy aliases. Details: [docs/USER_GUIDE.md#upgrade-from-fitness](docs/USER_GUIDE.md#upgrade-from-fitness).
+Atomic Tracker runs locally in your vault. It does not collect telemetry, require an account, or show ads. It does not call home. The only network fetch is if you set a book `cover` to an `http(s):` URL, which Obsidian loads like any other remote image in a note. It reads and writes notes under `atomics/` and any other vault paths you configure (dashboard, activity folders, book covers).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).

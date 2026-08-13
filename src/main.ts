@@ -47,7 +47,7 @@ export default class FitnessPlugin extends Plugin {
     this.addSettingTab(new FitnessSettingTab(this.app, this));
 
     this.addCommand({
-      id: "fitness-new-gym-session",
+      id: "new-gym-session",
       name: t("command.newGymSession", this.settings.language),
       callback: () => {
         void this.createGymSession();
@@ -55,7 +55,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "fitness-new-golf-session",
+      id: "new-golf-session",
       name: t("command.newGolfSession", this.settings.language),
       callback: () => {
         void this.createGolfSession();
@@ -63,7 +63,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-new-exercise-session",
+      id: "new-exercise-session",
       name: t("command.newExerciseSession", this.settings.language),
       callback: () => {
         void this.createExerciseSession();
@@ -71,7 +71,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-new-reading-item",
+      id: "new-reading-item",
       name: t("command.newReadingItem", this.settings.language),
       callback: () => {
         void this.createReadingItem();
@@ -79,7 +79,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-new-hobby-item",
+      id: "new-hobby-item",
       name: t("command.newHobbyItem", this.settings.language),
       callback: () => {
         void this.createHobbyItem();
@@ -87,7 +87,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-create-reading-bookshelf",
+      id: "create-reading-bookshelf",
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
@@ -99,7 +99,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-open-reading-bookshelf",
+      id: "open-reading-bookshelf",
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
@@ -111,7 +111,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-create-book-shelf",
+      id: "create-book-shelf",
       name: t("command.createBookShelf", this.settings.language),
       callback: () => {
         void createBookShelfHostCommand(this.data, this.settings.language);
@@ -119,7 +119,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "atomic-open-book-shelf",
+      id: "open-book-shelf",
       name: t("command.openBookShelf", this.settings.language),
       callback: () => {
         void openBookShelfHostCommand(this.data, this.settings.language);
@@ -127,7 +127,7 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "fitness-open-dashboard",
+      id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
       callback: () => {
         void this.openDashboard();
