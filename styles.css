@@ -487,8 +487,8 @@
   inset: 6px 4px;
 }
 
-/* Coarse pointers (iOS/Android): no 2D spine overlay on the cover face.
-   Hover-capable desktops restore a 3D edge-on spine below. */
+/* Default: no 2D spine overlay on the cover face. Hover + fine pointer
+   restores a 3D edge-on spine in the media query below. */
 .fitness-plugin .atomic-book-spine {
   display: none;
 }

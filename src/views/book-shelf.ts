@@ -220,8 +220,8 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
       img.naturalHeight,
     );
   };
-  if (img.complete && img.naturalWidth > 0) apply();
-  else img.addEventListener("load", apply);
+  if (img.complete) apply();
+  else img.addEventListener("load", apply, { once: true });
 }
 
 /** Smaller cover/page type for long titles so they wrap inside the book face. */

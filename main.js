@@ -2635,8 +2635,8 @@ function bindCoverObjectPosition(img) {
       img.naturalHeight
     );
   };
-  if (img.complete && img.naturalWidth > 0) apply();
-  else img.addEventListener("load", apply);
+  if (img.complete) apply();
+  else img.addEventListener("load", apply, { once: true });
 }
 function titleLengthClass(title) {
   const length = title.trim().length;

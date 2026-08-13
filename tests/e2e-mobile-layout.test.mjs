@@ -218,7 +218,7 @@ test("cover images apply coverObjectPosition after load", () => {
   assert.match(src, /bindCoverObjectPosition\(img\)/);
   assert.match(
     src,
-    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load"/,
+    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load", apply, \{ once: true \}/,
   );
 });
 
