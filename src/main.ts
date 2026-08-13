@@ -5,7 +5,7 @@ import {
   createGymSession,
 } from "./commands/create-session";
 import { createHobbyItem, createReadingItem } from "./commands/create-reading-item";
-import { registerCodeblocks, renderBlock, type LiveBlock } from "./codeblocks";
+import { registerCodeblocks, renderTrackedBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
 import {
   createBookShelfHostCommand,
@@ -38,9 +38,9 @@ export default class FitnessPlugin extends Plugin {
 
   async onload() {
     this.data = new VaultDataSource(this.app);
-    await this.loadSettings();
-
     registerCodeblocks(this);
+    await this.loadSettings();
+    this.scheduleRefresh();
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language,
     });
@@ -205,12 +205,7 @@ export default class FitnessPlugin extends Plugin {
   async refreshAll() {
     this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);
     await Promise.all(
-      this.liveBlocks.map((block) => {
-        const ctx = {
-          sourcePath: block.sourcePath,
-        } as Parameters<typeof renderBlock>[4];
-        return renderBlock(this, block.kind, block.source, block.el, ctx);
-      }),
+      this.liveBlocks.map((block) => renderTrackedBlock(this, block)),
     );
   }
 

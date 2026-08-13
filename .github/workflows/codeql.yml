@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    # PRs stay unfiltered: the branch ruleset requires a CodeQL check on every PR.
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "esbuild.config.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/codeql.yml"
   pull_request:
     branches:
       - main
