@@ -2595,6 +2595,23 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
+var COVER_SPINE_WIDE_RATIO = 0.72;
+function coverObjectPosition(naturalWidth, naturalHeight) {
+  if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0) {
+    return "center";
+  }
+  return naturalWidth / naturalHeight > COVER_SPINE_WIDE_RATIO ? "right center" : "center";
+}
+function bindCoverObjectPosition(img) {
+  const apply = () => {
+    img.style.objectPosition = coverObjectPosition(
+      img.naturalWidth,
+      img.naturalHeight
+    );
+  };
+  if (img.complete && img.naturalWidth > 0) apply();
+  else img.addEventListener("load", apply);
+}
 function titleLengthClass(title) {
   const length = title.trim().length;
   if (length > 36) return "is-title-xs";
@@ -2629,10 +2646,11 @@ function createBook(parent, item, data, language) {
   const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    face.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover-image",
       attr: { src: coverSrc, alt: "" }
     });
+    bindCoverObjectPosition(img);
   } else {
     face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),

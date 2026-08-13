@@ -426,8 +426,11 @@
   display: none;
 }
 
-/* Beat Obsidian's preview `img { height: auto }` so covers fill the face. */
+/* Beat Obsidian's preview `img { height: auto }` so covers fill the face.
+   Absolute fill makes object-fit reliable on iOS/Android WebViews. */
 .fitness-plugin.atomic-book-shelf .atomic-book-cover-image {
+  position: absolute;
+  inset: 0;
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
@@ -467,13 +470,10 @@
   inset: 6px 4px;
 }
 
+/* Coarse pointers (iOS/Android): no 2D spine overlay on the cover face.
+   Hover-capable desktops restore a 3D edge-on spine below. */
 .fitness-plugin .atomic-book-spine {
-  width: 7px;
-  right: auto;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--atomic-book-color), black 24%);
-  transform: none;
-  z-index: 3;
+  display: none;
 }
 
 .fitness-plugin .atomic-book-spine-title {
@@ -569,7 +569,11 @@
   }
 
   .fitness-plugin .atomic-book-spine {
+    display: block;
     width: 14px;
+    right: auto;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--atomic-book-color), black 24%);
     transform: translateX(-7px) rotateY(90deg);
     transform-origin: right center;
     z-index: 0;

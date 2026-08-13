@@ -4,6 +4,7 @@ import {
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
+  coverObjectPosition,
   parseCoverRef,
   resolveCoverSrc,
   shelfColorFor,
@@ -192,6 +193,17 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
     resolveCoverSrc("", data, "atomics/hobbies/Reading/Items/Current.md"),
     null,
   );
+});
+
+test("coverObjectPosition crops wide 3D mockups to the front face", () => {
+  // Upright 2:3 (and the shelf face ~80×124) stay centered.
+  assert.equal(coverObjectPosition(400, 600), "center");
+  assert.equal(coverObjectPosition(80, 124), "center");
+  // Photos / 3D renders that include a left spine are wider than 2:3.
+  assert.equal(coverObjectPosition(500, 600), "right center");
+  assert.equal(coverObjectPosition(510, 600), "right center");
+  assert.equal(coverObjectPosition(0, 600), "center");
+  assert.equal(coverObjectPosition(400, 0), "center");
 });
 
 test("titleLengthClass shrinks type for long book titles", () => {
