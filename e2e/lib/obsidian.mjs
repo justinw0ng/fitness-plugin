@@ -325,6 +325,8 @@ export async function runCommandViaPalette(driver, query) {
 }
 
 export async function openAtomicSettings(driver) {
+  await switchToObsidianWindow(driver, 8000);
+  await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
   await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
   await sleep(150);
   await driver.executeScript(`
