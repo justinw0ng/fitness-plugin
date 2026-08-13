@@ -2,7 +2,7 @@
  * Seed /workspace/obsidian-demo for README hero screenshot (Task 7).
  * Run: node scripts/seed-readme-demo-vault.mjs
  */
-import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseHeroBookLimit } from "./hero-capture-options.mjs";
@@ -14,18 +14,18 @@ const TODAY = "2026-08-11";
 const YEAR = "2026";
 
 const BOOKS = [
-  { title: "Theo of Golden", cover: "https://covers.openlibrary.org/b/id/15205233-L.jpg" },
-  { title: "The Calamity Club", cover: "https://covers.openlibrary.org/b/id/15236189-L.jpg" },
-  { title: "Yesteryear", cover: "https://covers.openlibrary.org/b/id/15234864-L.jpg" },
-  { title: "Whistler", cover: "https://covers.openlibrary.org/b/id/15234903-L.jpg" },
-  { title: "Dungeon Crawler Carl", cover: "https://covers.openlibrary.org/b/id/15143022-L.jpg" },
-  { title: "Project Hail Mary", cover: "https://covers.openlibrary.org/b/id/11200092-L.jpg" },
-  { title: "Regime Change", cover: "https://covers.openlibrary.org/b/id/15232516-L.jpg" },
-  { title: "The Odyssey", cover: "https://covers.openlibrary.org/b/id/8100018-L.jpg" },
-  { title: "The Wedding People", cover: "https://covers.openlibrary.org/b/id/15127690-L.jpg" },
-  { title: "The Let Them Theory", cover: "https://covers.openlibrary.org/b/id/15165806-L.jpg" },
-  { title: "Remarkably Bright Creatures", cover: "https://covers.openlibrary.org/b/id/12019989-L.jpg" },
-  { title: "Atomic Habits", cover: "https://covers.openlibrary.org/b/id/12539702-L.jpg" },
+  { title: "The Unhurried Advantage", slug: "the-unhurried-advantage" },
+  { title: "Ship Before You Brand", slug: "ship-before-you-brand" },
+  { title: "Evenings Without Email", slug: "evenings-without-email" },
+  { title: "The Practice of Enough", slug: "the-practice-of-enough" },
+  { title: "Decisions in Daylight", slug: "decisions-in-daylight" },
+  { title: "Skill Before Scale", slug: "skill-before-scale" },
+  { title: "The Honest Hour", slug: "the-honest-hour" },
+  { title: "White Space First", slug: "white-space-first" },
+  { title: "The Narrow Yes", slug: "the-narrow-yes" },
+  { title: "Work That Leaves", slug: "work-that-leaves" },
+  { title: "Drafts Before Decks", slug: "drafts-before-decks" },
+  { title: "A Smaller Ambition", slug: "a-smaller-ambition" },
 ];
 
 const bookLimit = parseHeroBookLimit(process.argv.slice(2), BOOKS.length);
@@ -43,6 +43,10 @@ function ensureDir(p) {
 function write(p, content) {
   ensureDir(join(p, ".."));
   writeFileSync(p, content, "utf8");
+}
+
+function coverWikilink(slug) {
+  return `[[atomics/hobbies/Reading/Covers/${slug}.png]]`;
 }
 
 function readingItem(title, cover, totalMin, timeLogLines = []) {
@@ -228,14 +232,21 @@ function seedHobbyTimeLogs() {
   }, 0);
 
   const [first, ...rest] = heroBooks;
+  const coversDir = join(VAULT, "atomics/hobbies/Reading/Covers");
+  ensureDir(coversDir);
+  for (const book of heroBooks) {
+    const src = join(ROOT, `docs/demo-covers/${book.slug}.png`);
+    if (!existsSync(src)) throw new Error(`Missing demo cover ${src}`);
+    copyFileSync(src, join(coversDir, `${book.slug}.png`));
+  }
   write(
     join(VAULT, `atomics/hobbies/Reading/Items/${first.title}.md`),
-    readingItem(first.title, first.cover, readingTotal, readingLogs),
+    readingItem(first.title, coverWikilink(first.slug), readingTotal, readingLogs),
   );
   for (const book of rest) {
     write(
       join(VAULT, `atomics/hobbies/Reading/Items/${book.title}.md`),
-      readingItem(book.title, book.cover, 0),
+      readingItem(book.title, coverWikilink(book.slug), 0),
     );
   }
 
@@ -289,7 +300,7 @@ function seedObsidianConfig() {
 
   write(
     join(obsidianDir, "community-plugins.json"),
-    JSON.stringify(["obsidian-atomic"], null, 2),
+    JSON.stringify(["atomic-tracker"], null, 2),
   );
 
   write(
@@ -347,7 +358,6 @@ function seedObsidianConfig() {
     dashboardPath: "atomics/Dashboard.md",
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
-    deprecatedFitnessBlocksEnabled: false,
     activityTypes: [
       {
         id: "gym",
@@ -404,13 +414,18 @@ function seedObsidianConfig() {
     ],
   };
 
-  const pluginDir = join(obsidianDir, "plugins/obsidian-atomic");
+  const pluginDir = join(obsidianDir, "plugins/atomic-tracker");
   ensureDir(pluginDir);
   write(join(pluginDir, "data.json"), JSON.stringify(pluginData, null, 2));
+
+  for (const staleId of ["obsidian-atomic", "obsidian-fitness"]) {
+    const staleDir = join(obsidianDir, "plugins", staleId);
+    if (existsSync(staleDir)) rmSync(staleDir, { recursive: true, force: true });
+  }
 }
 
 function deployPlugin() {
-  const pluginDir = join(VAULT, ".obsidian/plugins/obsidian-atomic");
+  const pluginDir = join(VAULT, ".obsidian/plugins/atomic-tracker");
   ensureDir(pluginDir);
   for (const file of ["main.js", "manifest.json", "styles.css"]) {
     const src = join("/workspace", file);

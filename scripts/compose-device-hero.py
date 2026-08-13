@@ -60,14 +60,14 @@ def compose(desktop: Image.Image, mobile: Image.Image) -> Image.Image:
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
 
-    draw.text((80, 36), "ATOMIC", fill=TEXT, font=font(28, jersey=True))
+    draw.text((80, 36), "ATOMIC TRACKER", fill=TEXT, font=font(24, jersey=True))
     draw.text(
         (80, 68),
         "Your habits. One daily note.",
         fill=TEXT,
         font=font(56, jersey=True),
     )
-    right_label = "Atomic for Obsidian"
+    right_label = "Atomic Tracker"
     right_box = draw.textbbox((0, 0), right_label, font=font(15))
     right_width = right_box[2] - right_box[0]
     draw.text(

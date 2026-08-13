@@ -178,7 +178,7 @@ export class VaultDataSource {
     const norm = normalizePath(path);
     const existing = this.app.vault.getAbstractFileByPath(norm);
     if (existing instanceof TFile) {
-      await this.app.vault.modify(existing, content);
+      await this.app.vault.process(existing, () => content);
       return existing;
     }
     return this.createNote(norm, content);

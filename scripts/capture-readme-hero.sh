@@ -466,7 +466,7 @@ band = image.crop((0, int(height * 0.08), width, int(height * 0.38)))
 unique = len(band.getcolors(2_000_000) or [])
 if unique < min_unique:
     print(
-        f"ERROR: {path} shelf band has {unique} unique colors; expected at least {min_unique} for photo covers",
+        f"ERROR: {path} shelf band has {unique} unique colors; expected at least {min_unique} for rendered covers",
         file=sys.stderr,
     )
     raise SystemExit(1)
@@ -484,17 +484,17 @@ node /workspace/scripts/seed-readme-demo-vault.mjs
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 40000
+capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 2500
 echo "Saved desktop $(wc -c < "$DESKTOP_SHOT") bytes"
-verify_shelf_covers "$DESKTOP_SHOT" 40000
+verify_shelf_covers "$DESKTOP_SHOT" 2500
 
 node /workspace/scripts/seed-readme-demo-vault.mjs --book-limit 3
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 12000
+capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 800
 echo "Saved mobile $(wc -c < "$MOBILE_SHOT") bytes"
-verify_shelf_covers "$MOBILE_SHOT" 8000
+verify_shelf_covers "$MOBILE_SHOT" 800
 
 python3 /workspace/scripts/compose-device-hero.py \
   --desktop "$DESKTOP_SHOT" \

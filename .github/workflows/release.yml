@@ -14,9 +14,11 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 env:
-  PLUGIN_ID: obsidian-atomic
+  PLUGIN_ID: atomic-tracker
 
 concurrency:
   group: release-main
@@ -87,12 +89,24 @@ jobs:
           echo "Packaged ${ARCHIVE}"
           unzip -l "${ARCHIVE}"
 
-      - name: Create GitHub Release with plugin zip
+      - name: Generate artifact attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Create GitHub Release with plugin assets
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: ${{ steps.package.outputs.archive }}
+          files: |
+            main.js
+            manifest.json
+            styles.css
+            ${{ steps.package.outputs.archive }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

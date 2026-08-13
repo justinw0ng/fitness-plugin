@@ -56,7 +56,6 @@ export interface FitnessSettings {
   dashboardPath: string;
   golfCuesPath: string;
   gymCuesPath: string;
-  deprecatedFitnessBlocksEnabled: boolean;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -130,6 +129,5 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
-  deprecatedFitnessBlocksEnabled: true,
   activityTypes: DEFAULT_ACTIVITY_TYPES,
 };

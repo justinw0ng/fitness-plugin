@@ -19,7 +19,6 @@ type RawSettings = Partial<Omit<FitnessSettings, "activityTypes">> & {
   activityTypes?: unknown;
   series?: unknown;
   cuesPath?: string;
-  deprecatedFitnessCuesEnabled?: boolean;
 };
 
 function cloneActivities(activityTypes: ActivityType[]): ActivityType[] {
@@ -110,11 +109,6 @@ export function mergeSettings(
     dashboardPath: safeVaultPath(raw.dashboardPath, base.dashboardPath),
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
-    deprecatedFitnessBlocksEnabled:
-      raw.deprecatedFitnessBlocksEnabled === false ||
-      raw.deprecatedFitnessCuesEnabled === false
-        ? false
-        : true,
     activityTypes,
   };
 }

@@ -1,6 +1,6 @@
-# Atomic plugin — user guide
+# Atomic Tracker — user guide
 
-Step-by-step setup for the Obsidian Atomic plugin: gym and golf sessions, Reading timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
+Step-by-step setup for the Obsidian Atomic Tracker plugin: gym and golf sessions, Reading timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
 
 Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian in Light mode; macOS and Windows look the same aside from window chrome.
 
@@ -13,39 +13,20 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Year heatmaps | `atomic-heatmap` codeblock |
 | Today’s sessions | `atomic-today` codeblock |
 | Yearly dashboard | `atomic-dashboard` codeblock |
-| Golf cue rollup | `atomic-golf-cues` (legacy: `fitness-golf-cues`, `fitness-cues`) |
-| Gym cue rollup | `atomic-gym-cues` (legacy: `fitness-gym-cues`) |
+| Golf cue rollup | `atomic-golf-cues` |
+| Gym cue rollup | `atomic-gym-cues` |
 | Generic cue rollup | `atomic-cues` with `activity: golf` or `activity: gym` |
 | Quick actions | `atomic-actions`, or the command palette |
-| New gym / golf notes | **Atomic: New gym session** / **New golf session** |
-| Reading items | **Atomic: New reading item** |
+| New gym / golf notes | **Atomic Tracker: New gym session** / **New golf session** |
+| Reading items | **Atomic Tracker: New reading item** |
 | Reading timer | `atomic-timer` in a Reading item note |
-| Reading notes in Bases | **Atomic: Open Obsidian bases of reading notes** |
-| Book shelf | `atomic-bookshelf`, or **Atomic: Open book shelf** |
+| Reading notes in Bases | **Atomic Tracker: Open reading Bases** |
+| Book shelf | `atomic-bookshelf`, or **Atomic Tracker: Open book shelf** |
 | Property dropdowns | Dropdowns in Properties / Bases (Reading `status`; golf `felt`; gym/golf `location` preset or **Custom…**; gym `weight_unit`) |
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
 
-Rendered views (heatmap, dashboard, book shelf, timer, cues) do not show an “Atomic …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
-
----
-
-## Upgrade from Fitness
-
-If you already use an older Fitness install, upgrade like this:
-
-1. Install Atomic into `<vault>/.obsidian/plugins/obsidian-atomic/` (see [Install](#4-install-this-plugin-into-the-vault)). You can keep the old `obsidian-fitness` folder until migration finishes, then remove it.
-2. Enable **Atomic** under Community plugins. Disable the old Fitness plugin if both are listed.
-3. Open **Settings → Atomic**.
-4. Leave **Allow legacy `fitness-*` blocks** on until you migrate.
-5. Click **Migrate from Fitness to Atomic**. That will:
-   - move `Fitness/Dashboard.md`, `Gym/`, and `Golf/` into `atomics/**` when the destination is empty (skip if the destination already exists; no merge)
-   - rewrite top-level `fitness-*` code fences to `atomic-*`
-   - update settings paths and turn legacy aliases off
-6. Reload the plugin or Obsidian so registered processors match the new settings.
-7. Open your dashboard and cue notes once to confirm the new fences render.
-
-Fresh installs can skip this section and start under `atomics/**`.
+Rendered views (heatmap, dashboard, book shelf, timer, cues) do not show an “Atomic Tracker …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
 
 ---
 
@@ -84,54 +65,62 @@ Fresh installs can skip this section and start under `atomics/**`.
 
 ## 4. Install this plugin into the vault
 
-Installed from GitHub Releases (not yet from the Community Plugin browser).
+Installed from Community plugins (or GitHub Releases).
 
-### Option A — Download a release (recommended)
+### Option A — Community plugins (recommended)
+
+1. **Settings → Community plugins → Browse**.
+2. Search **Atomic Tracker**.
+3. Install and enable it.
+
+Until the directory listing is live, use Option B.
+
+### Option B — Download a release
 
 1. Open the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases).
-2. Download `obsidian-atomic-<version>.zip`.
+2. Download `atomic-tracker-<version>.zip`.
 3. Unzip into your vault’s plugins folder:
 
 ```text
 <vault>/.obsidian/plugins/
 ```
 
-That creates `<vault>/.obsidian/plugins/obsidian-atomic/` with `main.js`, `manifest.json`, and `styles.css`.
+That creates `<vault>/.obsidian/plugins/atomic-tracker/` with `main.js`, `manifest.json`, and `styles.css`.
 
-### Option B — Build from source
+### Option C — Build from source
 
 ```bash
 npm install
 npm run build
 ```
 
-Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/obsidian-atomic/`.
+Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/atomic-tracker/`.
 
 Optional one-shot copy while building:
 
 ```bash
-OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/obsidian-atomic npm run build
+OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/atomic-tracker npm run build
 ```
 
-### Option C — Symlink (good for development)
+### Option D — Symlink (good for development)
 
 ```bash
 mkdir -p /path/to/vault/.obsidian/plugins
-ln -sfn "$(pwd)" /path/to/vault/.obsidian/plugins/obsidian-atomic
+ln -sfn "$(pwd)" /path/to/vault/.obsidian/plugins/atomic-tracker
 npm run build
 ```
 
 ![Plugin folder layout](./images/05-install-plugin-folder.png)
 
-The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/obsidian-atomic/` with the same three files.
+The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/atomic-tracker/` with the same three files.
 
 ---
 
-## 5. Enable Atomic
+## 5. Enable Atomic Tracker
 
 1. **Settings → Community plugins**.
 2. Click **Reload plugins** if the list is stale.
-3. Find **Atomic** and toggle it on.
+3. Find **Atomic Tracker** and toggle it on.
 
 ![Enable Atomic plugin](./images/06-enable-atomic-plugin.png)
 
@@ -139,7 +128,7 @@ The screenshot may show a demo path under `/tmp/...`. On your machine use `<your
 
 ## 6. Configure settings
 
-**Settings → Atomic**:
+**Settings → Atomic Tracker**:
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
@@ -148,8 +137,6 @@ The screenshot may show a demo path under `/tmp/...`. On your machine use `<your
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
 | Exercise types | Gym, Golf | Enable/disable, label, folder, cues, **one color**, delete; add custom exercises |
 | General habits | Reading | Enable/disable, label, folder, **one color**, delete; add custom item+timer habits |
-| Allow legacy `fitness-*` blocks | On | Keep old Fitness codeblock names until migration |
-| Migrate from Fitness to Atomic | (button) | One-click vault + fence migrate (see [Upgrade from Fitness](#upgrade-from-fitness)) |
 
 ![Atomic settings — exercise + general habits](./images/07-settings-atomic.png)
 
@@ -183,8 +170,8 @@ Vault/
 │           ├── Covers/
 │           │   └── title.jpg
 │           └── Items/
-│               └── Atomic Habits.md
-└── .obsidian/plugins/obsidian-atomic/
+│               └── The Unhurried Advantage.md
+└── .obsidian/plugins/atomic-tracker/
     ├── main.js
     ├── manifest.json
     └── styles.css
@@ -275,8 +262,6 @@ year: 2026
 ```
 ````
 
-Legacy names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, `fitness-actions`, `fitness-golf-cues`, `fitness-gym-cues`, and `fitness-cues` still work while **Allow legacy `fitness-*` blocks** is on.
-
 ---
 
 ## 8. Create your first sessions
@@ -284,7 +269,7 @@ Legacy names `fitness-heatmap`, `fitness-today`, `fitness-dashboard`, `fitness-a
 ### From the command palette
 
 1. `Ctrl/Cmd + P`
-2. Run **Atomic: New gym session** or **Atomic: New golf session**
+2. Run **Atomic Tracker: New gym session** or **Atomic Tracker: New golf session**
 3. Enter the date, then follow location / unit prompts for gym
 
 ### From the actions codeblock
@@ -319,7 +304,7 @@ After updating the plugin, reload Atomic once (toggle off/on under Community plu
 
 ### Create a book or hobby item
 
-1. Run **Atomic: New reading item** (Reading only), or **Atomic: New hobby item** and pick an enabled general habit.
+1. Run **Atomic Tracker: New reading item** (Reading only), or **Atomic Tracker: New hobby item** and pick an enabled general habit.
 2. Enter the item title.
 3. Atomic creates or opens `<hobby-folder>/Items/<Title>.md`.
 
@@ -376,13 +361,13 @@ In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clear
 
 ### Open the Reading bookshelf (Bases)
 
-Run **Atomic: Open Obsidian bases of reading notes**. Atomic creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
+Run **Atomic Tracker: Open reading Bases**. Atomic Tracker creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
 
 Soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
 
 ### Open the book shelf
 
-Run **Atomic: Open book shelf**. Atomic creates `atomics/hobbies/Reading/Book Shelf.md` if missing:
+Run **Atomic Tracker: Open book shelf**. Atomic Tracker creates `atomics/hobbies/Reading/Book Shelf.md` if missing:
 
 ````markdown
 ```atomic-bookshelf
@@ -416,11 +401,11 @@ The shelf is a plugin-rendered scene with no heading above the books. Books stan
 
 By default an empty `cover` field shows a colored spine with the title. To use your own art on the Atomic book shelf (and in Bases Cards when the view uses `cover`):
 
-1. Add an image to the vault. Recommended folder: `atomics/hobbies/Reading/Covers/` (create it if missing). Example: `atomics/hobbies/Reading/Covers/atomic-habits.jpg`.
-2. Open the book item note (for example `atomics/hobbies/Reading/Items/Atomic Habits.md`).
+1. Add an image to the vault. Recommended folder: `atomics/hobbies/Reading/Covers/` (create it if missing). Example: `atomics/hobbies/Reading/Covers/the-unhurried-advantage.png`.
+2. Open the book item note (for example `atomics/hobbies/Reading/Items/The Unhurried Advantage.md`).
 3. In Properties / frontmatter, set `cover` to one of:
-   - Vault wikilink: `[[atomics/hobbies/Reading/Covers/atomic-habits.jpg]]`
-   - Vault-relative path: `atomics/hobbies/Reading/Covers/atomic-habits.jpg`
+   - Vault wikilink: `[[atomics/hobbies/Reading/Covers/the-unhurried-advantage.png]]`
+   - Vault-relative path: `atomics/hobbies/Reading/Covers/the-unhurried-advantage.png`
    - Remote or app URL: `https://…` or `app://…`
 4. Save the note, then reopen or refresh **Book Shelf** (`atomic-bookshelf`) so the cover image loads on the book face.
 
@@ -500,16 +485,16 @@ date: 2026-08-08
 
 | Command | Action |
 |---------|--------|
-| Atomic: New gym session | Create or open `atomics/exercise/Gym/YYYY/YYYY-MM-DD.md` (Gym must be enabled) |
-| Atomic: New golf session | Create or open `atomics/exercise/Golf/YYYY/YYYY-MM-DD.md` (Golf must be enabled) |
-| Atomic: New exercise session | Pick an enabled exercise type, then create/open its daily note |
-| Atomic: New reading item | Create or open `atomics/hobbies/Reading/Items/<Book>.md` (Reading must be enabled) |
-| Atomic: New hobby item | Pick an enabled general habit, then create/open an item note |
-| Atomic: Create Obsidian bases of reading notes | Create `atomics/hobbies/Reading/Bookshelf.base` if missing (upgrades broken legacy seeds) |
-| Atomic: Open Obsidian bases of reading notes | Create if needed and open `atomics/hobbies/Reading/Bookshelf.base` |
-| Atomic: Create book shelf | Create `atomics/hobbies/Reading/Book Shelf.md` if missing |
-| Atomic: Open book shelf | Create if needed and open `atomics/hobbies/Reading/Book Shelf.md` |
-| Atomic: Open dashboard | Open the configured dashboard path |
+| Atomic Tracker: New gym session | Create or open `atomics/exercise/Gym/YYYY/YYYY-MM-DD.md` (Gym must be enabled) |
+| Atomic Tracker: New golf session | Create or open `atomics/exercise/Golf/YYYY/YYYY-MM-DD.md` (Golf must be enabled) |
+| Atomic Tracker: New exercise session | Pick an enabled exercise type, then create/open its daily note |
+| Atomic Tracker: New reading item | Create or open `atomics/hobbies/Reading/Items/<Book>.md` (Reading must be enabled) |
+| Atomic Tracker: New hobby item | Pick an enabled general habit, then create/open an item note |
+| Atomic Tracker: Create reading Bases | Create `atomics/hobbies/Reading/Bookshelf.base` if missing (upgrades broken legacy seeds) |
+| Atomic Tracker: Open reading Bases | Create if needed and open `atomics/hobbies/Reading/Bookshelf.base` |
+| Atomic Tracker: Create book shelf | Create `atomics/hobbies/Reading/Book Shelf.md` if missing |
+| Atomic Tracker: Open book shelf | Create if needed and open `atomics/hobbies/Reading/Book Shelf.md` |
+| Atomic Tracker: Open dashboard | Open the configured dashboard path |
 
 ---
 
@@ -517,15 +502,14 @@ date: 2026-08-08
 
 | Problem | Fix |
 |---------|-----|
-| Plugin not listed | Confirm files are under `.obsidian/plugins/obsidian-atomic/` and reload plugins |
+| Plugin not listed | Confirm files are under `.obsidian/plugins/atomic-tracker/` and reload plugins |
 | Restricted mode | Turn on community plugins in Settings |
 | Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / duration, or stop a hobby timer so the item has Time log entries |
-| Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic |
-| Reading notes in Bases do not open | Enable Reading in settings, enable Bases, then rerun **Atomic: Open Obsidian bases of reading notes** |
-| Wrong “today” | Set **Timezone** in Atomic settings to your IANA zone |
+| Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic Tracker |
+| Reading notes in Bases do not open | Enable Reading in settings, enable Bases, then rerun **Atomic Tracker: Open reading Bases** |
+| Wrong “today” | Set **Timezone** in Atomic Tracker settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
-| Still seeing `fitness-*` fences | Run **Migrate from Fitness to Atomic**, or rewrite fences by hand and turn legacy aliases off |
-| Property dropdown missing | Reload the Atomic plugin; confirm the note type matches (Reading item vs golf/gym session) |
+| Property dropdown missing | Reload the Atomic Tracker plugin; confirm the note type matches (Reading item vs golf/gym session) |
 | Book shelf empty after `status:` filter | Check item frontmatter `status` values; use `status: all` to show every book |
 | Book shelf empty on phone / iOS | Wait for vault metadata to finish indexing, or reopen the note; covers stay flat on touch (open-on-hover is desktop) |
 | Heatmap cells clipped on a narrow pane | Scroll the grid horizontally; day labels stay pinned |

@@ -13,7 +13,6 @@ import { renderAtomicTimer } from "./views/timer";
 import { renderTodaySessions, resolveTodayDate } from "./views/today";
 import {
   codeblockLanguages,
-  resolveCodeblockKind,
   resolveCueActivity,
 } from "./util/codeblock-languages";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -48,20 +47,9 @@ export async function renderBlock(
   const activityTypes = settings.activityTypes;
   const tz = settings.timezone;
   const language = settings.language;
-  const resolvedKind = resolveCodeblockKind(kind);
 
   try {
-    if (kind.startsWith("fitness-") && !settings.deprecatedFitnessBlocksEnabled) {
-      el.empty();
-      const root = el.createDiv({ cls: "fitness-plugin" });
-      root.createEl("p", {
-        text: t("view.legacyDisabled", language),
-        cls: "fitness-muted",
-      });
-      return;
-    }
-
-    switch (resolvedKind) {
+    switch (kind) {
       case "atomic-heatmap": {
         const year = resolveHeatmapYear(opts, sourcePath, tz);
         await renderHeatmaps(
@@ -99,7 +87,7 @@ export async function renderBlock(
       case "atomic-golf-cues":
       case "atomic-gym-cues":
       case "atomic-cues": {
-        const activity = resolveCueActivity(resolvedKind, opts);
+        const activity = resolveCueActivity(kind, opts);
         if (!activity) {
           el.empty();
           const root = el.createDiv({ cls: "fitness-plugin" });
@@ -155,7 +143,7 @@ export async function renderBlock(
 }
 
 export function registerCodeblocks(plugin: FitnessPlugin): void {
-  const kinds = codeblockLanguages(plugin.settings.deprecatedFitnessBlocksEnabled);
+  const kinds = codeblockLanguages();
 
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(

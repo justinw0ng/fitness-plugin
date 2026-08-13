@@ -2,7 +2,6 @@ import {
   App,
   Modal,
   Notice,
-  normalizePath,
   PluginSettingTab,
   Setting,
 } from "obsidian";
@@ -11,10 +10,6 @@ import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isLanguage, t } from "./i18n/index.ts";
-import {
-  planFitnessMigration,
-  rewriteFitnessFences,
-} from "./util/migrate-fitness";
 import {
   allExerciseActivities,
   allHobbyActivities,
@@ -81,7 +76,6 @@ export class FitnessSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     const language = this.plugin.settings.language;
     containerEl.empty();
-    containerEl.createEl("h2", { text: t("settings.title", language) });
 
     new Setting(containerEl)
       .setName(t("settings.language", language))
@@ -135,32 +129,6 @@ export class FitnessSettingTab extends PluginSettingTab {
 
     this.renderExerciseTypes(containerEl);
     this.renderHobbyTypes(containerEl);
-
-    new Setting(containerEl)
-      .setName(t("settings.legacyBlocks", language))
-      .setDesc(t("settings.legacyBlocksDesc", language))
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.deprecatedFitnessBlocksEnabled)
-          .onChange(async (value) => {
-            this.plugin.settings.deprecatedFitnessBlocksEnabled = value;
-            await this.plugin.saveSettings();
-            this.plugin.refreshAll();
-            new Notice(t("notice.legacyBlocksSaved", this.plugin.settings.language));
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName(t("settings.migrateFitness", language))
-      .setDesc(t("settings.migrateFitnessDesc", language))
-      .addButton((button) =>
-        button
-          .setButtonText(t("settings.migrateFitness", language))
-          .setCta()
-          .onClick(() => {
-            void this.migrateFromFitnessToAtomic();
-          }),
-      );
   }
 
   private async saveAndRefresh(): Promise<void> {
@@ -178,11 +146,10 @@ export class FitnessSettingTab extends PluginSettingTab {
 
   private renderExerciseTypes(containerEl: HTMLElement): void {
     const language = this.plugin.settings.language;
-    containerEl.createEl("h3", { text: t("settings.exerciseTypes", language) });
-    containerEl.createEl("p", {
-      text: t("settings.exerciseTypesDesc", language),
-      cls: "setting-item-description",
-    });
+    new Setting(containerEl)
+      .setName(t("settings.exerciseTypes", language))
+      .setDesc(t("settings.exerciseTypesDesc", language))
+      .setHeading();
 
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: true });
@@ -221,11 +188,10 @@ export class FitnessSettingTab extends PluginSettingTab {
 
   private renderHobbyTypes(containerEl: HTMLElement): void {
     const language = this.plugin.settings.language;
-    containerEl.createEl("h3", { text: t("settings.hobbyTypes", language) });
-    containerEl.createEl("p", {
-      text: t("settings.hobbyTypesDesc", language),
-      cls: "setting-item-description",
-    });
+    new Setting(containerEl)
+      .setName(t("settings.hobbyTypes", language))
+      .setDesc(t("settings.hobbyTypesDesc", language))
+      .setHeading();
 
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
       this.renderActivityRows(containerEl, activity, { showCues: false });
@@ -381,77 +347,5 @@ export class FitnessSettingTab extends PluginSettingTab {
         label: activity.label,
       }),
     );
-  }
-
-  private async ensureParentFolder(path: string): Promise<void> {
-    const normalized = normalizePath(path);
-    const slash = normalized.lastIndexOf("/");
-    if (slash <= 0) return;
-    await this.plugin.data.ensureFolder(normalized.slice(0, slash));
-  }
-
-  private async migrateFromFitnessToAtomic(): Promise<void> {
-    const existingPaths = new Set(
-      this.app.vault.getAllLoadedFiles().map((file) => file.path),
-    );
-    const plan = planFitnessMigration({
-      existingPaths,
-      settings: this.plugin.settings,
-    });
-    let movedPaths = 0;
-    let skippedPaths = plan.skippedMoves.length;
-    let changedFiles = 0;
-    let replacements = 0;
-
-    try {
-      for (const move of plan.moves) {
-        const from = normalizePath(move.from);
-        const to = normalizePath(move.to);
-        const source = this.app.vault.getAbstractFileByPath(from);
-        const destination = this.app.vault.getAbstractFileByPath(to);
-        if (!source || destination) {
-          skippedPaths += 1;
-          continue;
-        }
-
-        await this.ensureParentFolder(to);
-        await this.app.vault.rename(source, to);
-        movedPaths += 1;
-      }
-
-      for (const file of this.app.vault.getMarkdownFiles()) {
-        const original = await this.app.vault.read(file);
-        const result = rewriteFitnessFences(original);
-        if (result.replacements === 0) continue;
-
-        await this.app.vault.modify(file, result.markdown);
-        changedFiles += 1;
-        replacements += result.replacements;
-      }
-
-      Object.assign(this.plugin.settings, plan.settingsPatch);
-      this.plugin.settings.deprecatedFitnessBlocksEnabled = false;
-      await this.plugin.saveSettings();
-      this.plugin.refreshAll();
-      this.display();
-      new Notice(
-        t("notice.migrationComplete", this.plugin.settings.language, {
-          movedPaths,
-          pathWord: movedPaths === 1 ? "path" : "paths",
-          skippedPaths,
-          destinationWord: skippedPaths === 1 ? "destination" : "destinations",
-          replacements,
-          blockWord: replacements === 1 ? "block" : "blocks",
-          changedFiles,
-          fileWord: changedFiles === 1 ? "file" : "files",
-        }),
-      );
-    } catch (err) {
-      console.error("Fitness to Atomic migration failed", err);
-      const message = err instanceof Error ? err.message : String(err);
-      new Notice(
-        t("notice.migrationFailed", this.plugin.settings.language, { message }),
-      );
-    }
   }
 }
