@@ -519,5 +519,5 @@ date: 2026-08-08
 ## Privacy
 
 - All data stays in your vault as markdown.
-- The plugin does not make network requests.
+- The plugin does not call home. An `http(s):` book `cover` URL is loaded by Obsidian like any other remote image in a note.
 - Build deploy to a vault happens only if you set `OBSIDIAN_PLUGIN_OUT` yourself.

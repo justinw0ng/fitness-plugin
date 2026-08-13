@@ -43,7 +43,7 @@ atomics/
 
 ## Privacy
 
-Atomic Tracker runs locally in your vault. It does not collect telemetry, require an account, show ads, or make network requests. It reads and writes notes under `atomics/` and any other vault paths you configure (dashboard, activity folders, book covers).
+Atomic Tracker runs locally in your vault. It does not collect telemetry, require an account, or show ads. It does not call home. The only network fetch is if you set a book `cover` to an `http(s):` URL, which Obsidian loads like any other remote image in a note. It reads and writes notes under `atomics/` and any other vault paths you configure (dashboard, activity folders, book covers).
 
 ## License
 
