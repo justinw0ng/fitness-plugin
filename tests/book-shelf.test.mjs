@@ -8,6 +8,8 @@ import {
   buildBookShelfItems,
   chunkItems,
   coverObjectPosition,
+  bookClickOpensNote,
+  hoverFinePointer,
   isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
@@ -202,6 +204,19 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
     resolveCoverSrc("", data, "atomics/hobbies/Reading/Items/Current.md"),
     null,
   );
+});
+
+test("bookClickOpensNote waits for a second tap on coarse pointers", () => {
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), true);
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: true }), true);
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: false }), false);
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: true }), true);
+});
+
+test("hoverFinePointer follows the hover+fine media query", () => {
+  assert.equal(hoverFinePointer(null), false);
+  assert.equal(hoverFinePointer({ matches: false }), false);
+  assert.equal(hoverFinePointer({ matches: true }), true);
 });
 
 test("coverObjectPosition crops wide 3D mockups to the front face", () => {

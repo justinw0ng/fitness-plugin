@@ -224,6 +224,33 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
   else img.addEventListener("load", apply, { once: true });
 }
 
+const COVER_OPEN_CLASS = "is-cover-open";
+
+export function hoverFinePointer(
+  media: Pick<MediaQueryList, "matches"> | null | undefined,
+): boolean {
+  return Boolean(media?.matches);
+}
+
+/** Coarse pointers peek the cover first; a second tap opens the note. */
+export function bookClickOpensNote(options: {
+  hoverFine: boolean;
+  coverOpen: boolean;
+}): boolean {
+  return options.hoverFine || options.coverOpen;
+}
+
+function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
+  if (typeof matchMedia !== "function") return null;
+  return matchMedia("(hover: hover) and (pointer: fine)");
+}
+
+function closeOpenCovers(root: ParentNode): void {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
+  });
+}
+
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
 export function titleLengthClass(title: string): string {
   const length = title.trim().length;
@@ -248,6 +275,14 @@ function createBook(
   button.style.setProperty("--atomic-book-color", item.spineColor);
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      return;
+    }
     void data.openPath(item.path);
   });
 

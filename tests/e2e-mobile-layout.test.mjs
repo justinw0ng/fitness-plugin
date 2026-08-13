@@ -213,6 +213,14 @@ test("flat mobile books do not paint a spine strip over the cover", () => {
   );
 });
 
+test("cover-open animation is available without hover-fine pointers", () => {
+  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
+  assert.ok(hoverAt > 0);
+  const flat = styles.slice(0, hoverAt);
+  assert.match(flat, /is-cover-open/);
+  assert.match(flat, /rotateY\(-155deg\)/);
+});
+
 test("cover images apply coverObjectPosition after load", () => {
   const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
   assert.match(src, /bindCoverObjectPosition\(img\)/);
