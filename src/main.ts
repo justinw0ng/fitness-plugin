@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, Notice, Plugin, TFile } from "obsidian";
+import { FuzzySuggestModal, Notice, Plugin } from "obsidian";
 import {
   createActivitySession,
   createGolfSession,
@@ -155,17 +155,11 @@ export default class FitnessPlugin extends Plugin {
       }),
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", (file) => {
-        if (!(file instanceof TFile)) return;
-        this.handleVaultPathChange(file.path);
-      }),
-    );
-    this.registerEvent(
       this.app.metadataCache.on("resolved", () => {
+        if (!this.liveBlocks.some((block) => block.el.isConnected)) return;
+        if (!this.data.consumeNeedsMetadataRefresh()) return;
         this.data.invalidateListCache();
-        if (this.liveBlocks.some((block) => block.el.isConnected)) {
-          this.scheduleRefresh();
-        }
+        this.scheduleRefresh();
       }),
     );
   }
@@ -230,10 +224,11 @@ export default class FitnessPlugin extends Plugin {
     if (oldPath != null) {
       // Preserve parsed Time log across renames when mtime-aligned cache moves.
       this.data.renameHobbyTimeLogCache(oldPath, path);
+      this.data.invalidateListCache(oldPath);
     } else {
       this.data.invalidateHobbyTimeLogCache(path);
     }
-    this.data.invalidateListCache();
+    this.data.invalidateListCache(path);
     this.scheduleRefresh();
   }
 

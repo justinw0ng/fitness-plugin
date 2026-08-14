@@ -1,15 +1,5 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { durationToLevel } from "../core";
-import { minutesByDateForYear } from "../core/hobby";
-import {
-  addDays,
-  formatYmd,
-  fullDateForLanguage,
-  monthShortForLanguage,
-  parseYmd,
-  weekdaySun0,
-  ymdInZone,
-} from "../dates";
+import { monthShortForLanguage, parseYmd, ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
@@ -19,6 +9,15 @@ import {
   resolveHeatmapLayout,
   type HeatmapLayout,
 } from "../util/heatmap-layout";
+import {
+  buildHeatmapWeeks,
+  heatmapActivityKey,
+  heatmapDomIsPainted,
+  heatmapLayoutKey,
+  heatmapWeeksHtml,
+  sameHeatmapPaintState,
+  type HeatmapPaintState,
+} from "../util/heatmap-model";
 import { measureElementWidth } from "../util/element-width";
 import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
 
@@ -28,6 +27,7 @@ type HeatmapObserverRegistry = {
 };
 
 const heatmapObserverRegistry = new WeakMap<HTMLElement, HeatmapObserverRegistry>();
+const heatmapPaintState = new WeakMap<HTMLElement, HeatmapPaintState>();
 
 function cleanupHeatmapObservers(container: HTMLElement): void {
   const registry = heatmapObserverRegistry.get(container);
@@ -41,11 +41,6 @@ const DAY_NAMES: Record<Language, string[]> = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   "zh-Hant-en": ["日", "一", "二", "三", "四", "五", "六"],
 };
-
-function colorFor(activity: ActivityType, level: number): string {
-  if (!level) return EMPTY_CELL;
-  return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
-}
 
 function wireHeatmapScroll(
   scrollEl: HTMLElement,
@@ -105,45 +100,19 @@ function wireHeatmapScroll(
   });
 }
 
-async function durationMap(
-  data: VaultDataSource,
-  activity: ActivityType,
-  year: number,
-): Promise<Map<string, DayActivity>> {
-  const map = new Map<string, DayActivity>();
-  if (activity.domain === "hobby") {
-    const items = data.listHobbyItems(activity);
-    const perItem = await Promise.all(
-      items.map(async (item) => ({
-        path: item.path,
-        totals: minutesByDateForYear(
-          await data.getHobbyTimeLogEntries(item.path),
-          year,
-        ),
-      })),
-    );
-    for (const { path, totals } of perItem) {
-      for (const [date, minutes] of totals) {
-        const entry = map.get(date) || { minutes: 0, path };
-        entry.minutes += minutes;
-        if (!entry.path) entry.path = path;
-        map.set(date, entry);
-      }
-    }
-    return map;
-  }
-
-  for (const s of data.listSessions(activity.folder, year)) {
-    if (!s.date) continue;
-    const entry = map.get(s.date) || { minutes: 0, path: null };
-    entry.minutes += s.duration_min;
-    if (!entry.path) entry.path = s.path;
-    map.set(s.date, entry);
-  }
-  return map;
+function wireHeatmapCellClicks(weeksEl: HTMLElement, data: VaultDataSource): void {
+  weeksEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const cell = target.closest(".fitness-cell.is-link");
+    const path = cell?.getAttribute("data-path");
+    if (!path) return;
+    event.preventDefault();
+    void data.openPath(path);
+  });
 }
 
-async function renderOneHeatmap(
+function renderOneHeatmap(
   root: HTMLElement,
   data: VaultDataSource,
   activity: ActivityType,
@@ -151,7 +120,8 @@ async function renderOneHeatmap(
   timezone: string,
   language: Language,
   registry: HeatmapObserverRegistry,
-): Promise<void> {
+  activityMap: Map<string, DayActivity>,
+): void {
   const wrap = root.createDiv({
     cls: "fitness-heatmap",
     attr: {
@@ -175,55 +145,12 @@ async function renderOneHeatmap(
     attr: { style: "margin-left:8px" },
   });
 
-  const activityMap = await durationMap(data, activity, year);
-  const todayStr = ymdInZone(new Date(), timezone);
-  const start = { y: year, m: 1, d: 1 };
-  const end = { y: year, m: 12, d: 31 };
-  const jan1Dow = weekdaySun0(start.y, start.m, start.d);
-  const daysToSubtract = jan1Dow; // Sunday-start grid
-  let cursor = addDays(start.y, start.m, start.d, -daysToSubtract);
-
-  type DayCell = {
-    date: string;
-    minutes: number;
-    level: number;
-    path: string | null;
-    fullDate: string;
-    isCurrentYear: boolean;
-    isToday: boolean;
-    y: number;
-    m: number;
-    d: number;
-  };
-
-  const weeks: DayCell[][] = [];
-  let weekCount = 0;
-  const endYmd = formatYmd(end.y, end.m, end.d);
-  while (weekCount < 60) {
-    // Match luxon heatmap: include weeks whose start date is still on/before Dec 31
-    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
-    const week: DayCell[] = [];
-    for (let i = 0; i < 7; i++) {
-      const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
-      const entry = activityMap.get(dateStr);
-      const minutes = entry ? entry.minutes : 0;
-      week.push({
-        date: dateStr,
-        minutes,
-        level: durationToLevel(minutes),
-        path: entry?.path ?? null,
-        fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
-        isCurrentYear: cursor.y === year,
-        isToday: dateStr === todayStr,
-        y: cursor.y,
-        m: cursor.m,
-        d: cursor.d,
-      });
-      cursor = addDays(cursor.y, cursor.m, cursor.d, 1);
-    }
-    weeks.push(week);
-    weekCount++;
-  }
+  const weeks = buildHeatmapWeeks({
+    year,
+    todayStr: ymdInZone(new Date(), timezone),
+    language,
+    activityMap,
+  });
 
   const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
   const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
@@ -250,50 +177,13 @@ async function renderOneHeatmap(
   }
 
   const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
-  for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    const col = weeksEl.createDiv({
-      cls: "fitness-week" + (isTodayWeek ? " is-today-week" : ""),
-    });
-    for (const day of week) {
-      const color = day.isCurrentYear
-        ? colorFor(activity, day.level)
-        : EMPTY_CELL;
-      const cell = col.createDiv({
-        cls:
-          "fitness-cell" +
-          (day.isToday ? " is-today" : "") +
-          (day.isCurrentYear ? "" : " is-faded") +
-          (day.path ? " is-link" : ""),
-        attr: {
-          "data-testid": day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell",
-          "data-minutes": String(day.minutes),
-          "data-date": day.fullDate,
-        },
-      });
-      cell.style.backgroundColor = color;
-      const tip = day.path
-        ? t("view.heatmap.tooltipOpen", language, {
-            date: day.fullDate,
-            minutes: day.minutes,
-          })
-        : t("view.heatmap.tooltip", language, {
-            date: day.fullDate,
-            minutes: day.minutes,
-          });
-      cell.setAttr("title", tip);
-      if (day.path) {
-        const path = day.path;
-        cell.addEventListener("click", (e) => {
-          e.preventDefault();
-          void data.openPath(path);
-        });
-      }
-    }
-  }
-
-  weeksEl.createDiv({ cls: "fitness-weeks-end-pad" });
-
+  weeksEl.innerHTML = heatmapWeeksHtml(
+    weeks,
+    activity.colors,
+    t("view.heatmap.tooltip", language),
+    t("view.heatmap.tooltipOpen", language),
+  );
+  wireHeatmapCellClicks(weeksEl, data);
   wireHeatmapScroll(scroll, registry);
 }
 
@@ -341,17 +231,37 @@ export async function renderHeatmaps(
   activityOption?: string,
   layoutOptions?: Record<string, string>,
 ): Promise<void> {
-  cleanupHeatmapObservers(el);
-  el.empty();
-  const registry: HeatmapObserverRegistry = { scrolls: [] };
-  heatmapObserverRegistry.set(el, registry);
-
-  const root = el.createDiv({ cls: "fitness-plugin" });
   const layout = resolveHeatmapLayout(layoutOptions ?? {});
   const { activities, invalidIds } = resolveHeatmapActivities(
     activityTypes,
     activityOption,
   );
+  const maps = await Promise.all(
+    activities.map((activity) => data.getActivityDurationMap(activity, year)),
+  );
+  const paintState: HeatmapPaintState = {
+    year,
+    timezone,
+    language,
+    layoutKey: heatmapLayoutKey(layout),
+    activityKey: heatmapActivityKey(activities),
+    invalidIds,
+    maps,
+  };
+  if (
+    heatmapDomIsPainted(el) &&
+    sameHeatmapPaintState(heatmapPaintState.get(el), paintState)
+  ) {
+    return;
+  }
+
+  cleanupHeatmapObservers(el);
+  el.empty();
+  heatmapPaintState.set(el, paintState);
+  const registry: HeatmapObserverRegistry = { scrolls: [] };
+  heatmapObserverRegistry.set(el, registry);
+
+  const root = el.createDiv({ cls: "fitness-plugin" });
   if (invalidIds.length > 0) {
     root.createEl("p", {
       text: t("view.heatmap.invalidActivities", language, {
@@ -375,15 +285,16 @@ export async function renderHeatmaps(
     ? root.createDiv({ cls: "fitness-heatmap-grid" })
     : root;
 
-  for (const activity of activities) {
-    await renderOneHeatmap(
+  for (let i = 0; i < activities.length; i++) {
+    renderOneHeatmap(
       heatmapParent,
       data,
-      activity,
+      activities[i],
       year,
       timezone,
       language,
       registry,
+      maps[i],
     );
   }
 

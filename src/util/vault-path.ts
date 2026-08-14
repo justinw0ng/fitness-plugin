@@ -49,3 +49,19 @@ export function hobbyItemsScanPrefix(folder: string): string | null {
   const itemsFolder = readingItemsFolder(folder);
   return itemsFolder ? `${itemsFolder}/` : null;
 }
+
+function normalizeVaultPath(path: string): string {
+  return normalizeSlashes(path.trim()).replace(/\/$/, "");
+}
+
+/**
+ * True when `path` is the scope, a descendant of it, or an ancestor of it.
+ * Used to drop folder-scoped list caches after a vault path change.
+ */
+export function pathTouchesScope(path: string, scope: string): boolean {
+  if (!path || !scope) return false;
+  const p = normalizeVaultPath(path);
+  const s = normalizeVaultPath(scope);
+  if (!p || !s) return false;
+  return p === s || p.startsWith(`${s}/`) || s.startsWith(`${p}/`);
+}

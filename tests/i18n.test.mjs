@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { t, isLanguage, DEFAULT_LANGUAGE } from "../src/i18n/index.ts";
 import { en } from "../src/i18n/locales/en.ts";
 import { zhHantEn } from "../src/i18n/locales/zh-Hant-en.ts";
-import { formatMonthLabel } from "../src/dates.ts";
+import { formatMonthLabel, fullDateEn, fullDateZh } from "../src/dates.ts";
 import { mergeSettings } from "../src/util/merge-settings.ts";
 
 test("default language is zh-Hant-en", () => {
@@ -50,4 +50,6 @@ test("english catalog drops the Chinese half", () => {
 test("date formatting respects language", () => {
   assert.equal(formatMonthLabel(2026, 8, "en"), "August 2026");
   assert.match(formatMonthLabel(2026, 8, "zh-Hant-en"), /August 2026 \/ 2026年8月/);
+  assert.equal(fullDateEn(2026, 1, 1), "Jan 1");
+  assert.match(fullDateZh(2026, 1, 1), /1/);
 });

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { e2eSkipReason, resolveDisplay } from "../e2e/lib/obsidian.mjs";
 
 function withEnv(key, value, fn) {
@@ -26,4 +27,14 @@ test("e2eSkipReason honors SKIP_E2E even when a display is available", () => {
       assert.equal(e2eSkipReason(), "SKIP_E2E=1");
     });
   });
+});
+
+test("noticeTexts reads notices in one script to avoid stale elements", () => {
+  const src = readFileSync(new URL("../e2e/lib/obsidian.mjs", import.meta.url), "utf8");
+  assert.match(src, /export async function noticeTexts/);
+  assert.match(src, /querySelectorAll\("\.notice"\)/);
+  assert.doesNotMatch(
+    src,
+    /export async function noticeTexts[\s\S]*findElements\(By\.css\("\.notice"\)\)/,
+  );
 });

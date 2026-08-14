@@ -13,8 +13,11 @@ function src(rel) {
 test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const heatmap = src("src/views/heatmap.ts");
   assert.match(heatmap, /data-testid": "atomic-heatmap"/);
-  assert.match(heatmap, /"atomic-heatmap-today"/);
   assert.match(heatmap, /data-testid": "atomic-heatmap-invalid"/);
+
+  const heatmapModel = src("src/util/heatmap-model.ts");
+  assert.match(heatmapModel, /"atomic-heatmap-today"/);
+  assert.match(heatmapModel, /"atomic-heatmap-cell"/);
 
   const timer = src("src/views/timer.ts");
   assert.match(timer, /data-testid": "atomic-timer-start"/);

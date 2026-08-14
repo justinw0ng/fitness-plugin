@@ -390,12 +390,14 @@ export async function closeSettings(driver) {
 }
 
 export async function noticeTexts(driver) {
-  const notices = await driver.findElements(By.css(".notice"));
-  const texts = [];
-  for (const notice of notices) {
-    texts.push(await notice.getText());
+  try {
+    const texts = await driver.executeScript(`
+      return Array.from(document.querySelectorAll(".notice")).map((el) => el.textContent || "");
+    `);
+    return Array.isArray(texts) ? texts : [];
+  } catch {
+    return [];
   }
-  return texts;
 }
 
 export async function waitForNotice(driver, needle, timeoutMs = 8000) {
