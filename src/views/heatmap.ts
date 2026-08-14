@@ -10,11 +10,11 @@ import {
   type HeatmapLayout,
 } from "../util/heatmap-layout";
 import {
+  appendHeatmapWeeks,
   buildHeatmapWeeks,
   heatmapActivityKey,
   heatmapDomIsPainted,
   heatmapLayoutKey,
-  heatmapWeeksHtml,
   sameHeatmapPaintState,
   type HeatmapPaintState,
 } from "../util/heatmap-model";
@@ -177,7 +177,8 @@ function renderOneHeatmap(
   }
 
   const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
-  weeksEl.innerHTML = heatmapWeeksHtml(
+  appendHeatmapWeeks(
+    weeksEl,
     weeks,
     activity.colors,
     t("view.heatmap.tooltip", language),

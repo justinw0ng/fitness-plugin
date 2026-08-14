@@ -14,10 +14,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const heatmap = src("src/views/heatmap.ts");
   assert.match(heatmap, /data-testid": "atomic-heatmap"/);
   assert.match(heatmap, /data-testid": "atomic-heatmap-invalid"/);
+  assert.match(heatmap, /appendHeatmapWeeks/);
+  assert.doesNotMatch(heatmap, /innerHTML/);
 
   const heatmapModel = src("src/util/heatmap-model.ts");
   assert.match(heatmapModel, /"atomic-heatmap-today"/);
   assert.match(heatmapModel, /"atomic-heatmap-cell"/);
+  assert.match(heatmapModel, /appendHeatmapWeeks/);
 
   const timer = src("src/views/timer.ts");
   assert.match(timer, /data-testid": "atomic-timer-start"/);
@@ -34,7 +37,15 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-setting-activity/);
   assert.match(settings, /atomic-setting-add-hobby/);
   assert.match(settings, /atomic-color-swatch/);
+  assert.match(settings, /getSettingDefinitions\(/);
+  assert.doesNotMatch(settings, /setWarning\(/);
+  assert.doesNotMatch(settings, /this\.display\(/);
 
   const properties = src("src/properties/property-select.ts");
   assert.match(properties, /"data-testid": "atomic-property-select"/);
+
+  const styles = src("styles.css");
+  assert.doesNotMatch(styles, /:has\(/);
+  assert.doesNotMatch(styles, /!important/);
+  assert.doesNotMatch(styles, /scrollbar-width/);
 });

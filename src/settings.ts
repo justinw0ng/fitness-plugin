@@ -4,10 +4,13 @@ import {
   Notice,
   PluginSettingTab,
   Setting,
+  type ButtonComponent,
+  type SettingDefinitionItem,
 } from "obsidian";
 import type FitnessPlugin from "./main";
 import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import type { Language } from "./i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isLanguage, t } from "./i18n/index.ts";
 import {
@@ -20,6 +23,14 @@ import { shadesFromBaseColor } from "./util/colors";
 import { isSafeVaultFolder } from "./util/vault-path";
 
 export { mergeSettings } from "./util/merge-settings";
+
+function styleDestructiveButton(button: ButtonComponent): void {
+  if (typeof button.setDestructive === "function") {
+    button.setDestructive();
+    return;
+  }
+  button.buttonEl.addClass("mod-warning");
+}
 
 class ConfirmDeleteActivityModal extends Modal {
   private readonly message: string;
@@ -51,15 +62,14 @@ class ConfirmDeleteActivityModal extends Modal {
       .addButton((button) =>
         button.setButtonText(this.cancelLabel).onClick(() => this.close()),
       )
-      .addButton((button) =>
-        button
-          .setButtonText(this.confirmLabel)
-          .setWarning()
-          .onClick(() => {
-            this.onConfirm();
-            this.close();
-          }),
-      );
+      .addButton((button) => {
+        button.setButtonText(this.confirmLabel);
+        styleDestructiveButton(button);
+        button.onClick(() => {
+          this.onConfirm();
+          this.close();
+        });
+      });
   }
 }
 
@@ -73,12 +83,178 @@ export class FitnessSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  /** Fallback for Obsidian < 1.13.0. 1.13+ renders `getSettingDefinitions()`. */
   display(): void {
-    const { containerEl } = this;
+    this.paintSettings(this.containerEl);
+  }
+
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const language = this.plugin.settings.language;
+    const items: SettingDefinitionItem[] = [
+      {
+        name: t("settings.language", language),
+        desc: t("settings.languageDesc", language),
+        control: {
+          type: "dropdown",
+          key: "language",
+          options: {
+            "zh-Hant-en": t("settings.languageOption.zh-Hant-en", language),
+            en: t("settings.languageOption.en", language),
+          },
+        },
+      },
+      {
+        name: t("settings.timezone", language),
+        desc: t("settings.timezoneDesc", language),
+        control: {
+          type: "text",
+          key: "timezone",
+          placeholder: "Asia/Hong_Kong",
+        },
+      },
+      {
+        name: t("settings.dashboardPath", language),
+        desc: t("settings.dashboardPathDesc", language),
+        control: {
+          type: "text",
+          key: "dashboardPath",
+          placeholder: DEFAULT_SETTINGS.dashboardPath,
+          validate: (value) => {
+            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+            if (!isSafeVaultFolder(next)) {
+              return t("notice.folderUnsafe", this.plugin.settings.language);
+            }
+          },
+        },
+      },
+      {
+        name: t("settings.exerciseTypes", language),
+        desc: t("settings.exerciseTypesDesc", language),
+        render: (setting) => {
+          setting.setHeading();
+        },
+      },
+    ];
+
+    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
+      items.push(...this.activityDefinitionItems(activity, { showCues: true }));
+    }
+
+    items.push({
+      name: t("settings.addExerciseType", language),
+      desc: t("settings.addExerciseTypeDesc", language),
+      render: (setting) => {
+        this.paintAddActivity(setting, "exercise");
+      },
+    });
+
+    items.push({
+      name: t("settings.hobbyTypes", language),
+      desc: t("settings.hobbyTypesDesc", language),
+      render: (setting) => {
+        setting.setHeading();
+      },
+    });
+
+    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
+      items.push(...this.activityDefinitionItems(activity, { showCues: false }));
+    }
+
+    items.push({
+      name: t("settings.addHobbyType", language),
+      desc: t("settings.addHobbyTypeDesc", language),
+      render: (setting) => {
+        this.paintAddActivity(setting, "hobby");
+      },
+    });
+
+    return items;
+  }
+
+  getControlValue(key: string): unknown {
+    if (key === "language") return this.plugin.settings.language;
+    if (key === "timezone") return this.plugin.settings.timezone;
+    if (key === "dashboardPath") return this.plugin.settings.dashboardPath;
+    return undefined;
+  }
+
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key === "language") {
+      if (typeof value !== "string" || !isLanguage(value)) return;
+      this.plugin.settings.language = value;
+      await this.plugin.saveSettings();
+      this.redrawSettings();
+      await this.plugin.refreshAll();
+      new Notice(t("notice.reloadForCommands", value));
+      return;
+    }
+    if (key === "timezone") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
+      await this.plugin.saveSettings();
+      void this.plugin.refreshAll();
+      return;
+    }
+    if (key === "dashboardPath") {
+      if (typeof value !== "string") return;
+      const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+      if (!isSafeVaultFolder(next)) {
+        new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+        return;
+      }
+      this.plugin.settings.dashboardPath = next;
+      await this.plugin.saveSettings();
+    }
+  }
+
+  private redrawSettings(): void {
+    const tab = this as FitnessSettingTab & { update?: () => void };
+    if (typeof tab.update === "function") {
+      tab.update();
+      return;
+    }
+    this.paintSettings(this.containerEl);
+  }
+
+  private paintSettings(containerEl: HTMLElement): void {
     const language = this.plugin.settings.language;
     containerEl.empty();
 
+    this.paintLanguage(new Setting(containerEl), language);
+    this.paintTimezone(new Setting(containerEl), language);
+    this.paintDashboardPath(new Setting(containerEl), language);
+
     new Setting(containerEl)
+      .setName(t("settings.exerciseTypes", language))
+      .setDesc(t("settings.exerciseTypesDesc", language))
+      .setHeading();
+    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
+      this.paintActivityRows(containerEl, activity, { showCues: true });
+    }
+    this.paintAddActivity(
+      new Setting(containerEl)
+        .setName(t("settings.addExerciseType", language))
+        .setDesc(t("settings.addExerciseTypeDesc", language)),
+      "exercise",
+    );
+
+    new Setting(containerEl)
+      .setName(t("settings.hobbyTypes", language))
+      .setDesc(t("settings.hobbyTypesDesc", language))
+      .setHeading();
+    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
+      this.paintActivityRows(containerEl, activity, { showCues: false });
+    }
+    this.paintAddActivity(
+      new Setting(containerEl)
+        .setName(t("settings.addHobbyType", language))
+        .setDesc(t("settings.addHobbyTypeDesc", language)),
+      "hobby",
+    );
+  }
+
+  private paintLanguage(setting: Setting, language: Language): void {
+    setting
       .setName(t("settings.language", language))
       .setDesc(t("settings.languageDesc", language))
       .addDropdown((dropdown) =>
@@ -90,13 +266,15 @@ export class FitnessSettingTab extends PluginSettingTab {
             if (!isLanguage(value)) return;
             this.plugin.settings.language = value;
             await this.plugin.saveSettings();
-            this.display();
+            this.redrawSettings();
             await this.plugin.refreshAll();
             new Notice(t("notice.reloadForCommands", value));
           }),
       );
+  }
 
-    new Setting(containerEl)
+  private paintTimezone(setting: Setting, language: Language): void {
+    setting
       .setName(t("settings.timezone", language))
       .setDesc(t("settings.timezoneDesc", language))
       .addText((text) =>
@@ -109,8 +287,10 @@ export class FitnessSettingTab extends PluginSettingTab {
             void this.plugin.refreshAll();
           }),
       );
+  }
 
-    new Setting(containerEl)
+  private paintDashboardPath(setting: Setting, language: Language): void {
+    setting
       .setName(t("settings.dashboardPath", language))
       .setDesc(t("settings.dashboardPathDesc", language))
       .addText((text) =>
@@ -127,9 +307,31 @@ export class FitnessSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+  }
 
-    this.renderExerciseTypes(containerEl);
-    this.renderHobbyTypes(containerEl);
+  private activityDefinitionItems(
+    activity: ActivityType,
+    options: { showCues: boolean },
+  ): SettingDefinitionItem[] {
+    const language = this.plugin.settings.language;
+    return [
+      {
+        name: activity.label,
+        desc: t("settings.activityId", language, { id: activity.id }),
+        aliases: [activity.id],
+        render: (setting) => {
+          this.paintActivityControls(setting, activity, options);
+        },
+      },
+      {
+        name: t("settings.baseColor", language, { label: activity.label }),
+        desc: t("settings.baseColorDesc", language),
+        aliases: [activity.id, "color"],
+        render: (setting) => {
+          this.paintColorControls(setting, activity);
+        },
+      },
+    ];
   }
 
   private async saveAndRefresh(): Promise<void> {
@@ -145,93 +347,29 @@ export class FitnessSettingTab extends PluginSettingTab {
     return `${baseId}-${index}`;
   }
 
-  private renderExerciseTypes(containerEl: HTMLElement): void {
-    const language = this.plugin.settings.language;
-    new Setting(containerEl)
-      .setName(t("settings.exerciseTypes", language))
-      .setDesc(t("settings.exerciseTypesDesc", language))
-      .setHeading();
-
-    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
-      this.renderActivityRows(containerEl, activity, { showCues: true });
-    }
-
-    new Setting(containerEl)
-      .setName(t("settings.addExerciseType", language))
-      .setDesc(t("settings.addExerciseTypeDesc", language))
-      .addText((text) =>
-        text
-          .setPlaceholder(t("settings.exerciseNamePlaceholder", language))
-          .setValue(this.pendingExerciseName)
-          .onChange((value) => {
-            this.pendingExerciseName = value;
-          }),
-      )
-      .addButton((button) =>
-        button.setButtonText(t("settings.add", language)).onClick(async () => {
-          const name = this.pendingExerciseName.trim();
-          if (!name) {
-            new Notice(t("notice.enterExerciseType", this.plugin.settings.language));
-            return;
-          }
-          const activity = createExerciseActivityType(name);
-          activity.id = this.uniqueActivityId(activity.id);
-          this.plugin.settings.activityTypes = [
-            ...this.plugin.settings.activityTypes,
-            activity,
-          ];
-          this.pendingExerciseName = "";
-          await this.saveAndRefresh();
-          this.display();
-        }),
-      );
-  }
-
-  private renderHobbyTypes(containerEl: HTMLElement): void {
-    const language = this.plugin.settings.language;
-    new Setting(containerEl)
-      .setName(t("settings.hobbyTypes", language))
-      .setDesc(t("settings.hobbyTypesDesc", language))
-      .setHeading();
-
-    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
-      this.renderActivityRows(containerEl, activity, { showCues: false });
-    }
-
-    const addHobby = new Setting(containerEl)
-      .setName(t("settings.addHobbyType", language))
-      .setDesc(t("settings.addHobbyTypeDesc", language))
-      .addText((text) =>
-        text
-          .setPlaceholder(t("settings.hobbyNamePlaceholder", language))
-          .setValue(this.pendingHobbyName)
-          .onChange((value) => {
-            this.pendingHobbyName = value;
-          }),
-      )
-      .addButton((button) =>
-        button.setButtonText(t("settings.add", language)).onClick(async () => {
-          const name = this.pendingHobbyName.trim();
-          if (!name) {
-            new Notice(t("notice.enterHobbyType", this.plugin.settings.language));
-            return;
-          }
-          const activity = createHobbyActivityType(name);
-          activity.id = this.uniqueActivityId(activity.id);
-          this.plugin.settings.activityTypes = [
-            ...this.plugin.settings.activityTypes,
-            activity,
-          ];
-          this.pendingHobbyName = "";
-          await this.saveAndRefresh();
-          this.display();
-        }),
-      );
-    addHobby.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
-  }
-
-  private renderActivityRows(
+  private paintActivityRows(
     containerEl: HTMLElement,
+    activity: ActivityType,
+    options: { showCues: boolean },
+  ): void {
+    const language = this.plugin.settings.language;
+    this.paintActivityControls(
+      new Setting(containerEl)
+        .setName(activity.label)
+        .setDesc(t("settings.activityId", language, { id: activity.id })),
+      activity,
+      options,
+    );
+    this.paintColorControls(
+      new Setting(containerEl)
+        .setName(t("settings.baseColor", language, { label: activity.label }))
+        .setDesc(t("settings.baseColorDesc", language)),
+      activity,
+    );
+  }
+
+  private paintActivityControls(
+    setting: Setting,
     activity: ActivityType,
     options: { showCues: boolean },
   ): void {
@@ -240,10 +378,8 @@ export class FitnessSettingTab extends PluginSettingTab {
       ? t("settings.exerciseFolderPlaceholder", language)
       : t("settings.hobbyFolderPlaceholder", language);
 
-    const row = new Setting(containerEl)
+    setting
       .setClass("atomic-setting-exercise-type")
-      .setName(activity.label)
-      .setDesc(t("settings.activityId", language, { id: activity.id }))
       .addToggle((toggle) =>
         toggle
           .setTooltip(t("settings.enabledTooltip", language))
@@ -278,11 +414,11 @@ export class FitnessSettingTab extends PluginSettingTab {
             await this.saveAndRefresh();
           }),
       );
-    row.settingEl.setAttr("data-testid", "atomic-setting-activity");
-    row.settingEl.setAttr("data-activity-id", activity.id);
+    setting.settingEl.setAttr("data-testid", "atomic-setting-activity");
+    setting.settingEl.setAttr("data-activity-id", activity.id);
 
     if (options.showCues) {
-      row.addToggle((toggle) =>
+      setting.addToggle((toggle) =>
         toggle
           .setTooltip(t("settings.enableCuesTooltip", language))
           .setValue(activity.supportsCues)
@@ -293,31 +429,80 @@ export class FitnessSettingTab extends PluginSettingTab {
       );
     }
 
-    row.addButton((button) =>
-      button
-        .setButtonText(t("settings.delete", language))
-        .setWarning()
-        .onClick(() => {
-          this.confirmDeleteActivity(activity);
-        }),
-    );
+    setting.addButton((button) => {
+      button.setButtonText(t("settings.delete", language));
+      styleDestructiveButton(button);
+      button.onClick(() => {
+        this.confirmDeleteActivity(activity);
+      });
+    });
+  }
 
-    const colorSetting = new Setting(containerEl)
+  private paintColorControls(setting: Setting, activity: ActivityType): void {
+    setting
       .setClass("atomic-setting-colors")
-      .setName(t("settings.baseColor", language, { label: activity.label }))
-      .setDesc(t("settings.baseColorDesc", language))
       .addColorPicker((picker) =>
         picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
           activity.baseColor = value;
           activity.colors = shadesFromBaseColor(value);
           await this.saveAndRefresh();
-          this.renderColorSwatches(colorSetting.controlEl, activity);
+          this.renderColorSwatches(setting.controlEl, activity);
         }),
       );
-    colorSetting.settingEl.setAttr("data-testid", "atomic-setting-colors");
-    colorSetting.settingEl.setAttr("data-activity-id", activity.id);
+    setting.settingEl.setAttr("data-testid", "atomic-setting-colors");
+    setting.settingEl.setAttr("data-activity-id", activity.id);
+    this.renderColorSwatches(setting.controlEl, activity);
+  }
 
-    this.renderColorSwatches(colorSetting.controlEl, activity);
+  private paintAddActivity(setting: Setting, kind: "exercise" | "hobby"): void {
+    const language = this.plugin.settings.language;
+    const isHobby = kind === "hobby";
+    setting
+      .addText((text) =>
+        text
+          .setPlaceholder(
+            t(
+              isHobby
+                ? "settings.hobbyNamePlaceholder"
+                : "settings.exerciseNamePlaceholder",
+              language,
+            ),
+          )
+          .setValue(isHobby ? this.pendingHobbyName : this.pendingExerciseName)
+          .onChange((value) => {
+            if (isHobby) this.pendingHobbyName = value;
+            else this.pendingExerciseName = value;
+          }),
+      )
+      .addButton((button) =>
+        button.setButtonText(t("settings.add", language)).onClick(async () => {
+          const name = (isHobby ? this.pendingHobbyName : this.pendingExerciseName).trim();
+          if (!name) {
+            new Notice(
+              t(
+                isHobby ? "notice.enterHobbyType" : "notice.enterExerciseType",
+                this.plugin.settings.language,
+              ),
+            );
+            return;
+          }
+          const activity = isHobby
+            ? createHobbyActivityType(name)
+            : createExerciseActivityType(name);
+          activity.id = this.uniqueActivityId(activity.id);
+          this.plugin.settings.activityTypes = [
+            ...this.plugin.settings.activityTypes,
+            activity,
+          ];
+          if (isHobby) this.pendingHobbyName = "";
+          else this.pendingExerciseName = "";
+          await this.saveAndRefresh();
+          this.redrawSettings();
+        }),
+      );
+    if (isHobby) {
+      setting.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
+    }
   }
 
   private renderColorSwatches(controlEl: HTMLElement, activity: ActivityType): void {
@@ -353,7 +538,7 @@ export class FitnessSettingTab extends PluginSettingTab {
       (candidate) => candidate.id !== activity.id,
     );
     await this.saveAndRefresh();
-    this.display();
+    this.redrawSettings();
     new Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label,

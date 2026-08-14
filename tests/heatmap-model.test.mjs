@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { GREEN } from "../src/types.ts";
 import {
+  appendHeatmapWeeks,
   buildHeatmapWeeks,
   escapeHtmlAttr,
   formatHeatmapTooltip,
@@ -28,6 +29,76 @@ test("buildHeatmapWeeks marks today and session minutes", () => {
   assert.equal(today.level, 2);
   assert.ok(weeks.length >= 52);
   assert.ok(weeks.length <= 54);
+});
+
+test("appendHeatmapWeeks paints cells with dataset hooks", () => {
+  const weeks = buildHeatmapWeeks({
+    year: 2026,
+    todayStr: "2026-01-01",
+    language: "en",
+    activityMap: new Map([
+      [
+        "2026-01-01",
+        {
+          minutes: 30,
+          path: 'atomics/exercise/Gym/2026/a"b.md',
+        },
+      ],
+    ]),
+  });
+  const created = [];
+  const doc = {
+    createDocumentFragment() {
+      const children = [];
+      return {
+        children,
+        appendChild(node) {
+          children.push(node);
+          return node;
+        },
+      };
+    },
+    createElement(tag) {
+      const el = {
+        tagName: tag,
+        className: "",
+        title: "",
+        style: { backgroundColor: "" },
+        dataset: {},
+        children: [],
+        appendChild(node) {
+          this.children.push(node);
+          return node;
+        },
+      };
+      created.push(el);
+      return el;
+    },
+  };
+  const parent = {
+    ownerDocument: doc,
+    appended: null,
+    appendChild(node) {
+      this.appended = node;
+      return node;
+    },
+  };
+  appendHeatmapWeeks(
+    parent,
+    weeks,
+    GREEN,
+    "{date}: {minutes} min",
+    "{date}: {minutes} min - click to open",
+  );
+  const today = created.find((el) => el.dataset.testid === "atomic-heatmap-today");
+  const pad = created.find((el) => el.className === "fitness-weeks-end-pad");
+  const todayWeek = created.find((el) => el.className.includes("is-today-week"));
+  assert.ok(today);
+  assert.ok(pad);
+  assert.ok(todayWeek);
+  assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
+  assert.equal(today.dataset.minutes, "30");
+  assert.equal(parent.appended.children.at(-1), pad);
 });
 
 test("heatmapWeeksHtml keeps cell hooks and escapes attributes", () => {

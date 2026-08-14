@@ -235,7 +235,7 @@ test("cover images apply coverObjectPosition after load", () => {
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
-  assert.match(styles, /scrollbar-width:\s*none/);
+  assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);
   assert.match(styles, /--atomic-heatmap-cell:\s*11px/);
   assert.match(styles, /--atomic-book-width:\s*80px/);
