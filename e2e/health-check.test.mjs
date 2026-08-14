@@ -172,6 +172,16 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(filtered.length, 1);
       assert.equal(filtered[0].title, "Currently Reading");
       assert.equal(filtered[0].status, "reading");
+
+      await openVaultFile(driver, E2E_FILES.bookshelfScaled);
+      await waitCss(driver, '[data-testid="atomic-bookshelf"][data-scale="1.5"]');
+      const scaledWidth = await driver.executeScript(`
+        const frame = document.querySelector(
+          '[data-testid="atomic-bookshelf"][data-scale="1.5"] .atomic-book-shelf-frame',
+        );
+        return frame && getComputedStyle(frame).getPropertyValue('--atomic-book-width').trim();
+      `);
+      assert.equal(scaledWidth, "120px");
     });
   });
 

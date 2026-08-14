@@ -13,16 +13,6 @@ function readPluginSourceGlobs() {
     .filter((line) => line && !line.startsWith("#"));
 }
 
-function quotedPathLines(yaml) {
-  return yaml
-    .split("\n")
-    .map((line) => {
-      const match = line.match(/^\s+-\s+"([^"]+)"\s*$/);
-      return match ? match[1] : null;
-    })
-    .filter(Boolean);
-}
-
 function yamlKeyBlock(yaml, indent, key) {
   const needle = `\n${indent}${key}:\n`;
   const start = yaml.indexOf(needle);
@@ -38,15 +28,6 @@ test("plugin source path list is non-empty and has no duplicates", () => {
   assert.deepEqual(globs, [...new Set(globs)]);
 });
 
-test("release.yml on.paths matches the plugin source path list", () => {
-  const expected = readPluginSourceGlobs();
-  const release = readFileSync(
-    join(root, ".github/workflows/release.yml"),
-    "utf8",
-  );
-  assert.deepEqual(quotedPathLines(yamlKeyBlock(release, "    ", "paths")), expected);
-});
-
 test("ci.yml change detection uses the plugin source path list", () => {
   const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
   assert.match(ci, /plugin-source-paths\.txt/);
@@ -54,8 +35,17 @@ test("ci.yml change detection uses the plugin source path list", () => {
   assert.match(ci, /^\s+tests\s*\\$/m);
   assert.match(ci, /^\s+e2e\s*\\$/m);
   assert.match(ci, /\.github\/workflows\/release\.yml/);
-  assert.match(ci, /needs\.changes\.outputs\.source == 'true'/);
   assert.doesNotMatch(ci, /\|\| true/);
+});
+
+test("ci.yml does not bump versions or push commits", () => {
+  const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
+  assert.doesNotMatch(ci, /node scripts\/ensure-pr-version/);
+  assert.doesNotMatch(ci, /node scripts\/check-version-conflict/);
+  assert.doesNotMatch(ci, /git commit/);
+  assert.doesNotMatch(ci, /git push/);
+  assert.doesNotMatch(ci, /contents:\s*write/);
+  assert.doesNotMatch(ci, /version bump/);
 });
 
 test("ci.yml keeps the required Test and build check on every PR", () => {
@@ -65,15 +55,58 @@ test("ci.yml keeps the required Test and build check on every PR", () => {
   assert.match(ci, /^\s+if: always\(\)$/m);
 });
 
-test("release.yml does not publish for docs, examples, or tests", () => {
+test("release.yml is manual workflow_dispatch only", () => {
   const release = readFileSync(
     join(root, ".github/workflows/release.yml"),
     "utf8",
   );
-  const paths = quotedPathLines(yamlKeyBlock(release, "    ", "paths"));
-  assert.ok(!paths.some((p) => p.startsWith("docs") || p.includes(".md")));
-  assert.ok(!paths.includes("tests/**"));
-  assert.ok(!paths.includes("examples/**"));
+  const onBlock = yamlKeyBlock(release, "", "on");
+  assert.match(onBlock, /workflow_dispatch:/);
+  assert.doesNotMatch(onBlock, /^\s+push:/m);
+  assert.doesNotMatch(onBlock, /paths:/);
+});
+
+test("release.yml accepts bump, branch, and release notes inputs", () => {
+  const release = readFileSync(
+    join(root, ".github/workflows/release.yml"),
+    "utf8",
+  );
+  const inputs = yamlKeyBlock(release, "    ", "inputs");
+  assert.match(inputs, /bump:/);
+  assert.match(inputs, /type: choice/);
+  assert.match(inputs, /- patch/);
+  assert.match(inputs, /- minor/);
+  assert.match(inputs, /- major/);
+  assert.match(inputs, /default: patch/);
+  assert.match(inputs, /branch:/);
+  assert.match(inputs, /default: main/);
+  assert.match(inputs, /release_notes:/);
+  assert.match(yamlKeyBlock(release, "      ", "release_notes"), /type: string/);
+  assert.doesNotMatch(yamlKeyBlock(release, "      ", "release_notes"), /type: textarea/);
+});
+
+test("release.yml validates the branch as a git branch name", () => {
+  const release = readFileSync(
+    join(root, ".github/workflows/release.yml"),
+    "utf8",
+  );
+  assert.match(release, /git check-ref-format --branch/);
+  assert.match(release, /\[\[ "\$\{BRANCH\}" == refs\/\* \]\]/);
+  assert.doesNotMatch(release, /\^\[A-Za-z0-9\._\/-\]\+\$/);
+});
+
+test("release.yml bumps the version, tags, and creates a GitHub release", () => {
+  const release = readFileSync(
+    join(root, ".github/workflows/release.yml"),
+    "utf8",
+  );
+  assert.match(release, /bump-version\.mjs "\$\{\{ inputs\.bump \}\}"/);
+  assert.match(release, /git tag "\$\{VERSION\}"/);
+  assert.match(release, /git push origin "refs\/tags\/\$\{VERSION\}"/);
+  assert.match(release, /action-gh-release/);
+  assert.match(release, /tag_name: \$\{\{ steps\.version\.outputs\.version \}\}/);
+  assert.match(release, /body: \$\{\{ inputs\.release_notes \}\}/);
+  assert.match(release, /generate_release_notes: true/);
 });
 
 test("codeql.yml pull requests stay unfiltered", () => {

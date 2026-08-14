@@ -14,7 +14,9 @@ import {
   bookWidthForContainer,
   booksPerRow,
   chunkItems,
+  resolveBookShelfScale,
   rowNeedsHorizontalScroll,
+  scaledBookSize,
 } from "../src/util/book-shelf-layout.ts";
 import { measureElementWidth } from "../src/util/element-width.ts";
 import {
@@ -36,6 +38,22 @@ const IPHONE_SE = 320;
 const IPHONE_14 = 390;
 const PIXEL_NARROW = 360;
 
+test("resolveBookShelfScale reads scale or ratio and clamps", () => {
+  assert.equal(resolveBookShelfScale(undefined), 1);
+  assert.equal(resolveBookShelfScale({}), 1);
+  assert.equal(resolveBookShelfScale({ scale: "1.5" }), 1.5);
+  assert.equal(resolveBookShelfScale({ ratio: "0.5" }), 0.5);
+  assert.equal(resolveBookShelfScale({ scale: "1.5", ratio: "2" }), 1.5);
+  assert.equal(resolveBookShelfScale({ scale: "0" }), 1);
+  assert.equal(resolveBookShelfScale({ scale: "-1" }), 1);
+  assert.equal(resolveBookShelfScale({ scale: "abc" }), 1);
+  assert.equal(resolveBookShelfScale({ scale: "0.1" }), 0.25);
+  assert.equal(resolveBookShelfScale({ scale: "9" }), 4);
+  assert.deepEqual(scaledBookSize(1), { maxWidth: 80, minWidth: 56 });
+  assert.deepEqual(scaledBookSize(1.5), { maxWidth: 120, minWidth: 84 });
+  assert.deepEqual(scaledBookSize(0.5), { maxWidth: 40, minWidth: 28 });
+});
+
 test("bookWidthForContainer keeps default size on wide panes", () => {
   assert.equal(bookWidthForContainer(900), DEFAULT_BOOK_WIDTH_PX);
   assert.equal(bookHeightForWidth(DEFAULT_BOOK_WIDTH_PX), DEFAULT_BOOK_HEIGHT_PX);
@@ -56,6 +74,12 @@ test("bookWidthForContainer shrinks so three books fit on a phone pane", () => {
 test("bookWidthForContainer floors at MIN_BOOK_WIDTH_PX on tiny panes", () => {
   assert.equal(bookWidthForContainer(120), MIN_BOOK_WIDTH_PX);
   assert.equal(rowNeedsHorizontalScroll(120, MIN_BOOK_WIDTH_PX), true);
+});
+
+test("bookWidthForContainer honors a scale ratio on wide panes", () => {
+  const { maxWidth, minWidth } = scaledBookSize(1.5);
+  assert.equal(bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth), 120);
+  assert.equal(bookHeightForWidth(120), 186);
 });
 
 test("booksPerRow never wraps below three books", () => {

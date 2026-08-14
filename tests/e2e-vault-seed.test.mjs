@@ -51,6 +51,10 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     const bookshelf = readFileSync(join(vault, E2E_FILES.bookshelfReading), "utf8");
     assert.match(bookshelf, /status: reading/);
 
+    const scaled = readFileSync(join(vault, E2E_FILES.bookshelfScaled), "utf8");
+    assert.match(scaled, /```atomic-bookshelf/);
+    assert.match(scaled, /scale: 1.5/);
+
     const reading = readFileSync(join(vault, E2E_FILES.readingCurrent), "utf8");
     assert.match(reading, /status: reading/);
     assert.match(reading, /```atomic-timer/);

@@ -1,20 +1,24 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    # Allowlist must match .github/plugin-source-paths.txt (see tests/ci-paths.test.mjs).
-    paths:
-      - "src/**"
-      - "styles.css"
-      - "manifest.json"
-      - "versions.json"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig.json"
-      - "esbuild.config.mjs"
   workflow_dispatch:
+    inputs:
+      bump:
+        description: Semver bump
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      branch:
+        description: Branch to release from
+        type: string
+        default: main
+      release_notes:
+        description: GitHub release notes (optional; auto-generated notes are appended)
+        type: string
+        required: false
 
 permissions:
   contents: write
@@ -25,7 +29,7 @@ env:
   PLUGIN_ID: atomic-tracker
 
 concurrency:
-  group: release-main
+  group: release-${{ inputs.branch }}
   cancel-in-progress: false
 
 jobs:
@@ -33,10 +37,33 @@ jobs:
     name: Build and publish GitHub Release
     runs-on: ubuntu-latest
     steps:
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          BRANCH="${{ inputs.branch }}"
+          BUMP="${{ inputs.bump }}"
+          if [[ "${BRANCH}" == refs/* ]]; then
+            echo "Branch must be a branch name, not a refs/* path: ${BRANCH}"
+            exit 1
+          fi
+          if ! git check-ref-format --branch "${BRANCH}"; then
+            echo "Invalid branch name: ${BRANCH}"
+            exit 1
+          fi
+          case "${BUMP}" in
+            patch|minor|major) ;;
+            *)
+              echo "Invalid bump level: ${BUMP}"
+              exit 1
+              ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -47,13 +74,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Read release version
+      - name: Bump plugin version
         id: version
         run: |
           set -euo pipefail
-          VERSION="$(node scripts/bump-version.mjs)"
+          VERSION="$(node scripts/bump-version.mjs "${{ inputs.bump }}")"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Releasing ${VERSION} (version is set on the PR via CI)"
+          echo "Bumped ${{ inputs.bump }} to ${VERSION} on ${{ inputs.branch }}"
 
       - name: Typecheck
         run: npm run typecheck
@@ -70,9 +97,21 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           if git rev-parse "refs/tags/${VERSION}" >/dev/null 2>&1; then
             echo "Tag ${VERSION} already exists; refusing to overwrite."
-            echo "This usually means main was updated without bumping the plugin version above the last release."
             exit 1
           fi
+
+      - name: Commit version bump, tag, and push
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          BRANCH="${{ inputs.branch }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json manifest.json versions.json
+          git commit -m "chore: bump version to ${VERSION}"
+          git tag "${VERSION}"
+          git push origin "HEAD:${BRANCH}"
+          git push origin "refs/tags/${VERSION}"
 
       - name: Package plugin zip
         id: package
@@ -106,6 +145,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
+          body: ${{ inputs.release_notes }}
           generate_release_notes: true
           files: |
             main.js

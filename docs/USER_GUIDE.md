@@ -63,31 +63,7 @@ Rendered views (heatmap, dashboard, book shelf, timer, cues) do not show an “A
 
 ---
 
-## 4. Install this plugin into the vault
-
-Installed from Community plugins (or GitHub Releases).
-
-### Option A — Community plugins (recommended)
-
-1. **Settings → Community plugins → Browse**.
-2. Search **Atomic Tracker**.
-3. Install and enable it.
-
-Until the directory listing is live, use Option B.
-
-### Option B — Download a release
-
-1. Open the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases).
-2. Download `atomic-tracker-<version>.zip`.
-3. Unzip into your vault’s plugins folder:
-
-```text
-<vault>/.obsidian/plugins/
-```
-
-That creates `<vault>/.obsidian/plugins/atomic-tracker/` with `main.js`, `manifest.json`, and `styles.css`.
-
-### Option C — Build from source
+## 4. Build this plugin from source
 
 ```bash
 npm install
@@ -102,7 +78,7 @@ Optional one-shot copy while building:
 OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/atomic-tracker npm run build
 ```
 
-### Option D — Symlink (good for development)
+For development, symlink the repo into the vault plugins folder:
 
 ```bash
 mkdir -p /path/to/vault/.obsidian/plugins
@@ -391,6 +367,15 @@ status: reading, to-read
 
 Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknown tokens show a short notice; valid ids in the list still filter correctly.
 
+**Scale the shelf** (optional). `scale` (or `ratio`) is a multiplier of the default book size. Omit it or use `scale: 1` for the default. Positive values outside `0.25`–`4` are clamped. Zero, negative, and non-numeric values fall back to `1`.
+
+````markdown
+```atomic-bookshelf
+activity: reading
+scale: 1.5
+```
+````
+
 ![Book shelf](./images/atomic-book-shelf.png)
 
 ![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
@@ -466,12 +451,14 @@ Renders the 3D book shelf for a timer-backed general habit (Reading by default).
 ```text
 activity: reading
 status: all
+scale: 1
 ```
 
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `activity` | `reading` | Hobby activity id (must be enabled, item + timer) |
 | `status` | all | `all` or omitted → every book; otherwise one or more status ids (`reading`, `to-read`, …) comma-separated |
+| `scale` | `1` | Size ratio vs the default book. Positive values are clamped to `0.25`–`4`. Zero, negative, and invalid values fall back to `1`. `1` is the default cover size; `0.5` is half; `2` is double. `ratio` is an alias. |
 
 Books are sorted by status (reading first), then title. Click a book to open its item note.
 

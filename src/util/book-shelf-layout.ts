@@ -7,6 +7,34 @@ export const BOOK_GAP_PX = 6;
 /** Frame 4*2 + row 2*2 + books 4*2. */
 export const ROW_PADDING_PX = 20;
 export const MIN_BOOKS_PER_ROW = 3;
+export const DEFAULT_BOOK_SHELF_SCALE = 1;
+export const MIN_BOOK_SHELF_SCALE = 0.25;
+export const MAX_BOOK_SHELF_SCALE = 4;
+
+/** Positive scale ratio for `atomic-bookshelf` (`scale:` / `ratio:`). Default 1. */
+export function resolveBookShelfScale(
+  opts: Record<string, string> | string | undefined,
+): number {
+  const raw =
+    typeof opts === "string" || opts == null
+      ? opts
+      : opts.scale ?? opts.ratio;
+  if (!raw) return DEFAULT_BOOK_SHELF_SCALE;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_BOOK_SHELF_SCALE;
+  return Math.min(MAX_BOOK_SHELF_SCALE, Math.max(MIN_BOOK_SHELF_SCALE, n));
+}
+
+export function scaledBookSize(scale: number): {
+  maxWidth: number;
+  minWidth: number;
+} {
+  const ratio = resolveBookShelfScale(String(scale));
+  return {
+    maxWidth: Math.max(1, Math.round(DEFAULT_BOOK_WIDTH_PX * ratio)),
+    minWidth: Math.max(1, Math.round(MIN_BOOK_WIDTH_PX * ratio)),
+  };
+}
 
 export function bookHeightForWidth(width: number): number {
   if (!Number.isFinite(width) || width <= 0) return DEFAULT_BOOK_HEIGHT_PX;

@@ -7,11 +7,11 @@ import { DEFAULT_READING_STATUS, matchesBookShelfStatus, resolveBookShelfStatuse
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems } from "../util/book-shelf-layout.ts";
+import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale, scaledBookSize } from "../util/book-shelf-layout.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { measureElementWidth } from "../util/element-width.ts";
 
-export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems };
+export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
 export type BookShelfItem = {
   path: string;
@@ -484,9 +484,14 @@ export function renderBookShelf(
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
 
+  const scale = resolveBookShelfScale(options);
+  const { maxWidth, minWidth } = scaledBookSize(scale);
   const root = el.createDiv({
     cls: "fitness-plugin atomic-book-shelf",
-    attr: { "data-testid": "atomic-bookshelf" },
+    attr: {
+      "data-testid": "atomic-bookshelf",
+      "data-scale": String(scale),
+    },
   });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
@@ -530,7 +535,13 @@ export function renderBookShelf(
         ? window.innerWidth
         : DEFAULT_BOOK_WIDTH_PX * 3 + BOOK_GAP_PX * 2 + ROW_PADDING_PX;
     const width = measureElementWidth(frame, fallback);
-    const bookWidth = bookWidthForContainer(width);
+    const bookWidth = bookWidthForContainer(
+      width,
+      BOOK_GAP_PX,
+      ROW_PADDING_PX,
+      minWidth,
+      maxWidth,
+    );
     const perRow = booksPerRow(width, bookWidth);
     const key = `${bookWidth}:${perRow}`;
     if (key === lastKey && frame.childElementCount > 0) return;
