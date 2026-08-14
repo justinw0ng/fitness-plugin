@@ -28,10 +28,14 @@ function styleDestructiveButton(button: ButtonComponent): void {
   button.buttonEl.addClass("mod-warning");
 }
 
+function isZeroArgMethod(value: unknown): value is (this: object) => void {
+  return typeof value === "function";
+}
+
 function callNamedMethod(target: object, name: string): boolean {
-  const method = Reflect.get(target, name);
-  if (typeof method !== "function") return false;
-  (method as (this: object) => void).call(target);
+  const method = (target as Record<string, unknown>)[name];
+  if (!isZeroArgMethod(method)) return false;
+  method.call(target);
   return true;
 }
 
