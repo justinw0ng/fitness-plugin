@@ -47,8 +47,10 @@ export class VaultDataSource {
   }
 
   /**
-   * True when a list scan saw files before metadataCache had frontmatter.
-   * Callers should refresh once after `metadataCache.resolved`.
+   * True when a list scan called `metadataCache.getFileCache()` and got null
+   * (file metadata not indexed yet). Callers should refresh once after
+   * `metadataCache.resolved`. Empty frontmatter on an existing cache does
+   * not set this flag.
    */
   consumeNeedsMetadataRefresh(): boolean {
     const needed = this.needsMetadataRefresh;
@@ -76,8 +78,7 @@ export class VaultDataSource {
   listSessions(folder: string, year: number): SessionMeta[] {
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const cacheKey = `${folder}\0${year}`;
-    const cached = this.sessionListCache.get(cacheKey);
+    const cached = this.sessionListCache.get(prefix);
     if (cached) return cached;
 
     const out: SessionMeta[] = [];
@@ -91,7 +92,7 @@ export class VaultDataSource {
         }),
       );
     }
-    this.sessionListCache.set(cacheKey, out, prefix);
+    this.sessionListCache.set(prefix, out, prefix);
     return out;
   }
 
@@ -105,7 +106,7 @@ export class VaultDataSource {
     }
     const prefix = hobbyItemsScanPrefix(activity.folder);
     if (!prefix) return [];
-    const cacheKey = `${activity.id}\0${activity.folder}`;
+    const cacheKey = `${activity.id}\0${prefix}`;
     const cached = this.hobbyItemListCache.get(cacheKey);
     if (cached) return cached;
 
@@ -132,7 +133,12 @@ export class VaultDataSource {
     activity: ActivityType,
     year: number,
   ): Promise<Map<string, DayActivity>> {
-    const cacheKey = `${activity.id}\0${activity.folder}\0${year}\0${activity.domain}`;
+    const prefix =
+      activity.domain === "hobby"
+        ? hobbyItemsScanPrefix(activity.folder)
+        : sessionScanPrefix(activity.folder, year);
+    if (!prefix) return new Map();
+    const cacheKey = `${activity.id}\0${prefix}\0${year}`;
     const cached = this.durationMapCache.get(cacheKey);
     if (cached) return cached;
 
@@ -145,14 +151,12 @@ export class VaultDataSource {
         })),
       );
       const map = durationMapFromHobbyLogs(perItem, year);
-      const scope = hobbyItemsScanPrefix(activity.folder) ?? "";
-      this.durationMapCache.set(cacheKey, map, scope);
+      this.durationMapCache.set(cacheKey, map, prefix);
       return map;
     }
 
     const map = durationMapFromSessions(this.listSessions(activity.folder, year));
-    const scope = sessionScanPrefix(activity.folder, year) ?? "";
-    this.durationMapCache.set(cacheKey, map, scope);
+    this.durationMapCache.set(cacheKey, map, prefix);
     return map;
   }
 

@@ -45,6 +45,20 @@ test("sessionScanPrefix rejects unsafe folders and adds year boundary", () => {
   assert.equal(sessionScanPrefix("Fitness/Gym", 2026), "Fitness/Gym/2026/");
 });
 
+test("sessionScanPrefix and hobbyItemsScanPrefix collapse equivalent folder spellings", () => {
+  assert.equal(sessionScanPrefix("Gym/", 2026), sessionScanPrefix("Gym", 2026));
+  assert.equal(sessionScanPrefix(" Gym ", 2026), "Gym/2026/");
+  assert.equal(sessionScanPrefix("Fitness\\Gym", 2026), "Fitness/Gym/2026/");
+  assert.equal(
+    hobbyItemsScanPrefix("atomics/hobbies/Reading/"),
+    hobbyItemsScanPrefix("atomics/hobbies/Reading"),
+  );
+  assert.equal(
+    hobbyItemsScanPrefix(" atomics/hobbies/Reading "),
+    "atomics/hobbies/Reading/Items/",
+  );
+});
+
 test("pathTouchesScope matches descendants, ancestors, and exact paths", () => {
   assert.equal(
     pathTouchesScope(

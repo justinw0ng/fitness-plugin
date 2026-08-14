@@ -150,6 +150,19 @@ test("vault scans no longer iterate getMarkdownFiles", () => {
   assert.doesNotMatch(source, /getMarkdownFiles/);
 });
 
+test("list caches key by normalized scan prefix not the raw folder argument", () => {
+  const source = readFileSync(join(root, "src/data/vault-source.ts"), "utf8");
+  assert.match(source, /this\.sessionListCache\.get\(prefix\)/);
+  assert.match(source, /this\.sessionListCache\.set\(prefix, out, prefix\)/);
+  assert.match(source, /const cacheKey = `\$\{activity\.id\}\\0\$\{prefix\}`/);
+  assert.doesNotMatch(source, /\$\{folder\}\\0\$\{year\}/);
+  assert.doesNotMatch(source, /activity\.folder\}\\0\$\{year\}/);
+  assert.match(
+    source,
+    /True when a list scan called `metadataCache\.getFileCache\(\)` and got null/,
+  );
+});
+
 test("plugin does not refresh every metadataCache changed event", () => {
   const main = readFileSync(join(root, "src/main.ts"), "utf8");
   assert.match(main, /consumeNeedsMetadataRefresh/);
