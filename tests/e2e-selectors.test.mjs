@@ -35,6 +35,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
+  assert.match(shelf, /"data-scale": String\(scale\)/);
+  assert.match(shelf, /resolveBookShelfScale/);
 
   const settings = src("src/settings.ts");
   assert.match(settings, /atomic-setting-activity/);
@@ -45,6 +47,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(settings, /setDestructive\(/);
   assert.doesNotMatch(settings, /\.update\(/);
   assert.doesNotMatch(settings, /this\.display\(/);
+  assert.match(settings, /const method = \(target as Record<string, unknown>\)\[name\]/);
 
   const properties = src("src/properties/property-select.ts");
   assert.match(properties, /"data-testid": "atomic-property-select"/);

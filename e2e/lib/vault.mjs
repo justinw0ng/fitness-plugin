@@ -29,6 +29,7 @@ export const E2E_FILES = {
   heatmapGymGolf: "E2E/Heatmap gym golf.md",
   bookshelfAll: "E2E/Bookshelf all.md",
   bookshelfReading: "E2E/Bookshelf reading.md",
+  bookshelfScaled: "E2E/Bookshelf scaled.md",
   readingCurrent: "atomics/hobbies/Reading/Items/Currently Reading.md",
   readingFinished: "atomics/hobbies/Reading/Items/Finished Book.md",
   golfSession: (year, today) => `atomics/exercise/Golf/${year}/${today}.md`,
@@ -349,6 +350,10 @@ export function seedE2eVault(options = {}) {
   write(
     join(vault, E2E_FILES.bookshelfReading),
     `# Bookshelf reading\n\n\`\`\`atomic-bookshelf\nstatus: reading\n\`\`\`\n`,
+  );
+  write(
+    join(vault, E2E_FILES.bookshelfScaled),
+    `# Bookshelf scaled\n\n\`\`\`atomic-bookshelf\nscale: 1.5\n\`\`\`\n`,
   );
 
   write(join(vault, E2E_FILES.golfSession(year, today)), golfSession(today));
