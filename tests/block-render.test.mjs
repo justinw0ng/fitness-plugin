@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ATOMIC_BLOCK_HOST_CLASS,
   ATOMIC_BLOCK_PENDING_BAR_CLASS,
   ATOMIC_BLOCK_PENDING_CLASS,
   beginBlockRender,
@@ -35,6 +36,9 @@ function createHost() {
       children.push(child);
       return child;
     },
+    addClass(cls) {
+      this.cls = this.cls ? `${this.cls} ${cls}` : cls;
+    },
   };
   return host;
 }
@@ -48,6 +52,7 @@ test("mountAtomicBlockShell empties the host and adds pending classes", () => {
   host.createDiv({ cls: "stale-source" });
   const root = mountAtomicBlockShell(host);
   assert.equal(host.emptied, true);
+  assert.match(host.cls, new RegExp(ATOMIC_BLOCK_HOST_CLASS));
   assert.equal(root.cls, ATOMIC_BLOCK_PENDING_CLASS);
   assert.equal(host.children.length, 1);
   assert.equal(host.children[0], root);
@@ -94,10 +99,8 @@ test("invalidateBlockRenderIfCurrent only bumps when that generation is still cu
 test("styles hide unprocessed atomic fences and style the pending shell", () => {
   assert.match(styles, /\.fitness-plugin\.atomic-block-pending/);
   assert.match(styles, /\.atomic-block-pending-bar/);
-  assert.match(
-    styles,
-    /\.markdown-preview-view pre:has\(>\s*code\[class\*="language-atomic-"\]\)/,
-  );
+  assert.match(styles, /pre\[class\*="language-atomic-"\]:not\(\.atomic-block-host\)/);
+  assert.doesNotMatch(styles, /:has\(/);
   assert.match(
     styles,
     /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.atomic-block-pending-bar[\s\S]*animation:\s*none/,

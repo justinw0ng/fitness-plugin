@@ -132,6 +132,46 @@ export function buildHeatmapWeeks(params: {
   return weeks;
 }
 
+export function appendHeatmapWeeks(
+  parent: HTMLElement,
+  weeks: HeatmapDayCell[][],
+  colors: readonly string[],
+  tooltip: string,
+  tooltipOpen: string,
+): void {
+  const doc = parent.ownerDocument;
+  const fragment = doc.createDocumentFragment();
+  for (const week of weeks) {
+    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
+    const weekEl = doc.createElement("div");
+    weekEl.className = isTodayWeek ? "fitness-week is-today-week" : "fitness-week";
+    for (const day of week) {
+      const cell = doc.createElement("div");
+      cell.className = cellClass(day);
+      cell.dataset.testid = day.isToday
+        ? "atomic-heatmap-today"
+        : "atomic-heatmap-cell";
+      cell.dataset.minutes = String(day.minutes);
+      cell.dataset.date = day.fullDate;
+      if (day.path) cell.dataset.path = day.path;
+      cell.style.backgroundColor = day.isCurrentYear
+        ? colorForLevel(colors, day.level)
+        : EMPTY_CELL;
+      cell.title = formatHeatmapTooltip(
+        day.path ? tooltipOpen : tooltip,
+        day.fullDate,
+        day.minutes,
+      );
+      weekEl.appendChild(cell);
+    }
+    fragment.appendChild(weekEl);
+  }
+  const pad = doc.createElement("div");
+  pad.className = "fitness-weeks-end-pad";
+  fragment.appendChild(pad);
+  parent.appendChild(fragment);
+}
+
 export function heatmapWeeksHtml(
   weeks: HeatmapDayCell[][],
   colors: readonly string[],

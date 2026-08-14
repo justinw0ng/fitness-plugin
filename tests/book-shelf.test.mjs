@@ -340,12 +340,10 @@ test("book shelf CSS lets cover hover reach the book button and keeps the title 
   );
   assert.match(
     stylesCss,
-    /\.atomic-book-cover-image[^{]*\{[^}]*pointer-events:\s*none\s*!important/s,
+    /img\.atomic-book-cover-image[^{]*\{[^}]*pointer-events:\s*none/s,
   );
-  assert.match(
-    stylesCss,
-    /:has\(\.atomic-book-shelf\)[^}]*overflow:\s*visible\s*!important/s,
-  );
+  assert.doesNotMatch(stylesCss, /:has\(/);
+  assert.doesNotMatch(stylesCss, /!important/);
   assert.match(
     stylesCss,
     /\.atomic-book-detail\.is-ported[^{]*\{[^}]*position:\s*fixed/s,

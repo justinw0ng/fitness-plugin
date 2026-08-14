@@ -1,16 +1,28 @@
+export const ATOMIC_BLOCK_HOST_CLASS = "atomic-block-host";
 export const ATOMIC_BLOCK_PENDING_CLASS = "fitness-plugin atomic-block-pending";
 export const ATOMIC_BLOCK_PENDING_BAR_CLASS = "atomic-block-pending-bar";
 
 export type AtomicBlockHost = {
   empty(): void;
   createDiv(options?: { cls?: string }): AtomicBlockHost;
+  addClass?(cls: string): void;
+  classList?: { add(cls: string): void };
 };
 
 const generations = new WeakMap<object, number>();
 const chains = new WeakMap<object, Promise<void>>();
 
+export function markAtomicBlockHost(el: AtomicBlockHost): void {
+  if (typeof el.addClass === "function") {
+    el.addClass(ATOMIC_BLOCK_HOST_CLASS);
+    return;
+  }
+  el.classList?.add(ATOMIC_BLOCK_HOST_CLASS);
+}
+
 export function mountAtomicBlockShell(el: AtomicBlockHost): AtomicBlockHost {
   el.empty();
+  markAtomicBlockHost(el);
   const root = el.createDiv({ cls: ATOMIC_BLOCK_PENDING_CLASS });
   root.createDiv({ cls: ATOMIC_BLOCK_PENDING_BAR_CLASS });
   return root;

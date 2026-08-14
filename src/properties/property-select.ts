@@ -195,6 +195,7 @@ function hideNativeEditors(valueContainer: HTMLElement): void {
   for (const child of Array.from(valueContainer.children)) {
     if (child.classList.contains(SELECT_CLASS)) continue;
     if (child.instanceOf(HTMLElement)) {
+      child.hidden = true;
       child.addClass(HIDDEN_CLASS);
     }
   }
