@@ -367,7 +367,7 @@ status: reading, to-read
 
 Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknown tokens show a short notice; valid ids in the list still filter correctly.
 
-**Scale the shelf** (optional). `scale` (or `ratio`) is a multiplier of the default book size. Omit it or use `scale: 1` for the default. Values outside `0.25`–`4` are clamped; invalid values fall back to `1`.
+**Scale the shelf** (optional). `scale` (or `ratio`) is a multiplier of the default book size. Omit it or use `scale: 1` for the default. Positive values outside `0.25`–`4` are clamped. Zero, negative, and non-numeric values fall back to `1`.
 
 ````markdown
 ```atomic-bookshelf
@@ -458,7 +458,7 @@ scale: 1
 |--------|---------|---------|
 | `activity` | `reading` | Hobby activity id (must be enabled, item + timer) |
 | `status` | all | `all` or omitted → every book; otherwise one or more status ids (`reading`, `to-read`, …) comma-separated |
-| `scale` | `1` | Size ratio vs the default book (`0.25`–`4`). `1` is the default cover size; `0.5` is half; `2` is double. `ratio` is an alias. |
+| `scale` | `1` | Size ratio vs the default book. Positive values are clamped to `0.25`–`4`. Zero, negative, and invalid values fall back to `1`. `1` is the default cover size; `0.5` is half; `2` is double. `ratio` is an alias. |
 
 Books are sorted by status (reading first), then title. Click a book to open its item note.
 

@@ -42,7 +42,11 @@ jobs:
           set -euo pipefail
           BRANCH="${{ inputs.branch }}"
           BUMP="${{ inputs.bump }}"
-          if [[ ! "${BRANCH}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+          if [[ "${BRANCH}" == refs/* ]]; then
+            echo "Branch must be a branch name, not a refs/* path: ${BRANCH}"
+            exit 1
+          fi
+          if ! git check-ref-format --branch "${BRANCH}"; then
             echo "Invalid branch name: ${BRANCH}"
             exit 1
           fi

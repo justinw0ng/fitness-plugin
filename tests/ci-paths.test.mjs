@@ -84,6 +84,16 @@ test("release.yml accepts bump, branch, and release notes inputs", () => {
   assert.match(inputs, /type: textarea/);
 });
 
+test("release.yml validates the branch as a git branch name", () => {
+  const release = readFileSync(
+    join(root, ".github/workflows/release.yml"),
+    "utf8",
+  );
+  assert.match(release, /git check-ref-format --branch/);
+  assert.match(release, /\[\[ "\$\{BRANCH\}" == refs\/\* \]\]/);
+  assert.doesNotMatch(release, /\^\[A-Za-z0-9\._\/-\]\+\$/);
+});
+
 test("release.yml bumps the version, tags, and creates a GitHub release", () => {
   const release = readFileSync(
     join(root, ".github/workflows/release.yml"),
