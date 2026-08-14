@@ -367,12 +367,17 @@ status: reading, to-read
 
 Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknown tokens show a short notice; valid ids in the list still filter correctly.
 
-**Scale the shelf** (optional). `scale` (or `ratio`) is a multiplier of the default book size. Omit it or use `scale: 1` for the default. Positive values outside `0.25`–`4` are clamped. Zero, negative, and non-numeric values fall back to `1`.
+**Scale the shelf** (optional). `scale` (or the alias `ratio`) multiplies the default book size. Omit it or use `scale: 1` for the usual cover. `0.5` is half size; `1.5` is one and a half; `2` is double. Positive values outside `0.25`–`4` are clamped to that range. Zero, negative, and non-numeric values fall back to `1`. Narrow panes still shrink books so a row can keep three covers; `scale` sets the preferred size on a wide pane.
 
 ````markdown
 ```atomic-bookshelf
 activity: reading
 scale: 1.5
+```
+
+```atomic-bookshelf
+activity: reading
+ratio: 0.5
 ```
 ````
 
@@ -451,14 +456,15 @@ Renders the 3D book shelf for a timer-backed general habit (Reading by default).
 ```text
 activity: reading
 status: all
-scale: 1
+scale: 1              # default: 1; alias: ratio
 ```
 
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `activity` | `reading` | Hobby activity id (must be enabled, item + timer) |
 | `status` | all | `all` or omitted → every book; otherwise one or more status ids (`reading`, `to-read`, …) comma-separated |
-| `scale` | `1` | Size ratio vs the default book. Positive values are clamped to `0.25`–`4`. Zero, negative, and invalid values fall back to `1`. `1` is the default cover size; `0.5` is half; `2` is double. `ratio` is an alias. |
+| `scale` | `1` | Size multiplier vs the default book. `1` = usual cover; `0.5` = half; `2` = double. Positive values clamp to `0.25`–`4`. Zero, negative, and invalid values fall back to `1`. |
+| `ratio` | `1` | Alias for `scale`. If both are set, `scale` wins. |
 
 Books are sorted by status (reading first), then title. Click a book to open its item note.
 
