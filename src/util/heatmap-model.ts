@@ -132,44 +132,46 @@ export function buildHeatmapWeeks(params: {
   return weeks;
 }
 
+export type HeatmapPaintHost = {
+  createDiv(options?: {
+    cls?: string;
+    attr?: Record<string, string | number | boolean | null>;
+  }): HeatmapPaintHost & { style: { backgroundColor: string } };
+};
+
 export function appendHeatmapWeeks(
-  parent: HTMLElement,
+  parent: HeatmapPaintHost,
   weeks: HeatmapDayCell[][],
   colors: readonly string[],
   tooltip: string,
   tooltipOpen: string,
 ): void {
-  const doc = parent.ownerDocument;
-  const fragment = doc.createDocumentFragment();
   for (const week of weeks) {
     const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    const weekEl = doc.createElement("div");
-    weekEl.className = isTodayWeek ? "fitness-week is-today-week" : "fitness-week";
+    const weekEl = parent.createDiv({
+      cls: isTodayWeek ? "fitness-week is-today-week" : "fitness-week",
+    });
     for (const day of week) {
-      const cell = doc.createElement("div");
-      cell.className = cellClass(day);
-      cell.dataset.testid = day.isToday
-        ? "atomic-heatmap-today"
-        : "atomic-heatmap-cell";
-      cell.dataset.minutes = String(day.minutes);
-      cell.dataset.date = day.fullDate;
-      if (day.path) cell.dataset.path = day.path;
+      const attr: Record<string, string> = {
+        "data-testid": day.isToday
+          ? "atomic-heatmap-today"
+          : "atomic-heatmap-cell",
+        "data-minutes": String(day.minutes),
+        "data-date": day.fullDate,
+        title: formatHeatmapTooltip(
+          day.path ? tooltipOpen : tooltip,
+          day.fullDate,
+          day.minutes,
+        ),
+      };
+      if (day.path) attr["data-path"] = day.path;
+      const cell = weekEl.createDiv({ cls: cellClass(day), attr });
       cell.style.backgroundColor = day.isCurrentYear
         ? colorForLevel(colors, day.level)
         : EMPTY_CELL;
-      cell.title = formatHeatmapTooltip(
-        day.path ? tooltipOpen : tooltip,
-        day.fullDate,
-        day.minutes,
-      );
-      weekEl.appendChild(cell);
     }
-    fragment.appendChild(weekEl);
   }
-  const pad = doc.createElement("div");
-  pad.className = "fitness-weeks-end-pad";
-  fragment.appendChild(pad);
-  parent.appendChild(fragment);
+  parent.createDiv({ cls: "fitness-weeks-end-pad" });
 }
 
 export function heatmapWeeksHtml(

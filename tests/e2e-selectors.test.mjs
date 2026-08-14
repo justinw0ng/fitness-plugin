@@ -21,6 +21,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(heatmapModel, /"atomic-heatmap-today"/);
   assert.match(heatmapModel, /"atomic-heatmap-cell"/);
   assert.match(heatmapModel, /appendHeatmapWeeks/);
+  assert.match(heatmapModel, /createDiv\(/);
+  assert.doesNotMatch(heatmapModel, /createElement\(/);
+  assert.doesNotMatch(heatmapModel, /createDocumentFragment\(/);
 
   const timer = src("src/views/timer.ts");
   assert.match(timer, /data-testid": "atomic-timer-start"/);
@@ -39,6 +42,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-color-swatch/);
   assert.match(settings, /getSettingDefinitions\(/);
   assert.doesNotMatch(settings, /setWarning\(/);
+  assert.doesNotMatch(settings, /setDestructive\(/);
+  assert.doesNotMatch(settings, /\.update\(/);
   assert.doesNotMatch(settings, /this\.display\(/);
 
   const properties = src("src/properties/property-select.ts");

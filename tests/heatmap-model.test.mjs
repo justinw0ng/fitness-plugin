@@ -31,6 +31,34 @@ test("buildHeatmapWeeks marks today and session minutes", () => {
   assert.ok(weeks.length <= 54);
 });
 
+function createPaintHost() {
+  const created = [];
+  function makeEl(className = "") {
+    const el = {
+      className,
+      style: { backgroundColor: "" },
+      dataset: {},
+      children: [],
+      createDiv(options = {}) {
+        const child = makeEl(options.cls ?? "");
+        for (const [key, value] of Object.entries(options.attr ?? {})) {
+          if (key.startsWith("data-")) {
+            const dataKey = key
+              .slice(5)
+              .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+            child.dataset[dataKey] = String(value);
+          }
+        }
+        this.children.push(child);
+        return child;
+      },
+    };
+    created.push(el);
+    return el;
+  }
+  return { parent: makeEl(), created };
+}
+
 test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   const weeks = buildHeatmapWeeks({
     year: 2026,
@@ -46,43 +74,7 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
       ],
     ]),
   });
-  const created = [];
-  const doc = {
-    createDocumentFragment() {
-      const children = [];
-      return {
-        children,
-        appendChild(node) {
-          children.push(node);
-          return node;
-        },
-      };
-    },
-    createElement(tag) {
-      const el = {
-        tagName: tag,
-        className: "",
-        title: "",
-        style: { backgroundColor: "" },
-        dataset: {},
-        children: [],
-        appendChild(node) {
-          this.children.push(node);
-          return node;
-        },
-      };
-      created.push(el);
-      return el;
-    },
-  };
-  const parent = {
-    ownerDocument: doc,
-    appended: null,
-    appendChild(node) {
-      this.appended = node;
-      return node;
-    },
-  };
+  const { parent, created } = createPaintHost();
   appendHeatmapWeeks(
     parent,
     weeks,
@@ -98,7 +90,7 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   assert.ok(todayWeek);
   assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
   assert.equal(today.dataset.minutes, "30");
-  assert.equal(parent.appended.children.at(-1), pad);
+  assert.equal(parent.children.at(-1), pad);
 });
 
 test("heatmapWeeksHtml keeps cell hooks and escapes attributes", () => {

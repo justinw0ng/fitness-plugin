@@ -25,11 +25,14 @@ import { isSafeVaultFolder } from "./util/vault-path";
 export { mergeSettings } from "./util/merge-settings";
 
 function styleDestructiveButton(button: ButtonComponent): void {
-  if (typeof button.setDestructive === "function") {
-    button.setDestructive();
-    return;
-  }
   button.buttonEl.addClass("mod-warning");
+}
+
+function callNamedMethod(target: object, name: string): boolean {
+  const method = Reflect.get(target, name);
+  if (typeof method !== "function") return false;
+  (method as (this: object) => void).call(target);
+  return true;
 }
 
 class ConfirmDeleteActivityModal extends Modal {
@@ -208,11 +211,7 @@ export class FitnessSettingTab extends PluginSettingTab {
   }
 
   private redrawSettings(): void {
-    const tab = this as FitnessSettingTab & { update?: () => void };
-    if (typeof tab.update === "function") {
-      tab.update();
-      return;
-    }
+    if (callNamedMethod(this, "update")) return;
     this.paintSettings(this.containerEl);
   }
 
