@@ -3,43 +3,25 @@ import {
   parseTimeLog,
   type TimeLogEntry,
 } from "../core/hobby";
-import type { ActivityType, HobbyItemMeta, SessionMeta } from "../types";
+import type { ActivityType, DayActivity, HobbyItemMeta, SessionMeta } from "../types";
+import { durationMapFromHobbyLogs, durationMapFromSessions } from "../util/duration-map";
+import { markdownFilesInFolder, type VaultFolderLike } from "../util/folder-files";
 import { HobbyTimeLogCache } from "../util/hobby-time-log-cache";
-import { VaultListCache } from "../util/vault-list-cache";
 import { hobbyItemFromFileCache } from "../util/hobby-item-scan";
+import { sessionMetaFromFile } from "../util/session-meta";
+import { VaultListCache } from "../util/vault-list-cache";
 import {
   hobbyItemsScanPrefix,
   isSafeVaultFolder,
   sessionScanPrefix,
 } from "../util/vault-path";
 
-function asList(value: unknown): string[] {
-  if (value == null || value === "") return [];
-  if (Array.isArray(value)) {
-    return value.map((v) => String(v).trim()).filter(Boolean);
-  }
-  const s = String(value).trim();
-  return s ? [s] : [];
-}
-
-function resolveDate(
-  frontmatter: Record<string, unknown> | undefined,
-  basename: string,
-): string | null {
-  if (frontmatter?.date != null && frontmatter.date !== "") {
-    const raw = String(frontmatter.date);
-    // Obsidian may store dates as YYYY-MM-DD or full ISO
-    const m = raw.match(/(\d{4}-\d{2}-\d{2})/);
-    if (m) return m[1];
-  }
-  if (/^\d{4}-\d{2}-\d{2}$/.test(basename)) return basename;
-  return null;
-}
-
 export class VaultDataSource {
   private readonly hobbyTimeLogCache = new HobbyTimeLogCache();
   private readonly sessionListCache = new VaultListCache<SessionMeta[]>();
   private readonly hobbyItemListCache = new VaultListCache<HobbyItemMeta[]>();
+  private readonly durationMapCache = new VaultListCache<Map<string, DayActivity>>();
+  private needsMetadataRefresh = false;
 
   constructor(private app: App) {}
 
@@ -48,6 +30,7 @@ export class VaultDataSource {
     this.hobbyTimeLogCache.invalidate(
       path ? normalizePath(path) : undefined,
     );
+    this.durationMapCache.invalidate(path ? normalizePath(path) : undefined);
   }
 
   /** Keep cache entries aligned when a note is renamed. */
@@ -55,10 +38,22 @@ export class VaultDataSource {
     this.hobbyTimeLogCache.rename(normalizePath(oldPath), normalizePath(newPath));
   }
 
-  /** Drop cached vault list scans (sessions / hobby items). */
-  invalidateListCache(): void {
-    this.sessionListCache.invalidate();
-    this.hobbyItemListCache.invalidate();
+  /** Drop cached vault list scans (sessions / hobby items / duration maps). */
+  invalidateListCache(path?: string): void {
+    const scoped = path ? normalizePath(path) : undefined;
+    this.sessionListCache.invalidate(scoped);
+    this.hobbyItemListCache.invalidate(scoped);
+    this.durationMapCache.invalidate(scoped);
+  }
+
+  /**
+   * True when a list scan saw files before metadataCache had frontmatter.
+   * Callers should refresh once after `metadataCache.resolved`.
+   */
+  consumeNeedsMetadataRefresh(): boolean {
+    const needed = this.needsMetadataRefresh;
+    this.needsMetadataRefresh = false;
+    return needed;
   }
 
   /**
@@ -79,32 +74,24 @@ export class VaultDataSource {
   }
 
   listSessions(folder: string, year: number): SessionMeta[] {
+    const prefix = sessionScanPrefix(folder, year);
+    if (!prefix) return [];
     const cacheKey = `${folder}\0${year}`;
     const cached = this.sessionListCache.get(cacheKey);
     if (cached) return cached;
 
-    const prefix = sessionScanPrefix(folder, year);
-    if (!prefix) return [];
-    // Re-normalize with Obsidian so vault path style matches file.path
-    const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
     const out: SessionMeta[] = [];
-    // Folder-scoped: getMarkdownFiles is the vault listing API; skip other paths.
-    for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(scanPrefix)) continue;
-      if (!file.path.endsWith(".md")) continue;
-      const cache = this.app.metadataCache.getFileCache(file);
-      const fm = cache?.frontmatter ?? {};
-      out.push({
-        path: file.path,
-        basename: file.basename,
-        date: resolveDate(fm, file.basename),
-        duration_min: Number(fm.duration_min) || 0,
-        weight_unit: fm.weight_unit === "lb" ? "lb" : "kg",
-        focus: asList(fm.focus),
-        felt: String(fm.felt || ""),
-      });
+    for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
+      const cache = this.fileCache(file);
+      out.push(
+        sessionMetaFromFile({
+          path: file.path,
+          basename: file.basename,
+          frontmatter: cache == null ? undefined : (cache.frontmatter ?? {}),
+        }),
+      );
     }
-    this.sessionListCache.set(cacheKey, out);
+    this.sessionListCache.set(cacheKey, out, prefix);
     return out;
   }
 
@@ -116,19 +103,15 @@ export class VaultDataSource {
     ) {
       return [];
     }
+    const prefix = hobbyItemsScanPrefix(activity.folder);
+    if (!prefix) return [];
     const cacheKey = `${activity.id}\0${activity.folder}`;
     const cached = this.hobbyItemListCache.get(cacheKey);
     if (cached) return cached;
 
-    const prefix = hobbyItemsScanPrefix(activity.folder);
-    if (!prefix) return [];
-    const scanPrefix = normalizePath(prefix.replace(/\/$/, "")) + "/";
     const out: HobbyItemMeta[] = [];
-    // Folder-scoped: getMarkdownFiles is the vault listing API; skip other paths.
-    for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(scanPrefix)) continue;
-      if (!file.path.endsWith(".md")) continue;
-      const cache = this.app.metadataCache.getFileCache(file);
+    for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
+      const cache = this.fileCache(file);
       const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
@@ -137,8 +120,40 @@ export class VaultDataSource {
       });
       if (item) out.push(item);
     }
-    this.hobbyItemListCache.set(cacheKey, out);
+    this.hobbyItemListCache.set(cacheKey, out, prefix);
     return out;
+  }
+
+  /**
+   * Minutes-by-date for one activity/year. Shared by every heatmap that
+   * asks for the same pair until a touching vault path invalidates it.
+   */
+  async getActivityDurationMap(
+    activity: ActivityType,
+    year: number,
+  ): Promise<Map<string, DayActivity>> {
+    const cacheKey = `${activity.id}\0${activity.folder}\0${year}\0${activity.domain}`;
+    const cached = this.durationMapCache.get(cacheKey);
+    if (cached) return cached;
+
+    if (activity.domain === "hobby") {
+      const items = this.listHobbyItems(activity);
+      const perItem = await Promise.all(
+        items.map(async (item) => ({
+          path: item.path,
+          entries: await this.getHobbyTimeLogEntries(item.path),
+        })),
+      );
+      const map = durationMapFromHobbyLogs(perItem, year);
+      const scope = hobbyItemsScanPrefix(activity.folder) ?? "";
+      this.durationMapCache.set(cacheKey, map, scope);
+      return map;
+    }
+
+    const map = durationMapFromSessions(this.listSessions(activity.folder, year));
+    const scope = sessionScanPrefix(activity.folder, year) ?? "";
+    this.durationMapCache.set(cacheKey, map, scope);
+    return map;
   }
 
   async readBody(path: string): Promise<string> {
@@ -242,4 +257,23 @@ export class VaultDataSource {
     if (!file) return null;
     return this.app.vault.getResourcePath(file);
   }
+
+  private markdownNotesInFolder(folderPath: string): TFile[] {
+    const folder = this.app.vault.getAbstractFileByPath(normalizePath(folderPath));
+    return markdownFilesInFolder(asFolderLike(folder)) as TFile[];
+  }
+
+  private fileCache(file: TFile): { frontmatter?: Record<string, unknown> } | null {
+    const cache = this.app.metadataCache.getFileCache(file);
+    if (cache == null) this.needsMetadataRefresh = true;
+    return cache;
+  }
+}
+
+function asFolderLike(node: unknown): VaultFolderLike | null {
+  if (!node || typeof node !== "object") return null;
+  if (!("children" in node) || !Array.isArray((node as VaultFolderLike).children)) {
+    return null;
+  }
+  return node as VaultFolderLike;
 }

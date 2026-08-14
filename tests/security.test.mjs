@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   hobbyItemsScanPrefix,
   isSafeVaultFolder,
+  pathTouchesScope,
   readingItemsFolder,
   sessionScanPrefix,
 } from "../src/util/vault-path.ts";
@@ -42,6 +43,34 @@ test("sessionScanPrefix rejects unsafe folders and adds year boundary", () => {
   assert.equal(sessionScanPrefix("..", 2026), null);
   assert.equal(sessionScanPrefix("Gym", 2026), "Gym/2026/");
   assert.equal(sessionScanPrefix("Fitness/Gym", 2026), "Fitness/Gym/2026/");
+});
+
+test("pathTouchesScope matches descendants, ancestors, and exact paths", () => {
+  assert.equal(
+    pathTouchesScope(
+      "atomics/exercise/Gym/2026/2026-01-01.md",
+      "atomics/exercise/Gym/2026/",
+    ),
+    true,
+  );
+  assert.equal(
+    pathTouchesScope("atomics/exercise/Gym", "atomics/exercise/Gym/2026/"),
+    true,
+  );
+  assert.equal(
+    pathTouchesScope(
+      "atomics/exercise/Gym/Cues.md",
+      "atomics/exercise/Gym/2026/",
+    ),
+    false,
+  );
+  assert.equal(
+    pathTouchesScope(
+      "atomics/exercise/Golf/2026/2026-01-01.md",
+      "atomics/exercise/Gym/2026/",
+    ),
+    false,
+  );
 });
 
 test("readingItemsFolder and hobbyItemsScanPrefix reject unsafe folders", () => {
