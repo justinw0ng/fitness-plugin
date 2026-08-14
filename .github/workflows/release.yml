@@ -17,7 +17,7 @@ on:
         default: main
       release_notes:
         description: GitHub release notes (optional; auto-generated notes are appended)
-        type: textarea
+        type: string
         required: false
 
 permissions:

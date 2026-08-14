@@ -177,7 +177,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-bookshelf"][data-scale="1.5"]');
       const scaledWidth = await driver.executeScript(`
         const frame = document.querySelector(
-          '[data-testid="atomic-bookshelf"] .atomic-book-shelf-frame',
+          '[data-testid="atomic-bookshelf"][data-scale="1.5"] .atomic-book-shelf-frame',
         );
         return frame && getComputedStyle(frame).getPropertyValue('--atomic-book-width').trim();
       `);

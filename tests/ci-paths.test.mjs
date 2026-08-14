@@ -81,7 +81,8 @@ test("release.yml accepts bump, branch, and release notes inputs", () => {
   assert.match(inputs, /branch:/);
   assert.match(inputs, /default: main/);
   assert.match(inputs, /release_notes:/);
-  assert.match(inputs, /type: textarea/);
+  assert.match(yamlKeyBlock(release, "      ", "release_notes"), /type: string/);
+  assert.doesNotMatch(yamlKeyBlock(release, "      ", "release_notes"), /type: textarea/);
 });
 
 test("release.yml validates the branch as a git branch name", () => {
