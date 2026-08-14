@@ -1,13 +1,55 @@
 /** Timezone-aware calendar helpers without luxon. */
 import type { Language } from "./i18n/types";
 
-export function ymdInZone(date: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat("en-CA", {
+const utcMonthShortZh = new Intl.DateTimeFormat("zh-HK", {
+  month: "short",
+  timeZone: "UTC",
+});
+const utcMonthShortEn = new Intl.DateTimeFormat("en", {
+  month: "short",
+  timeZone: "UTC",
+});
+const utcFullDateZh = new Intl.DateTimeFormat("zh-HK", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const utcFullDateEn = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const utcMonthLongEn = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const utcMonthLongZh = new Intl.DateTimeFormat("zh-HK", {
+  year: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+const ymdFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function utcNoon(y: number, m: number, d: number): Date {
+  return new Date(Date.UTC(y, m - 1, d, 12));
+}
+
+function ymdFormatter(timeZone: string): Intl.DateTimeFormat {
+  const cached = ymdFormatters.get(timeZone);
+  if (cached) return cached;
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(date);
+  });
+  ymdFormatters.set(timeZone, formatter);
+  return formatter;
+}
+
+export function ymdInZone(date: Date, timeZone: string): string {
+  return ymdFormatter(timeZone).format(date);
 }
 
 export function nowYear(timeZone: string): number {
@@ -48,19 +90,11 @@ export function formatYmd(y: number, m: number, d: number): string {
 }
 
 export function monthShortZh(y: number, m: number, d: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    month: "short",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcMonthShortZh.format(utcNoon(y, m, d));
 }
 
 export function monthShortEn(y: number, m: number, d: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcMonthShortEn.format(utcNoon(y, m, d));
 }
 
 export function monthShortForLanguage(
@@ -73,21 +107,11 @@ export function monthShortForLanguage(
 }
 
 export function fullDateZh(y: number, m: number, d: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcFullDateZh.format(utcNoon(y, m, d));
 }
 
 export function fullDateEn(y: number, m: number, d: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcFullDateEn.format(utcNoon(y, m, d));
 }
 
 export function fullDateForLanguage(
@@ -100,21 +124,11 @@ export function fullDateForLanguage(
 }
 
 export function monthLongEn(y: number, m: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, 1, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcMonthLongEn.format(utcNoon(y, m, 1));
 }
 
 export function monthLongZh(y: number, m: number): string {
-  const dt = new Date(Date.UTC(y, m - 1, 1, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    year: "numeric",
-    month: "long",
-    timeZone: "UTC",
-  }).format(dt);
+  return utcMonthLongZh.format(utcNoon(y, m, 1));
 }
 
 export function formatMonthLabel(
