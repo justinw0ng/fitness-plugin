@@ -2,7 +2,14 @@
 
 Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
-**Install:** Settings → Community plugins → Browse → search **Atomic Tracker**. Until the directory listing is live, download `atomic-tracker-*.zip` from the latest [GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases) and unzip into `<vault>/.obsidian/plugins/` (so you get `atomic-tracker/main.js`, `manifest.json`, and `styles.css`).
+**Install from source:**
+
+```bash
+npm install
+npm run build
+```
+
+Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/atomic-tracker/`. Optional: `OBSIDIAN_PLUGIN_OUT=/path/to/vault/.obsidian/plugins/atomic-tracker npm run build`.
 
 **Guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 
