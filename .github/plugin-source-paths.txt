@@ -1,6 +1,4 @@
-# Paths that count as Obsidian plugin source for release and version bump.
-# GitHub workflow `on.paths` cannot read this file; keep
-# `.github/workflows/release.yml` in sync (enforced by tests/ci-paths.test.mjs).
+# Paths that count as Obsidian plugin source for CI change detection.
 src/**
 styles.css
 manifest.json
