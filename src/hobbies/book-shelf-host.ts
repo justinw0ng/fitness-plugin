@@ -2,15 +2,14 @@ import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { showNotice } from "../util/notice.ts";
 
 export const BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
 
-export function bookShelfHostMarkdown(_language: Language = "en"): string {
-  return `\`\`\`atomic-bookshelf
-activity: reading
-\`\`\`
-`;
+export function bookShelfHostMarkdown(language: Language = "en"): string {
+  return defaultAtomicBlockFence("atomic-bookshelf", language);
 }
 
 export async function createBookShelfHostFile(

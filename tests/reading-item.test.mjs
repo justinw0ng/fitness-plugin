@@ -59,7 +59,10 @@ test("readingItemMarkdown includes Bases fields, timer fields, and atomic-timer 
   assert.match(markdown, /related_canvas:\n/);
   assert.match(markdown, /## Remarks\n\n/);
   assert.match(markdown, /## Time log\n\n/);
-  assert.match(markdown, /```atomic-timer\n```\n/);
+  assert.match(
+    markdown,
+    /```atomic-timer\n# No options\. Start \/ Stop \/ Resume \/ Discard for this item note\.\n```\n/,
+  );
 });
 
 test("readingItemMarkdown parameterizes activity id for general hobbies", () => {

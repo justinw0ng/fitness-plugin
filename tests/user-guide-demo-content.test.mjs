@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bookShelfHostMarkdown } from "../src/hobbies/book-shelf-host.ts";
 import {
   BOOK_SHELF_NOTE,
   DEMO_AUTHORS,
@@ -70,7 +71,11 @@ cover: ""
       "utf8",
     );
     assert.equal(shelf, BOOK_SHELF_NOTE);
-    assert.equal(shelf, "```atomic-bookshelf\nactivity: reading\n```\n");
+    assert.equal(shelf, bookShelfHostMarkdown("en"));
+    assert.match(shelf, /```atomic-bookshelf\n# Uncomment to customize/);
+    assert.match(shelf, /^activity: reading  # /m);
+    assert.match(shelf, /# status: all  # /);
+    assert.match(shelf, /# scale: 1  # /);
     assert.doesNotMatch(shelf, /^ /m);
   } finally {
     rmSync(vault, { recursive: true, force: true });

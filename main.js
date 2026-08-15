@@ -353,13 +353,52 @@ function resolvePropertyOptions(property, context) {
 }
 
 // src/dates.ts
-function ymdInZone(date, timeZone) {
-  return new Intl.DateTimeFormat("en-CA", {
+var utcMonthShortZh = new Intl.DateTimeFormat("zh-HK", {
+  month: "short",
+  timeZone: "UTC"
+});
+var utcMonthShortEn = new Intl.DateTimeFormat("en", {
+  month: "short",
+  timeZone: "UTC"
+});
+var utcFullDateZh = new Intl.DateTimeFormat("zh-HK", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC"
+});
+var utcFullDateEn = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC"
+});
+var utcMonthLongEn = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC"
+});
+var utcMonthLongZh = new Intl.DateTimeFormat("zh-HK", {
+  year: "numeric",
+  month: "long",
+  timeZone: "UTC"
+});
+var ymdFormatters = /* @__PURE__ */ new Map();
+function utcNoon(y, m, d) {
+  return new Date(Date.UTC(y, m - 1, d, 12));
+}
+function ymdFormatter(timeZone) {
+  const cached = ymdFormatters.get(timeZone);
+  if (cached) return cached;
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit"
-  }).format(date);
+  });
+  ymdFormatters.set(timeZone, formatter);
+  return formatter;
+}
+function ymdInZone(date, timeZone) {
+  return ymdFormatter(timeZone).format(date);
 }
 function nowYear(timeZone) {
   return Number(ymdInZone(/* @__PURE__ */ new Date(), timeZone).slice(0, 4));
@@ -387,56 +426,28 @@ function formatYmd(y, m, d) {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 function monthShortZh(y, m, d) {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    month: "short",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcMonthShortZh.format(utcNoon(y, m, d));
 }
 function monthShortEn(y, m, d) {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcMonthShortEn.format(utcNoon(y, m, d));
 }
 function monthShortForLanguage(y, m, d, language) {
   return language === "en" ? monthShortEn(y, m, d) : monthShortZh(y, m, d);
 }
 function fullDateZh(y, m, d) {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcFullDateZh.format(utcNoon(y, m, d));
 }
 function fullDateEn(y, m, d) {
-  const dt = new Date(Date.UTC(y, m - 1, d, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcFullDateEn.format(utcNoon(y, m, d));
 }
 function fullDateForLanguage(y, m, d, language) {
   return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
 }
 function monthLongEn(y, m) {
-  const dt = new Date(Date.UTC(y, m - 1, 1, 12));
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcMonthLongEn.format(utcNoon(y, m, 1));
 }
 function monthLongZh(y, m) {
-  const dt = new Date(Date.UTC(y, m - 1, 1, 12));
-  return new Intl.DateTimeFormat("zh-HK", {
-    year: "numeric",
-    month: "long",
-    timeZone: "UTC"
-  }).format(dt);
+  return utcMonthLongZh.format(utcNoon(y, m, 1));
 }
 function formatMonthLabel(y, m, language) {
   if (language === "en") return monthLongEn(y, m);
@@ -565,6 +576,22 @@ var en = {
   "template.base.totalMinutes": "Total minutes",
   "template.base.cards": "Cards",
   "template.base.table": "Table",
+  "block.opt.header": "Uncomment to customize. Hash comments are ignored.",
+  "block.opt.yearHeatmap": "calendar year; omit \u2192 YYYY-MM-DD in note path, else timezone now",
+  "block.opt.activityHeatmap": "all | id | id1, id2 (enabled habits); default all",
+  "block.opt.rows": "preferred row count (multi-activity); default 1",
+  "block.opt.columns": "max columns; 1 = vertical stack; default 1",
+  "block.opt.minColumnWidth": "min px per column before wrapping; default 300",
+  "block.opt.defaultSpan": "CSS fr weight per grid track; default 1.2",
+  "block.opt.dateToday": "YYYY-MM-DD; omit \u2192 date in note path, else timezone today",
+  "block.opt.yearDashboard": "calendar year; omit \u2192 note frontmatter year, else timezone now",
+  "block.opt.yearCues": "calendar year; omit \u2192 note frontmatter year, else timezone now",
+  "block.opt.activityCues": "required: golf | gym | <exercise id>",
+  "block.opt.activityBookshelf": "hobby id (enabled, item + timer); default reading",
+  "block.opt.statusBookshelf": "all | to-read | reading | to-read-again | finished; default all",
+  "block.opt.scaleBookshelf": "size multiplier 0.25\u20134; default 1; alias: ratio",
+  "block.opt.noneActions": "No options. One button per enabled habit.",
+  "block.opt.noneTimer": "No options. Start / Stop / Resume / Discard for this item note.",
   "reading.status.selectLabel": "Reading status",
   "reading.status.toRead": "To read",
   "reading.status.reading": "Reading",
@@ -759,6 +786,22 @@ var zhHantEn = {
   "template.base.totalMinutes": "Total minutes / \u7E3D\u5206\u9418",
   "template.base.cards": "Cards / \u5361\u7247",
   "template.base.table": "Table / \u8868\u683C",
+  "block.opt.header": "Uncomment to customize. Hash comments are ignored. / \u53D6\u6D88\u8A3B\u89E3\u5373\u53EF\u81EA\u8A02\u3002# \u8A3B\u89E3\u6703\u88AB\u5FFD\u7565\u3002",
+  "block.opt.yearHeatmap": "calendar year; omit \u2192 YYYY-MM-DD in note path, else timezone now / \u897F\u5143\u5E74\uFF1B\u7701\u7565\u5247\u7528\u8DEF\u5F91\u65E5\u671F\u6216\u6642\u5340\u4ECA\u5E74",
+  "block.opt.activityHeatmap": "all | id | id1, id2 (enabled habits); default all / \u5168\u90E8\u6216\u5DF2\u555F\u7528\u7FD2\u6163 id\uFF1B\u9810\u8A2D all",
+  "block.opt.rows": "preferred row count (multi-activity); default 1 / \u5217\u6578\uFF08\u591A\u6D3B\u52D5\uFF09\uFF1B\u9810\u8A2D 1",
+  "block.opt.columns": "max columns; 1 = vertical stack; default 1 / \u6B04\u6578\uFF1B1 \u70BA\u76F4\u5411\u5806\u758A\uFF1B\u9810\u8A2D 1",
+  "block.opt.minColumnWidth": "min px per column before wrapping; default 300 / \u63DB\u884C\u524D\u6BCF\u6B04\u6700\u5C0F\u5BEC\u5EA6\uFF1B\u9810\u8A2D 300",
+  "block.opt.defaultSpan": "CSS fr weight per grid track; default 1.2 / \u6BCF\u8ECC CSS fr \u6B0A\u91CD\uFF1B\u9810\u8A2D 1.2",
+  "block.opt.dateToday": "YYYY-MM-DD; omit \u2192 date in note path, else timezone today / \u65E5\u671F\uFF1B\u7701\u7565\u5247\u7528\u8DEF\u5F91\u6216\u6642\u5340\u4ECA\u5929",
+  "block.opt.yearDashboard": "calendar year; omit \u2192 note frontmatter year, else timezone now / \u897F\u5143\u5E74\uFF1B\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u6216\u6642\u5340\u4ECA\u5E74",
+  "block.opt.yearCues": "calendar year; omit \u2192 note frontmatter year, else timezone now / \u897F\u5143\u5E74\uFF1B\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u6216\u6642\u5340\u4ECA\u5E74",
+  "block.opt.activityCues": "required: golf | gym | <exercise id> / \u5FC5\u586B\uFF1Agolf | gym | \u904B\u52D5 id",
+  "block.opt.activityBookshelf": "hobby id (enabled, item + timer); default reading / \u8208\u8DA3 id\uFF08\u9700\u5DF2\u555F\u7528\u4E14\u70BA\u9805\u76EE + timer\uFF09\uFF1B\u9810\u8A2D reading",
+  "block.opt.statusBookshelf": "all | to-read | reading | to-read-again | finished; default all / \u5168\u90E8\u6216\u72C0\u614B id\uFF1B\u9810\u8A2D all",
+  "block.opt.scaleBookshelf": "size multiplier 0.25\u20134; default 1; alias: ratio / \u5C3A\u5BF8\u500D\u7387 0.25\u20134\uFF1B\u9810\u8A2D 1\uFF1B\u5225\u540D ratio",
+  "block.opt.noneActions": "No options. One button per enabled habit. / \u7121\u9078\u9805\u3002\u6BCF\u500B\u5DF2\u555F\u7528\u7FD2\u6163\u4E00\u500B\u6309\u9215\u3002",
+  "block.opt.noneTimer": "No options. Start / Stop / Resume / Discard for this item note. / \u7121\u9078\u9805\u3002\u6B64\u9805\u76EE\u7B46\u8A18\u7684\u958B\u59CB / \u505C\u6B62 / \u7E7C\u7E8C / \u653E\u68C4\u3002",
   "reading.status.selectLabel": "Reading status / \u95B1\u8B80\u72C0\u614B",
   "reading.status.toRead": "To read / \u5F85\u8B80",
   "reading.status.reading": "Reading / \u95B1\u8B80\u4E2D",
@@ -1118,6 +1161,177 @@ function showNotice(message) {
   new obsidian.Notice(message);
 }
 
+// src/util/codeblock-languages.ts
+var ATOMIC_CODEBLOCK_LANGUAGES = [
+  "atomic-heatmap",
+  "atomic-today",
+  "atomic-dashboard",
+  "atomic-actions",
+  "atomic-golf-cues",
+  "atomic-gym-cues",
+  "atomic-cues",
+  "atomic-timer",
+  "atomic-bookshelf"
+];
+function codeblockLanguages() {
+  return [...ATOMIC_CODEBLOCK_LANGUAGES];
+}
+function resolveCueActivity(kind, options) {
+  if (kind === "atomic-golf-cues") return "golf";
+  if (kind === "atomic-gym-cues") return "gym";
+  if (kind !== "atomic-cues") return null;
+  const activity = options.activity?.trim();
+  return activity || null;
+}
+
+// src/util/codeblock-defaults.ts
+var BLOCK_SPECS = {
+  "atomic-heatmap": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "year",
+        example: "2026",
+        commentKey: "block.opt.yearHeatmap"
+      },
+      {
+        key: "activity",
+        example: "all",
+        commentKey: "block.opt.activityHeatmap"
+      },
+      {
+        key: "rows",
+        example: "1",
+        commentKey: "block.opt.rows"
+      },
+      {
+        key: "columns",
+        example: "1",
+        commentKey: "block.opt.columns"
+      },
+      {
+        key: "min-column-width",
+        example: "300",
+        commentKey: "block.opt.minColumnWidth"
+      },
+      {
+        key: "default-span",
+        example: "1.2",
+        commentKey: "block.opt.defaultSpan"
+      }
+    ]
+  },
+  "atomic-today": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "date",
+        example: "2026-08-08",
+        commentKey: "block.opt.dateToday"
+      }
+    ]
+  },
+  "atomic-dashboard": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "year",
+        example: "2026",
+        commentKey: "block.opt.yearDashboard"
+      }
+    ]
+  },
+  "atomic-actions": {
+    emptyKey: "block.opt.noneActions",
+    options: []
+  },
+  "atomic-golf-cues": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "year",
+        example: "2026",
+        commentKey: "block.opt.yearCues"
+      }
+    ]
+  },
+  "atomic-gym-cues": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "year",
+        example: "2026",
+        commentKey: "block.opt.yearCues"
+      }
+    ]
+  },
+  "atomic-cues": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "activity",
+        example: "golf",
+        commentKey: "block.opt.activityCues",
+        defaultActive: true
+      },
+      {
+        key: "year",
+        example: "2026",
+        commentKey: "block.opt.yearCues"
+      }
+    ]
+  },
+  "atomic-timer": {
+    emptyKey: "block.opt.noneTimer",
+    options: []
+  },
+  "atomic-bookshelf": {
+    headerKey: "block.opt.header",
+    options: [
+      {
+        key: "activity",
+        example: "reading",
+        commentKey: "block.opt.activityBookshelf",
+        defaultActive: true
+      },
+      {
+        key: "status",
+        example: "all",
+        commentKey: "block.opt.statusBookshelf"
+      },
+      {
+        key: "scale",
+        example: "1",
+        commentKey: "block.opt.scaleBookshelf"
+      }
+    ]
+  }
+};
+function optionLine(spec, language, values) {
+  const comment = t(spec.commentKey, language);
+  const hasOverride = Object.prototype.hasOwnProperty.call(values, spec.key);
+  const active = hasOverride ? values[spec.key] : spec.defaultActive ? spec.example : void 0;
+  const pair = `${spec.key}: ${active ?? spec.example}`;
+  const line = `${pair}  # ${comment}`;
+  return active !== void 0 ? line : `# ${line}`;
+}
+function defaultAtomicBlockBody(kind, language = "en", values = {}) {
+  const spec = BLOCK_SPECS[kind];
+  const lines = [];
+  if (spec.headerKey) lines.push(`# ${t(spec.headerKey, language)}`);
+  if (spec.emptyKey) lines.push(`# ${t(spec.emptyKey, language)}`);
+  for (const option of spec.options) {
+    lines.push(optionLine(option, language, values));
+  }
+  return `${lines.join("\n")}
+`;
+}
+function defaultAtomicBlockFence(kind, language = "en", values = {}) {
+  return `\`\`\`${kind}
+${defaultAtomicBlockBody(kind, language, values)}\`\`\`
+`;
+}
+
 // src/util/vault-path.ts
 function normalizeSlashes(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
@@ -1150,6 +1364,16 @@ function readingItemsFolder(folder) {
 function hobbyItemsScanPrefix(folder) {
   const itemsFolder = readingItemsFolder(folder);
   return itemsFolder ? `${itemsFolder}/` : null;
+}
+function normalizeVaultPath(path) {
+  return normalizeSlashes(path.trim()).replace(/\/$/, "");
+}
+function pathTouchesScope(path, scope) {
+  if (!path || !scope) return false;
+  const p = normalizeVaultPath(path);
+  const s = normalizeVaultPath(scope);
+  if (!p || !s) return false;
+  return p === s || p.startsWith(`${s}/`) || s.startsWith(`${p}/`);
 }
 
 // src/commands/hobby-item.ts
@@ -1198,9 +1422,7 @@ related_canvas:
 
 ## ${t("template.readingTimeLog", language)}
 
-\`\`\`atomic-timer
-\`\`\`
-`;
+${defaultAtomicBlockFence("atomic-timer", language)}`;
 }
 
 // src/commands/create-reading-item.ts
@@ -1293,12 +1515,21 @@ function parseBlockOptions(source) {
 }
 
 // src/util/block-render.ts
+var ATOMIC_BLOCK_HOST_CLASS = "atomic-block-host";
 var ATOMIC_BLOCK_PENDING_CLASS = "fitness-plugin atomic-block-pending";
 var ATOMIC_BLOCK_PENDING_BAR_CLASS = "atomic-block-pending-bar";
 var generations = /* @__PURE__ */ new WeakMap();
 var chains = /* @__PURE__ */ new WeakMap();
+function markAtomicBlockHost(el) {
+  if (typeof el.addClass === "function") {
+    el.addClass(ATOMIC_BLOCK_HOST_CLASS);
+    return;
+  }
+  el.classList?.add(ATOMIC_BLOCK_HOST_CLASS);
+}
 function mountAtomicBlockShell(el) {
   el.empty();
+  markAtomicBlockHost(el);
   const root = el.createDiv({ cls: ATOMIC_BLOCK_PENDING_CLASS });
   root.createDiv({ cls: ATOMIC_BLOCK_PENDING_BAR_CLASS });
   return root;
@@ -2025,11 +2256,8 @@ function unescapeHtmlAttribute(value) {
 
 // src/hobbies/book-shelf-host.ts
 var BOOK_SHELF_HOST_REL = "atomics/hobbies/Reading/Book Shelf.md";
-function bookShelfHostMarkdown(_language = "en") {
-  return `\`\`\`atomic-bookshelf
-activity: reading
-\`\`\`
-`;
+function bookShelfHostMarkdown(language = "en") {
+  return defaultAtomicBlockFence("atomic-bookshelf", language);
 }
 async function createBookShelfHostFile(data, language = "en") {
   if (data.exists(BOOK_SHELF_HOST_REL)) {
@@ -2505,6 +2733,23 @@ var MIN_BOOK_WIDTH_PX = 56;
 var BOOK_GAP_PX = 6;
 var ROW_PADDING_PX = 20;
 var MIN_BOOKS_PER_ROW = 3;
+var DEFAULT_BOOK_SHELF_SCALE = 1;
+var MIN_BOOK_SHELF_SCALE = 0.25;
+var MAX_BOOK_SHELF_SCALE = 4;
+function resolveBookShelfScale(opts) {
+  const raw = typeof opts === "string" || opts == null ? opts : opts.scale ?? opts.ratio;
+  if (!raw) return DEFAULT_BOOK_SHELF_SCALE;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_BOOK_SHELF_SCALE;
+  return Math.min(MAX_BOOK_SHELF_SCALE, Math.max(MIN_BOOK_SHELF_SCALE, n));
+}
+function scaledBookSize(scale) {
+  const ratio = resolveBookShelfScale(String(scale));
+  return {
+    maxWidth: Math.max(1, Math.round(DEFAULT_BOOK_WIDTH_PX * ratio)),
+    minWidth: Math.max(1, Math.round(MIN_BOOK_WIDTH_PX * ratio))
+  };
+}
 function bookHeightForWidth(width) {
   if (!Number.isFinite(width) || width <= 0) return DEFAULT_BOOK_HEIGHT_PX;
   return Math.round(width * DEFAULT_BOOK_HEIGHT_PX / DEFAULT_BOOK_WIDTH_PX);
@@ -2869,9 +3114,14 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   hideAllPortedDetails();
   el.empty();
   unclipBookShelfAncestors(el);
+  const scale = resolveBookShelfScale(options);
+  const { maxWidth, minWidth } = scaledBookSize(scale);
   const root = el.createDiv({
     cls: "fitness-plugin atomic-book-shelf",
-    attr: { "data-testid": "atomic-bookshelf" }
+    attr: {
+      "data-testid": "atomic-bookshelf",
+      "data-scale": String(scale)
+    }
   });
   const activityId = options.activity?.trim() || "reading";
   const activity = hobbyActivities(activityTypes).find(
@@ -2906,7 +3156,13 @@ function renderBookShelf(el, data, activityTypes, options, language) {
   const layout = () => {
     const fallback = typeof window !== "undefined" && Number.isFinite(window.innerWidth) ? window.innerWidth : DEFAULT_BOOK_WIDTH_PX * 3 + BOOK_GAP_PX * 2 + ROW_PADDING_PX;
     const width = measureElementWidth(frame, fallback);
-    const bookWidth = bookWidthForContainer(width);
+    const bookWidth = bookWidthForContainer(
+      width,
+      BOOK_GAP_PX,
+      ROW_PADDING_PX,
+      minWidth,
+      maxWidth
+    );
     const perRow = booksPerRow(width, bookWidth);
     const key = `${bookWidth}:${perRow}`;
     if (key === lastKey && frame.childElementCount > 0) return;
@@ -3021,6 +3277,96 @@ function effectiveHeatmapColumns(params) {
   return Math.min(columns, activityCount, widthBased);
 }
 
+// src/util/heatmap-model.ts
+function formatHeatmapTooltip(template, date, minutes) {
+  return template.split("{date}").join(date).split("{minutes}").join(String(minutes));
+}
+function heatmapLayoutKey(layout) {
+  return `${layout.rows}:${layout.columns}:${layout.minColumnWidth}:${layout.defaultSpan}`;
+}
+function heatmapActivityKey(activities) {
+  return activities.map((activity) => `${activity.id}\0${activity.label}\0${activity.colors.join(",")}`).join("|");
+}
+function sameHeatmapPaintState(previous, next) {
+  if (!previous) return false;
+  return previous.year === next.year && previous.timezone === next.timezone && previous.language === next.language && previous.layoutKey === next.layoutKey && previous.activityKey === next.activityKey && previous.invalidIds.length === next.invalidIds.length && previous.invalidIds.every((id, i) => id === next.invalidIds[i]) && previous.maps.length === next.maps.length && previous.maps.every((map, i) => map === next.maps[i]);
+}
+function heatmapDomIsPainted(el) {
+  return !!el.querySelector(
+    '[data-testid="atomic-heatmap"], [data-testid="atomic-heatmap-empty"], [data-testid="atomic-heatmap-invalid"]'
+  );
+}
+function buildHeatmapWeeks(params) {
+  const { year, todayStr, language, activityMap } = params;
+  const start = { y: year, m: 1, d: 1 };
+  const end = { y: year, m: 12, d: 31 };
+  const daysToSubtract = weekdaySun0(start.y, start.m, start.d);
+  let cursor = addDays(start.y, start.m, start.d, -daysToSubtract);
+  const weeks = [];
+  let weekCount = 0;
+  const endYmd = formatYmd(end.y, end.m, end.d);
+  while (weekCount < 60) {
+    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
+      const entry = activityMap.get(dateStr);
+      const minutes = entry ? entry.minutes : 0;
+      week.push({
+        date: dateStr,
+        minutes,
+        level: durationToLevel(minutes),
+        path: entry?.path ?? null,
+        fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
+        isCurrentYear: cursor.y === year,
+        isToday: dateStr === todayStr,
+        y: cursor.y,
+        m: cursor.m,
+        d: cursor.d
+      });
+      cursor = addDays(cursor.y, cursor.m, cursor.d, 1);
+    }
+    weeks.push(week);
+    weekCount++;
+  }
+  return weeks;
+}
+function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
+  for (const week of weeks) {
+    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
+    const weekEl = parent.createDiv({
+      cls: isTodayWeek ? "fitness-week is-today-week" : "fitness-week"
+    });
+    for (const day of week) {
+      const attr = {
+        "data-testid": day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell",
+        "data-minutes": String(day.minutes),
+        "data-date": day.fullDate,
+        title: formatHeatmapTooltip(
+          day.path ? tooltipOpen : tooltip,
+          day.fullDate,
+          day.minutes
+        )
+      };
+      if (day.path) attr["data-path"] = day.path;
+      const cell = weekEl.createDiv({ cls: cellClass(day), attr });
+      cell.style.backgroundColor = day.isCurrentYear ? colorForLevel(colors, day.level) : EMPTY_CELL;
+    }
+  }
+  parent.createDiv({ cls: "fitness-weeks-end-pad" });
+}
+function colorForLevel(colors, level) {
+  if (!level) return EMPTY_CELL;
+  return colors[level - 1] || colors[colors.length - 1] || EMPTY_CELL;
+}
+function cellClass(day) {
+  let cls = "fitness-cell";
+  if (day.isToday) cls += " is-today";
+  if (!day.isCurrentYear) cls += " is-faded";
+  if (day.path) cls += " is-link";
+  return cls;
+}
+
 // src/util/heatmap-scroll.ts
 function scrollLeftToAlignRight(scrollWidth, clientWidth, targetRightPx) {
   if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth) || !Number.isFinite(targetRightPx) || scrollWidth < 0 || clientWidth < 0) {
@@ -3036,6 +3382,7 @@ function scrollLeftToAlignRight(scrollWidth, clientWidth, targetRightPx) {
 
 // src/views/heatmap.ts
 var heatmapObserverRegistry = /* @__PURE__ */ new WeakMap();
+var heatmapPaintState = /* @__PURE__ */ new WeakMap();
 function cleanupHeatmapObservers(container) {
   const registry = heatmapObserverRegistry.get(container);
   if (!registry) return;
@@ -3047,10 +3394,6 @@ var DAY_NAMES = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   "zh-Hant-en": ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]
 };
-function colorFor(activity, level) {
-  if (!level) return EMPTY_CELL;
-  return activity.colors[level - 1] || activity.colors[activity.colors.length - 1];
-}
 function wireHeatmapScroll(scrollEl, registry) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
@@ -3093,39 +3436,18 @@ function wireHeatmapScroll(scrollEl, registry) {
     });
   });
 }
-async function durationMap(data, activity, year) {
-  const map = /* @__PURE__ */ new Map();
-  if (activity.domain === "hobby") {
-    const items = data.listHobbyItems(activity);
-    const perItem = await Promise.all(
-      items.map(async (item) => ({
-        path: item.path,
-        totals: minutesByDateForYear(
-          await data.getHobbyTimeLogEntries(item.path),
-          year
-        )
-      }))
-    );
-    for (const { path, totals } of perItem) {
-      for (const [date, minutes] of totals) {
-        const entry = map.get(date) || { minutes: 0, path };
-        entry.minutes += minutes;
-        if (!entry.path) entry.path = path;
-        map.set(date, entry);
-      }
-    }
-    return map;
-  }
-  for (const s of data.listSessions(activity.folder, year)) {
-    if (!s.date) continue;
-    const entry = map.get(s.date) || { minutes: 0, path: null };
-    entry.minutes += s.duration_min;
-    if (!entry.path) entry.path = s.path;
-    map.set(s.date, entry);
-  }
-  return map;
+function wireHeatmapCellClicks(weeksEl, data) {
+  weeksEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const cell = target.closest(".fitness-cell.is-link");
+    const path = cell?.getAttribute("data-path");
+    if (!path) return;
+    event.preventDefault();
+    void data.openPath(path);
+  });
 }
-async function renderOneHeatmap(root, data, activity, year, timezone, language, registry) {
+function renderOneHeatmap(root, data, activity, year, timezone, language, registry, activityMap) {
   const wrap = root.createDiv({
     cls: "fitness-heatmap",
     attr: {
@@ -3146,40 +3468,12 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language, 
     text: t("view.heatmap.byDuration", language),
     attr: { style: "margin-left:8px" }
   });
-  const activityMap = await durationMap(data, activity, year);
-  const todayStr = ymdInZone(/* @__PURE__ */ new Date(), timezone);
-  const start = { y: year, m: 1, d: 1 };
-  const end = { y: year, m: 12, d: 31 };
-  const jan1Dow = weekdaySun0(start.y, start.m, start.d);
-  const daysToSubtract = jan1Dow;
-  let cursor = addDays(start.y, start.m, start.d, -daysToSubtract);
-  const weeks = [];
-  let weekCount = 0;
-  const endYmd = formatYmd(end.y, end.m, end.d);
-  while (weekCount < 60) {
-    if (formatYmd(cursor.y, cursor.m, cursor.d) > endYmd) break;
-    const week = [];
-    for (let i = 0; i < 7; i++) {
-      const dateStr = formatYmd(cursor.y, cursor.m, cursor.d);
-      const entry = activityMap.get(dateStr);
-      const minutes = entry ? entry.minutes : 0;
-      week.push({
-        date: dateStr,
-        minutes,
-        level: durationToLevel(minutes),
-        path: entry?.path ?? null,
-        fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
-        isCurrentYear: cursor.y === year,
-        isToday: dateStr === todayStr,
-        y: cursor.y,
-        m: cursor.m,
-        d: cursor.d
-      });
-      cursor = addDays(cursor.y, cursor.m, cursor.d, 1);
-    }
-    weeks.push(week);
-    weekCount++;
-  }
+  const weeks = buildHeatmapWeeks({
+    year,
+    todayStr: ymdInZone(/* @__PURE__ */ new Date(), timezone),
+    language,
+    activityMap
+  });
   const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
   const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
   for (const d of DAY_NAMES[language]) {
@@ -3203,40 +3497,14 @@ async function renderOneHeatmap(root, data, activity, year, timezone, language, 
     }
   }
   const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
-  for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    const col = weeksEl.createDiv({
-      cls: "fitness-week" + (isTodayWeek ? " is-today-week" : "")
-    });
-    for (const day of week) {
-      const color = day.isCurrentYear ? colorFor(activity, day.level) : EMPTY_CELL;
-      const cell = col.createDiv({
-        cls: "fitness-cell" + (day.isToday ? " is-today" : "") + (day.isCurrentYear ? "" : " is-faded") + (day.path ? " is-link" : ""),
-        attr: {
-          "data-testid": day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell",
-          "data-minutes": String(day.minutes),
-          "data-date": day.fullDate
-        }
-      });
-      cell.style.backgroundColor = color;
-      const tip = day.path ? t("view.heatmap.tooltipOpen", language, {
-        date: day.fullDate,
-        minutes: day.minutes
-      }) : t("view.heatmap.tooltip", language, {
-        date: day.fullDate,
-        minutes: day.minutes
-      });
-      cell.setAttr("title", tip);
-      if (day.path) {
-        const path = day.path;
-        cell.addEventListener("click", (e) => {
-          e.preventDefault();
-          void data.openPath(path);
-        });
-      }
-    }
-  }
-  weeksEl.createDiv({ cls: "fitness-weeks-end-pad" });
+  appendHeatmapWeeks(
+    weeksEl,
+    weeks,
+    activity.colors,
+    t("view.heatmap.tooltip", language),
+    t("view.heatmap.tooltipOpen", language)
+  );
+  wireHeatmapCellClicks(weeksEl, data);
   wireHeatmapScroll(scroll, registry);
 }
 function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
@@ -3261,16 +3529,32 @@ function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
   applyColumns();
 }
 async function renderHeatmaps(el, data, activityTypes, year, timezone, language, activityOption, layoutOptions) {
-  cleanupHeatmapObservers(el);
-  el.empty();
-  const registry = { scrolls: [] };
-  heatmapObserverRegistry.set(el, registry);
-  const root = el.createDiv({ cls: "fitness-plugin" });
   const layout = resolveHeatmapLayout(layoutOptions ?? {});
   const { activities, invalidIds } = resolveHeatmapActivities(
     activityTypes,
     activityOption
   );
+  const maps = await Promise.all(
+    activities.map((activity) => data.getActivityDurationMap(activity, year))
+  );
+  const paintState = {
+    year,
+    timezone,
+    language,
+    layoutKey: heatmapLayoutKey(layout),
+    activityKey: heatmapActivityKey(activities),
+    invalidIds,
+    maps
+  };
+  if (heatmapDomIsPainted(el) && sameHeatmapPaintState(heatmapPaintState.get(el), paintState)) {
+    return;
+  }
+  cleanupHeatmapObservers(el);
+  el.empty();
+  heatmapPaintState.set(el, paintState);
+  const registry = { scrolls: [] };
+  heatmapObserverRegistry.set(el, registry);
+  const root = el.createDiv({ cls: "fitness-plugin" });
   if (invalidIds.length > 0) {
     root.createEl("p", {
       text: t("view.heatmap.invalidActivities", language, {
@@ -3290,15 +3574,16 @@ async function renderHeatmaps(el, data, activityTypes, year, timezone, language,
   }
   const useGrid = activities.length > 1 && layout.columns > 1;
   const heatmapParent = useGrid ? root.createDiv({ cls: "fitness-heatmap-grid" }) : root;
-  for (const activity of activities) {
-    await renderOneHeatmap(
+  for (let i = 0; i < activities.length; i++) {
+    renderOneHeatmap(
       heatmapParent,
       data,
-      activity,
+      activities[i],
       year,
       timezone,
       language,
-      registry
+      registry,
+      maps[i]
     );
   }
   if (useGrid) {
@@ -3460,29 +3745,6 @@ function renderTodaySessions(el, data, activityTypes, dateStr, language) {
   }
 }
 
-// src/util/codeblock-languages.ts
-var ATOMIC_CODEBLOCK_LANGUAGES = [
-  "atomic-heatmap",
-  "atomic-today",
-  "atomic-dashboard",
-  "atomic-actions",
-  "atomic-golf-cues",
-  "atomic-gym-cues",
-  "atomic-cues",
-  "atomic-timer",
-  "atomic-bookshelf"
-];
-function codeblockLanguages() {
-  return [...ATOMIC_CODEBLOCK_LANGUAGES];
-}
-function resolveCueActivity(kind, options) {
-  if (kind === "atomic-golf-cues") return "golf";
-  if (kind === "atomic-gym-cues") return "gym";
-  if (kind !== "atomic-cues") return null;
-  const activity = options.activity?.trim();
-  return activity || null;
-}
-
 // src/codeblocks.ts
 function frontmatterYear(plugin, sourcePath) {
   const cache = plugin.app.metadataCache.getCache(sourcePath);
@@ -3634,6 +3896,62 @@ function registerCodeblocks(plugin) {
 // src/data/vault-source.ts
 var import_obsidian5 = require("obsidian");
 
+// src/util/duration-map.ts
+function durationMapFromSessions(sessions) {
+  const map = /* @__PURE__ */ new Map();
+  for (const session of sessions) {
+    if (!session.date) continue;
+    const entry = map.get(session.date) || { minutes: 0, path: null };
+    entry.minutes += session.duration_min;
+    if (!entry.path) entry.path = session.path;
+    map.set(session.date, entry);
+  }
+  return map;
+}
+function addHobbyItemMinutes(map, path, totals) {
+  for (const [date, minutes] of totals) {
+    const entry = map.get(date) || { minutes: 0, path };
+    entry.minutes += minutes;
+    if (!entry.path) entry.path = path;
+    map.set(date, entry);
+  }
+}
+function durationMapFromHobbyLogs(items, year) {
+  const map = /* @__PURE__ */ new Map();
+  for (const item of items) {
+    addHobbyItemMinutes(
+      map,
+      item.path,
+      minutesByDateForYear(item.entries, year)
+    );
+  }
+  return map;
+}
+
+// src/util/folder-files.ts
+function isVaultFolderLike(node) {
+  return !!node && Array.isArray(node.children);
+}
+function markdownFilesInFolder(folder) {
+  if (!isVaultFolderLike(folder)) return [];
+  const out = [];
+  const stack = [...folder.children ?? []];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (!node) continue;
+    if (isVaultFolderLike(node)) {
+      if (node.children) stack.push(...node.children);
+      continue;
+    }
+    if (isMarkdownFile(node)) out.push(node);
+  }
+  return out;
+}
+function isMarkdownFile(node) {
+  if (node.extension) return node.extension === "md";
+  return node.path.toLowerCase().endsWith(".md");
+}
+
 // src/util/hobby-time-log-cache.ts
 var HobbyTimeLogCache = class {
   constructor() {
@@ -3668,33 +3986,6 @@ var HobbyTimeLogCache = class {
   }
 };
 
-// src/util/vault-list-cache.ts
-var VaultListCache = class {
-  constructor() {
-    this.stamp = 0;
-    this.entries = /* @__PURE__ */ new Map();
-  }
-  get(key) {
-    const hit = this.entries.get(key);
-    if (!hit || hit.stamp !== this.stamp) return void 0;
-    return hit.value;
-  }
-  set(key, value) {
-    this.entries.set(key, { stamp: this.stamp, value });
-  }
-  /** Drop all cached lists; the next get misses until set. */
-  invalidate() {
-    this.stamp++;
-    this.entries.clear();
-  }
-  get generation() {
-    return this.stamp;
-  }
-  get size() {
-    return this.entries.size;
-  }
-};
-
 // src/util/hobby-item-scan.ts
 function hobbyItemFromFileCache(params) {
   const { path, basename, activityId } = params;
@@ -3714,7 +4005,7 @@ function hobbyItemFromFileCache(params) {
   return { path, basename, frontmatter: fm };
 }
 
-// src/data/vault-source.ts
+// src/util/session-meta.ts
 function asList(value) {
   if (value == null || value === "") return [];
   if (Array.isArray(value)) {
@@ -3723,7 +4014,7 @@ function asList(value) {
   const s = String(value).trim();
   return s ? [s] : [];
 }
-function resolveDate(frontmatter, basename) {
+function resolveSessionDate(frontmatter, basename) {
   if (frontmatter?.date != null && frontmatter.date !== "") {
     const raw = String(frontmatter.date);
     const m = raw.match(/(\d{4}-\d{2}-\d{2})/);
@@ -3732,27 +4023,95 @@ function resolveDate(frontmatter, basename) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(basename)) return basename;
   return null;
 }
+function sessionMetaFromFile(params) {
+  const fm = params.frontmatter ?? {};
+  return {
+    path: params.path,
+    basename: params.basename,
+    date: resolveSessionDate(params.frontmatter, params.basename),
+    duration_min: Number(fm.duration_min) || 0,
+    weight_unit: fm.weight_unit === "lb" ? "lb" : "kg",
+    focus: asList(fm.focus),
+    felt: String(fm.felt || "")
+  };
+}
+
+// src/util/vault-list-cache.ts
+var VaultListCache = class {
+  constructor() {
+    this.stamp = 0;
+    this.entries = /* @__PURE__ */ new Map();
+  }
+  get(key) {
+    const hit = this.entries.get(key);
+    if (!hit || hit.stamp !== this.stamp) return void 0;
+    return hit.value;
+  }
+  set(key, value, scope = "") {
+    this.entries.set(key, { stamp: this.stamp, value, scope });
+  }
+  /**
+   * Drop cached lists. With a path, only entries whose scope touches that path.
+   * With no path, drop everything and bump the generation stamp.
+   */
+  invalidate(path) {
+    if (path == null || path === "") {
+      this.stamp++;
+      this.entries.clear();
+      return;
+    }
+    for (const [key, entry] of [...this.entries]) {
+      if (!entry.scope || pathTouchesScope(path, entry.scope)) {
+        this.entries.delete(key);
+      }
+    }
+  }
+  get generation() {
+    return this.stamp;
+  }
+  get size() {
+    return this.entries.size;
+  }
+};
+
+// src/data/vault-source.ts
 var VaultDataSource = class {
   constructor(app) {
     this.app = app;
     this.hobbyTimeLogCache = new HobbyTimeLogCache();
     this.sessionListCache = new VaultListCache();
     this.hobbyItemListCache = new VaultListCache();
+    this.durationMapCache = new VaultListCache();
+    this.needsMetadataRefresh = false;
   }
   /** Drop cached Time log parses (all paths, or one path after edit/delete). */
   invalidateHobbyTimeLogCache(path) {
     this.hobbyTimeLogCache.invalidate(
       path ? (0, import_obsidian5.normalizePath)(path) : void 0
     );
+    this.durationMapCache.invalidate(path ? (0, import_obsidian5.normalizePath)(path) : void 0);
   }
   /** Keep cache entries aligned when a note is renamed. */
   renameHobbyTimeLogCache(oldPath, newPath) {
     this.hobbyTimeLogCache.rename((0, import_obsidian5.normalizePath)(oldPath), (0, import_obsidian5.normalizePath)(newPath));
   }
-  /** Drop cached vault list scans (sessions / hobby items). */
-  invalidateListCache() {
-    this.sessionListCache.invalidate();
-    this.hobbyItemListCache.invalidate();
+  /** Drop cached vault list scans (sessions / hobby items / duration maps). */
+  invalidateListCache(path) {
+    const scoped = path ? (0, import_obsidian5.normalizePath)(path) : void 0;
+    this.sessionListCache.invalidate(scoped);
+    this.hobbyItemListCache.invalidate(scoped);
+    this.durationMapCache.invalidate(scoped);
+  }
+  /**
+   * True when a list scan called `metadataCache.getFileCache()` and got null
+   * (file metadata not indexed yet). Callers should refresh once after
+   * `metadataCache.resolved`. Empty frontmatter on an existing cache does
+   * not set this flag.
+   */
+  consumeNeedsMetadataRefresh() {
+    const needed = this.needsMetadataRefresh;
+    this.needsMetadataRefresh = false;
+    return needed;
   }
   /**
    * Parsed Time log entries for a hobby item note.
@@ -3770,46 +4129,36 @@ var VaultDataSource = class {
     return entries;
   }
   listSessions(folder, year) {
-    const cacheKey = `${folder}\0${year}`;
-    const cached = this.sessionListCache.get(cacheKey);
-    if (cached) return cached;
     const prefix = sessionScanPrefix(folder, year);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian5.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const cached = this.sessionListCache.get(prefix);
+    if (cached) return cached;
     const out = [];
-    for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(scanPrefix)) continue;
-      if (!file.path.endsWith(".md")) continue;
-      const cache = this.app.metadataCache.getFileCache(file);
-      const fm = cache?.frontmatter ?? {};
-      out.push({
-        path: file.path,
-        basename: file.basename,
-        date: resolveDate(fm, file.basename),
-        duration_min: Number(fm.duration_min) || 0,
-        weight_unit: fm.weight_unit === "lb" ? "lb" : "kg",
-        focus: asList(fm.focus),
-        felt: String(fm.felt || "")
-      });
+    for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
+      const cache = this.fileCache(file);
+      out.push(
+        sessionMetaFromFile({
+          path: file.path,
+          basename: file.basename,
+          frontmatter: cache == null ? void 0 : cache.frontmatter ?? {}
+        })
+      );
     }
-    this.sessionListCache.set(cacheKey, out);
+    this.sessionListCache.set(prefix, out, prefix);
     return out;
   }
   listHobbyItems(activity) {
     if (activity.domain !== "hobby" || activity.noteModel !== "item" || !activity.supportsTimer) {
       return [];
     }
-    const cacheKey = `${activity.id}\0${activity.folder}`;
-    const cached = this.hobbyItemListCache.get(cacheKey);
-    if (cached) return cached;
     const prefix = hobbyItemsScanPrefix(activity.folder);
     if (!prefix) return [];
-    const scanPrefix = (0, import_obsidian5.normalizePath)(prefix.replace(/\/$/, "")) + "/";
+    const cacheKey = `${activity.id}\0${prefix}`;
+    const cached = this.hobbyItemListCache.get(cacheKey);
+    if (cached) return cached;
     const out = [];
-    for (const file of this.app.vault.getMarkdownFiles()) {
-      if (!file.path.startsWith(scanPrefix)) continue;
-      if (!file.path.endsWith(".md")) continue;
-      const cache = this.app.metadataCache.getFileCache(file);
+    for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
+      const cache = this.fileCache(file);
       const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
@@ -3818,8 +4167,34 @@ var VaultDataSource = class {
       });
       if (item) out.push(item);
     }
-    this.hobbyItemListCache.set(cacheKey, out);
+    this.hobbyItemListCache.set(cacheKey, out, prefix);
     return out;
+  }
+  /**
+   * Minutes-by-date for one activity/year. Shared by every heatmap that
+   * asks for the same pair until a touching vault path invalidates it.
+   */
+  async getActivityDurationMap(activity, year) {
+    const prefix = activity.domain === "hobby" ? hobbyItemsScanPrefix(activity.folder) : sessionScanPrefix(activity.folder, year);
+    if (!prefix) return /* @__PURE__ */ new Map();
+    const cacheKey = `${activity.id}\0${prefix}\0${year}`;
+    const cached = this.durationMapCache.get(cacheKey);
+    if (cached) return cached;
+    if (activity.domain === "hobby") {
+      const items = this.listHobbyItems(activity);
+      const perItem = await Promise.all(
+        items.map(async (item) => ({
+          path: item.path,
+          entries: await this.getHobbyTimeLogEntries(item.path)
+        }))
+      );
+      const map2 = durationMapFromHobbyLogs(perItem, year);
+      this.durationMapCache.set(cacheKey, map2, prefix);
+      return map2;
+    }
+    const map = durationMapFromSessions(this.listSessions(activity.folder, year));
+    this.durationMapCache.set(cacheKey, map, prefix);
+    return map;
   }
   async readBody(path) {
     const af = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(path));
@@ -3904,7 +4279,23 @@ var VaultDataSource = class {
     if (!file) return null;
     return this.app.vault.getResourcePath(file);
   }
+  markdownNotesInFolder(folderPath) {
+    const folder = this.app.vault.getAbstractFileByPath((0, import_obsidian5.normalizePath)(folderPath));
+    return markdownFilesInFolder(asFolderLike(folder));
+  }
+  fileCache(file) {
+    const cache = this.app.metadataCache.getFileCache(file);
+    if (cache == null) this.needsMetadataRefresh = true;
+    return cache;
+  }
 };
+function asFolderLike(node) {
+  if (!node || typeof node !== "object") return null;
+  if (!("children" in node) || !Array.isArray(node.children)) {
+    return null;
+  }
+  return node;
+}
 
 // src/properties/property-select.ts
 var import_obsidian6 = require("obsidian");
@@ -4043,6 +4434,7 @@ function hideNativeEditors(valueContainer) {
   for (const child of Array.from(valueContainer.children)) {
     if (child.classList.contains(SELECT_CLASS)) continue;
     if (child.instanceOf(HTMLElement)) {
+      child.hidden = true;
       child.addClass(HIDDEN_CLASS);
     }
   }
@@ -4273,6 +4665,18 @@ function mergeSettings(raw) {
 }
 
 // src/settings.ts
+function styleDestructiveButton(button) {
+  button.buttonEl.addClass("mod-warning");
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+function callNamedMethod(target, name) {
+  const method = target[name];
+  if (!isFunction(method)) return false;
+  method.call(target);
+  return true;
+}
 var ConfirmDeleteActivityModal = class extends import_obsidian7.Modal {
   constructor(app, options) {
     super(app);
@@ -4287,12 +4691,14 @@ var ConfirmDeleteActivityModal = class extends import_obsidian7.Modal {
     this.contentEl.createEl("p", { text: this.message });
     new import_obsidian7.Setting(this.contentEl).addButton(
       (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
-    ).addButton(
-      (button) => button.setButtonText(this.confirmLabel).setWarning().onClick(() => {
+    ).addButton((button) => {
+      button.setButtonText(this.confirmLabel);
+      styleDestructiveButton(button);
+      button.onClick(() => {
         this.onConfirm();
         this.close();
-      })
-    );
+      });
+    });
   }
 };
 var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
@@ -4302,28 +4708,170 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
     this.pendingHobbyName = "";
     this.plugin = plugin;
   }
+  /** Fallback for Obsidian < 1.13.0. 1.13+ renders `getSettingDefinitions()`. */
   display() {
-    const { containerEl } = this;
+    this.paintSettings(this.containerEl);
+  }
+  getSettingDefinitions() {
+    const language = this.plugin.settings.language;
+    const items = [
+      {
+        name: t("settings.language", language),
+        desc: t("settings.languageDesc", language),
+        control: {
+          type: "dropdown",
+          key: "language",
+          options: {
+            "zh-Hant-en": t("settings.languageOption.zh-Hant-en", language),
+            en: t("settings.languageOption.en", language)
+          }
+        }
+      },
+      {
+        name: t("settings.timezone", language),
+        desc: t("settings.timezoneDesc", language),
+        control: {
+          type: "text",
+          key: "timezone",
+          placeholder: "Asia/Hong_Kong"
+        }
+      },
+      {
+        name: t("settings.dashboardPath", language),
+        desc: t("settings.dashboardPathDesc", language),
+        control: {
+          type: "text",
+          key: "dashboardPath",
+          placeholder: DEFAULT_SETTINGS.dashboardPath,
+          validate: (value) => {
+            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+            if (!isSafeVaultFolder(next)) {
+              return t("notice.folderUnsafe", this.plugin.settings.language);
+            }
+          }
+        }
+      },
+      {
+        name: t("settings.exerciseTypes", language),
+        desc: t("settings.exerciseTypesDesc", language),
+        render: (setting) => {
+          setting.setHeading();
+        }
+      }
+    ];
+    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
+      items.push(...this.activityDefinitionItems(activity, { showCues: true }));
+    }
+    items.push({
+      name: t("settings.addExerciseType", language),
+      desc: t("settings.addExerciseTypeDesc", language),
+      render: (setting) => {
+        this.paintAddActivity(setting, "exercise");
+      }
+    });
+    items.push({
+      name: t("settings.hobbyTypes", language),
+      desc: t("settings.hobbyTypesDesc", language),
+      render: (setting) => {
+        setting.setHeading();
+      }
+    });
+    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
+      items.push(...this.activityDefinitionItems(activity, { showCues: false }));
+    }
+    items.push({
+      name: t("settings.addHobbyType", language),
+      desc: t("settings.addHobbyTypeDesc", language),
+      render: (setting) => {
+        this.paintAddActivity(setting, "hobby");
+      }
+    });
+    return items;
+  }
+  getControlValue(key) {
+    if (key === "language") return this.plugin.settings.language;
+    if (key === "timezone") return this.plugin.settings.timezone;
+    if (key === "dashboardPath") return this.plugin.settings.dashboardPath;
+    return void 0;
+  }
+  async setControlValue(key, value) {
+    if (key === "language") {
+      if (typeof value !== "string" || !isLanguage(value)) return;
+      this.plugin.settings.language = value;
+      await this.plugin.saveSettings();
+      this.redrawSettings();
+      await this.plugin.refreshAll();
+      new import_obsidian7.Notice(t("notice.reloadForCommands", value));
+      return;
+    }
+    if (key === "timezone") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
+      await this.plugin.saveSettings();
+      void this.plugin.refreshAll();
+      return;
+    }
+    if (key === "dashboardPath") {
+      if (typeof value !== "string") return;
+      const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+      if (!isSafeVaultFolder(next)) {
+        new import_obsidian7.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+        return;
+      }
+      this.plugin.settings.dashboardPath = next;
+      await this.plugin.saveSettings();
+    }
+  }
+  redrawSettings() {
+    if (callNamedMethod(this, "update")) return;
+    this.paintSettings(this.containerEl);
+  }
+  paintSettings(containerEl) {
     const language = this.plugin.settings.language;
     containerEl.empty();
-    new import_obsidian7.Setting(containerEl).setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
+    this.paintLanguage(new import_obsidian7.Setting(containerEl), language);
+    this.paintTimezone(new import_obsidian7.Setting(containerEl), language);
+    this.paintDashboardPath(new import_obsidian7.Setting(containerEl), language);
+    new import_obsidian7.Setting(containerEl).setName(t("settings.exerciseTypes", language)).setDesc(t("settings.exerciseTypesDesc", language)).setHeading();
+    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
+      this.paintActivityRows(containerEl, activity, { showCues: true });
+    }
+    this.paintAddActivity(
+      new import_obsidian7.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)),
+      "exercise"
+    );
+    new import_obsidian7.Setting(containerEl).setName(t("settings.hobbyTypes", language)).setDesc(t("settings.hobbyTypesDesc", language)).setHeading();
+    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
+      this.paintActivityRows(containerEl, activity, { showCues: false });
+    }
+    this.paintAddActivity(
+      new import_obsidian7.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)),
+      "hobby"
+    );
+  }
+  paintLanguage(setting, language) {
+    setting.setName(t("settings.language", language)).setDesc(t("settings.languageDesc", language)).addDropdown(
       (dropdown) => dropdown.addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language)).addOption("en", t("settings.languageOption.en", language)).setValue(language).onChange(async (value) => {
         if (!isLanguage(value)) return;
         this.plugin.settings.language = value;
         await this.plugin.saveSettings();
-        this.display();
+        this.redrawSettings();
         await this.plugin.refreshAll();
         new import_obsidian7.Notice(t("notice.reloadForCommands", value));
       })
     );
-    new import_obsidian7.Setting(containerEl).setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
+  }
+  paintTimezone(setting, language) {
+    setting.setName(t("settings.timezone", language)).setDesc(t("settings.timezoneDesc", language)).addText(
       (text) => text.setPlaceholder("Asia/Hong_Kong").setValue(this.plugin.settings.timezone).onChange(async (value) => {
         this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
         await this.plugin.saveSettings();
         void this.plugin.refreshAll();
       })
     );
-    new import_obsidian7.Setting(containerEl).setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
+  }
+  paintDashboardPath(setting, language) {
+    setting.setName(t("settings.dashboardPath", language)).setDesc(t("settings.dashboardPathDesc", language)).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.dashboardPath).setValue(this.plugin.settings.dashboardPath).onChange(async (value) => {
         const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
         if (!isSafeVaultFolder(next)) {
@@ -4334,8 +4882,27 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    this.renderExerciseTypes(containerEl);
-    this.renderHobbyTypes(containerEl);
+  }
+  activityDefinitionItems(activity, options) {
+    const language = this.plugin.settings.language;
+    return [
+      {
+        name: activity.label,
+        desc: t("settings.activityId", language, { id: activity.id }),
+        aliases: [activity.id],
+        render: (setting) => {
+          this.paintActivityControls(setting, activity, options);
+        }
+      },
+      {
+        name: t("settings.baseColor", language, { label: activity.label }),
+        desc: t("settings.baseColorDesc", language),
+        aliases: [activity.id, "color"],
+        render: (setting) => {
+          this.paintColorControls(setting, activity);
+        }
+      }
+    ];
   }
   async saveAndRefresh() {
     await this.plugin.saveSettings();
@@ -4348,69 +4915,22 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
     while (used.has(`${baseId}-${index}`)) index += 1;
     return `${baseId}-${index}`;
   }
-  renderExerciseTypes(containerEl) {
+  paintActivityRows(containerEl, activity, options) {
     const language = this.plugin.settings.language;
-    new import_obsidian7.Setting(containerEl).setName(t("settings.exerciseTypes", language)).setDesc(t("settings.exerciseTypesDesc", language)).setHeading();
-    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
-      this.renderActivityRows(containerEl, activity, { showCues: true });
-    }
-    new import_obsidian7.Setting(containerEl).setName(t("settings.addExerciseType", language)).setDesc(t("settings.addExerciseTypeDesc", language)).addText(
-      (text) => text.setPlaceholder(t("settings.exerciseNamePlaceholder", language)).setValue(this.pendingExerciseName).onChange((value) => {
-        this.pendingExerciseName = value;
-      })
-    ).addButton(
-      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
-        const name = this.pendingExerciseName.trim();
-        if (!name) {
-          new import_obsidian7.Notice(t("notice.enterExerciseType", this.plugin.settings.language));
-          return;
-        }
-        const activity = createExerciseActivityType(name);
-        activity.id = this.uniqueActivityId(activity.id);
-        this.plugin.settings.activityTypes = [
-          ...this.plugin.settings.activityTypes,
-          activity
-        ];
-        this.pendingExerciseName = "";
-        await this.saveAndRefresh();
-        this.display();
-      })
+    this.paintActivityControls(
+      new import_obsidian7.Setting(containerEl).setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })),
+      activity,
+      options
+    );
+    this.paintColorControls(
+      new import_obsidian7.Setting(containerEl).setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)),
+      activity
     );
   }
-  renderHobbyTypes(containerEl) {
-    const language = this.plugin.settings.language;
-    new import_obsidian7.Setting(containerEl).setName(t("settings.hobbyTypes", language)).setDesc(t("settings.hobbyTypesDesc", language)).setHeading();
-    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
-      this.renderActivityRows(containerEl, activity, { showCues: false });
-    }
-    const addHobby = new import_obsidian7.Setting(containerEl).setName(t("settings.addHobbyType", language)).setDesc(t("settings.addHobbyTypeDesc", language)).addText(
-      (text) => text.setPlaceholder(t("settings.hobbyNamePlaceholder", language)).setValue(this.pendingHobbyName).onChange((value) => {
-        this.pendingHobbyName = value;
-      })
-    ).addButton(
-      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
-        const name = this.pendingHobbyName.trim();
-        if (!name) {
-          new import_obsidian7.Notice(t("notice.enterHobbyType", this.plugin.settings.language));
-          return;
-        }
-        const activity = createHobbyActivityType(name);
-        activity.id = this.uniqueActivityId(activity.id);
-        this.plugin.settings.activityTypes = [
-          ...this.plugin.settings.activityTypes,
-          activity
-        ];
-        this.pendingHobbyName = "";
-        await this.saveAndRefresh();
-        this.display();
-      })
-    );
-    addHobby.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
-  }
-  renderActivityRows(containerEl, activity, options) {
+  paintActivityControls(setting, activity, options) {
     const language = this.plugin.settings.language;
     const folderPlaceholder = options.showCues ? t("settings.exerciseFolderPlaceholder", language) : t("settings.hobbyFolderPlaceholder", language);
-    const row = new import_obsidian7.Setting(containerEl).setClass("atomic-setting-exercise-type").setName(activity.label).setDesc(t("settings.activityId", language, { id: activity.id })).addToggle(
+    setting.setClass("atomic-setting-exercise-type").addToggle(
       (toggle) => toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
         await this.saveAndRefresh();
@@ -4433,32 +4953,77 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
         await this.saveAndRefresh();
       })
     );
-    row.settingEl.setAttr("data-testid", "atomic-setting-activity");
-    row.settingEl.setAttr("data-activity-id", activity.id);
+    setting.settingEl.setAttr("data-testid", "atomic-setting-activity");
+    setting.settingEl.setAttr("data-activity-id", activity.id);
     if (options.showCues) {
-      row.addToggle(
+      setting.addToggle(
         (toggle) => toggle.setTooltip(t("settings.enableCuesTooltip", language)).setValue(activity.supportsCues).onChange(async (value) => {
           activity.supportsCues = value;
           await this.saveAndRefresh();
         })
       );
     }
-    row.addButton(
-      (button) => button.setButtonText(t("settings.delete", language)).setWarning().onClick(() => {
+    setting.addButton((button) => {
+      button.setButtonText(t("settings.delete", language));
+      styleDestructiveButton(button);
+      button.onClick(() => {
         this.confirmDeleteActivity(activity);
-      })
-    );
-    const colorSetting = new import_obsidian7.Setting(containerEl).setClass("atomic-setting-colors").setName(t("settings.baseColor", language, { label: activity.label })).setDesc(t("settings.baseColorDesc", language)).addColorPicker(
+      });
+    });
+  }
+  paintColorControls(setting, activity) {
+    setting.setClass("atomic-setting-colors").addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
         activity.colors = shadesFromBaseColor(value);
         await this.saveAndRefresh();
-        this.renderColorSwatches(colorSetting.controlEl, activity);
+        this.renderColorSwatches(setting.controlEl, activity);
       })
     );
-    colorSetting.settingEl.setAttr("data-testid", "atomic-setting-colors");
-    colorSetting.settingEl.setAttr("data-activity-id", activity.id);
-    this.renderColorSwatches(colorSetting.controlEl, activity);
+    setting.settingEl.setAttr("data-testid", "atomic-setting-colors");
+    setting.settingEl.setAttr("data-activity-id", activity.id);
+    this.renderColorSwatches(setting.controlEl, activity);
+  }
+  paintAddActivity(setting, kind) {
+    const language = this.plugin.settings.language;
+    const isHobby = kind === "hobby";
+    setting.addText(
+      (text) => text.setPlaceholder(
+        t(
+          isHobby ? "settings.hobbyNamePlaceholder" : "settings.exerciseNamePlaceholder",
+          language
+        )
+      ).setValue(isHobby ? this.pendingHobbyName : this.pendingExerciseName).onChange((value) => {
+        if (isHobby) this.pendingHobbyName = value;
+        else this.pendingExerciseName = value;
+      })
+    ).addButton(
+      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
+        const name = (isHobby ? this.pendingHobbyName : this.pendingExerciseName).trim();
+        if (!name) {
+          new import_obsidian7.Notice(
+            t(
+              isHobby ? "notice.enterHobbyType" : "notice.enterExerciseType",
+              this.plugin.settings.language
+            )
+          );
+          return;
+        }
+        const activity = isHobby ? createHobbyActivityType(name) : createExerciseActivityType(name);
+        activity.id = this.uniqueActivityId(activity.id);
+        this.plugin.settings.activityTypes = [
+          ...this.plugin.settings.activityTypes,
+          activity
+        ];
+        if (isHobby) this.pendingHobbyName = "";
+        else this.pendingExerciseName = "";
+        await this.saveAndRefresh();
+        this.redrawSettings();
+      })
+    );
+    if (isHobby) {
+      setting.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
+    }
   }
   renderColorSwatches(controlEl, activity) {
     controlEl.querySelectorAll(".atomic-color-swatch-row").forEach((node) => node.remove());
@@ -4491,7 +5056,7 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
       (candidate) => candidate.id !== activity.id
     );
     await this.saveAndRefresh();
-    this.display();
+    this.redrawSettings();
     new import_obsidian7.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: activity.label
@@ -4504,11 +5069,11 @@ var FitnessSettingTab = class extends import_obsidian7.PluginSettingTab {
 function normalizeSlashes3(path) {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
-function normalizeVaultPath(path) {
+function normalizeVaultPath2(path) {
   return normalizeSlashes3(path.trim());
 }
 function parentFolder(filePath) {
-  const norm = normalizeVaultPath(filePath);
+  const norm = normalizeVaultPath2(filePath);
   const idx = norm.lastIndexOf("/");
   if (idx <= 0) return null;
   const parent = norm.slice(0, idx);
@@ -4519,7 +5084,7 @@ function collectAtomicDataRoots(settings) {
   const filePaths = /* @__PURE__ */ new Set();
   for (const activity of settings.activityTypes) {
     if (isSafeVaultFolder(activity.folder)) {
-      folderRoots.add(normalizeVaultPath(activity.folder).replace(/\/$/, ""));
+      folderRoots.add(normalizeVaultPath2(activity.folder).replace(/\/$/, ""));
     }
   }
   for (const configured of [
@@ -4527,7 +5092,7 @@ function collectAtomicDataRoots(settings) {
     settings.golfCuesPath,
     settings.gymCuesPath
   ]) {
-    const norm = normalizeVaultPath(configured);
+    const norm = normalizeVaultPath2(configured);
     if (!norm) continue;
     filePaths.add(norm);
     const parent = parentFolder(norm);
@@ -4539,17 +5104,17 @@ function collectAtomicDataRoots(settings) {
   };
 }
 function isUnderFolderRoot(path, root) {
-  const normPath = normalizeVaultPath(path);
-  const normRoot = normalizeVaultPath(root).replace(/\/$/, "");
+  const normPath = normalizeVaultPath2(path);
+  const normRoot = normalizeVaultPath2(root).replace(/\/$/, "");
   return normPath === normRoot || normPath.startsWith(`${normRoot}/`);
 }
 function pathAffectsAtomicRefresh(path, roots, liveBlockSourcePaths) {
-  const norm = normalizeVaultPath(path);
+  const norm = normalizeVaultPath2(path);
   if (!norm) return false;
-  if (liveBlockSourcePaths.some((sourcePath) => normalizeVaultPath(sourcePath) === norm)) {
+  if (liveBlockSourcePaths.some((sourcePath) => normalizeVaultPath2(sourcePath) === norm)) {
     return true;
   }
-  if (roots.filePaths.some((filePath) => normalizeVaultPath(filePath) === norm)) {
+  if (roots.filePaths.some((filePath) => normalizeVaultPath2(filePath) === norm)) {
     return true;
   }
   return roots.folderRoots.some((root) => isUnderFolderRoot(norm, root));
@@ -4672,17 +5237,11 @@ var FitnessPlugin = class extends import_obsidian8.Plugin {
       })
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", (file) => {
-        if (!(file instanceof import_obsidian8.TFile)) return;
-        this.handleVaultPathChange(file.path);
-      })
-    );
-    this.registerEvent(
       this.app.metadataCache.on("resolved", () => {
+        if (!this.liveBlocks.some((block) => block.el.isConnected)) return;
+        if (!this.data.consumeNeedsMetadataRefresh()) return;
         this.data.invalidateListCache();
-        if (this.liveBlocks.some((block) => block.el.isConnected)) {
-          this.scheduleRefresh();
-        }
+        this.scheduleRefresh();
       })
     );
   }
@@ -4732,10 +5291,11 @@ var FitnessPlugin = class extends import_obsidian8.Plugin {
     if (!affectsCurrent) return;
     if (oldPath != null) {
       this.data.renameHobbyTimeLogCache(oldPath, path);
+      this.data.invalidateListCache(oldPath);
     } else {
       this.data.invalidateHobbyTimeLogCache(path);
     }
-    this.data.invalidateListCache();
+    this.data.invalidateListCache(path);
     this.scheduleRefresh();
   }
   exerciseActivityById(id) {

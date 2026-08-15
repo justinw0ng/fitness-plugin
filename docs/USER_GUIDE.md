@@ -165,7 +165,8 @@ year: 2026
 # Atomic Dashboard
 
 ```atomic-dashboard
-year: 2026
+# Uncomment to customize. Hash comments are ignored.
+year: 2026  # calendar year; omit → note frontmatter year, else timezone now
 ```
 ````
 
@@ -173,17 +174,28 @@ A daily-note composition (book shelf, actions, 2×2 heatmaps, today) is in [`exa
 
 ### Heatmap note example
 
+Newly created UI blocks include every option as a hash comment, so you can customize them without opening this guide. Uncomment a line to use it; `#` comments are ignored.
+
 ````markdown
 # Heatmaps
 
 ```atomic-actions
+# No options. One button per enabled habit.
 ```
 
 ```atomic-heatmap
-year: 2026
+# Uncomment to customize. Hash comments are ignored.
+year: 2026  # calendar year; omit → YYYY-MM-DD in note path, else timezone now
+# activity: all  # all | id | id1, id2 (enabled habits); default all
+# rows: 1  # preferred row count (multi-activity); default 1
+# columns: 1  # max columns; 1 = vertical stack; default 1
+# min-column-width: 300  # min px per column before wrapping; default 300
+# default-span: 1.2  # CSS fr weight per grid track; default 1.2
 ```
 
 ```atomic-today
+# Uncomment to customize. Hash comments are ignored.
+# date: 2026-08-08  # YYYY-MM-DD; omit → date in note path, else timezone today
 ```
 ````
 
@@ -224,7 +236,8 @@ With multiple activities, `columns` greater than `1` lays out heatmaps in a resp
 # Golf Cues
 
 ```atomic-golf-cues
-year: 2026
+# Uncomment to customize. Hash comments are ignored.
+year: 2026  # calendar year; omit → note frontmatter year, else timezone now
 ```
 ````
 
@@ -234,7 +247,18 @@ year: 2026
 # Gym Cues
 
 ```atomic-gym-cues
-year: 2026
+# Uncomment to customize. Hash comments are ignored.
+year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+```
+````
+
+Generic cue rollup (`activity` is required):
+
+````markdown
+```atomic-cues
+# Uncomment to customize. Hash comments are ignored.
+activity: golf  # required: golf | gym | <exercise id>
+# year: 2026  # calendar year; omit → note frontmatter year, else timezone now
 ```
 ````
 
@@ -328,6 +352,7 @@ Reading item notes include:
 
 ````markdown
 ```atomic-timer
+# No options. Start / Stop / Resume / Discard for this item note.
 ```
 ````
 
@@ -347,7 +372,10 @@ Run **Atomic Tracker: Open book shelf**. Atomic Tracker creates `atomics/hobbies
 
 ````markdown
 ```atomic-bookshelf
-activity: reading
+# Uncomment to customize. Hash comments are ignored.
+activity: reading  # hobby id (enabled, item + timer); default reading
+# status: all  # all | to-read | reading | to-read-again | finished; default all
+# scale: 1  # size multiplier 0.25–4; default 1; alias: ratio
 ```
 ````
 

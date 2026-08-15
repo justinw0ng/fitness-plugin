@@ -3,6 +3,8 @@ import { t, type Language } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { DEFAULT_READING_STATUS } from "../core/reading-status.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
 const FALLBACK_BOOK_TITLE = "Untitled Book";
@@ -63,7 +65,5 @@ related_canvas:
 
 ## ${t("template.readingTimeLog", language)}
 
-\`\`\`atomic-timer
-\`\`\`
-`;
+${defaultAtomicBlockFence("atomic-timer", language)}`;
 }

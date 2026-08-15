@@ -125,7 +125,10 @@ Chapter 3 now.
 
 export const BOOK_SHELF_NOTE = [
   "```atomic-bookshelf",
-  "activity: reading",
+  "# Uncomment to customize. Hash comments are ignored.",
+  "activity: reading  # hobby id (enabled, item + timer); default reading",
+  "# status: all  # all | to-read | reading | to-read-again | finished; default all",
+  "# scale: 1  # size multiplier 0.25–4; default 1; alias: ratio",
   "```",
   "",
 ].join("\n");
