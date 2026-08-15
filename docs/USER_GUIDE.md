@@ -165,8 +165,8 @@ year: 2026
 # Atomic Dashboard
 
 ```atomic-dashboard
-# Uncomment to customize. Hash comments are ignored.
-year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use the note year property, or this year
 ```
 ````
 
@@ -174,28 +174,28 @@ A daily-note composition (book shelf, actions, 2×2 heatmaps, today) is in [`exa
 
 ### Heatmap note example
 
-Newly created UI blocks include every option as a hash comment, so you can customize them without opening this guide. Uncomment a line to use it; `#` comments are ignored.
+Newly created UI blocks include every option as a comment, so you can customize them without opening this guide. Uncomment a line to use it; lines that start with `#` are ignored.
 
 ````markdown
 # Heatmaps
 
 ```atomic-actions
-# No options. One button per enabled habit.
+# No options. One button for each enabled habit.
 ```
 
 ```atomic-heatmap
-# Uncomment to customize. Hash comments are ignored.
-year: 2026  # calendar year; omit → YYYY-MM-DD in note path, else timezone now
-# activity: all  # all | id | id1, id2 (enabled habits); default all
-# rows: 1  # preferred row count (multi-activity); default 1
-# columns: 1  # max columns; 1 = vertical stack; default 1
-# min-column-width: 300  # min px per column before wrapping; default 300
-# default-span: 1.2  # CSS fr weight per grid track; default 1.2
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use a YYYY-MM-DD note path, or this year
+# activity: all  # all, one id, or comma list (gym, golf). Default: all enabled habits
+# rows: 1  # preferred rows for several heatmaps. Default: 1
+# columns: 1  # max columns; 1 stacks vertically. Default: 1
+# min-column-width: 300  # wrap below this column width in px. Default: 300
+# default-span: 1.2  # relative width of each heatmap column. Default: 1.2
 ```
 
 ```atomic-today
-# Uncomment to customize. Hash comments are ignored.
-# date: 2026-08-08  # YYYY-MM-DD; omit → date in note path, else timezone today
+# Uncomment a line to use it. Lines that start with # are ignored.
+# date: 2026-08-08  # YYYY-MM-DD. Omit to use the note path date, or today
 ```
 ````
 
@@ -236,8 +236,8 @@ With multiple activities, `columns` greater than `1` lays out heatmaps in a resp
 # Golf Cues
 
 ```atomic-golf-cues
-# Uncomment to customize. Hash comments are ignored.
-year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use the note year property, or this year
 ```
 ````
 
@@ -247,8 +247,8 @@ year: 2026  # calendar year; omit → note frontmatter year, else timezone now
 # Gym Cues
 
 ```atomic-gym-cues
-# Uncomment to customize. Hash comments are ignored.
-year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use the note year property, or this year
 ```
 ````
 
@@ -256,9 +256,9 @@ Generic cue rollup (`activity` is required):
 
 ````markdown
 ```atomic-cues
-# Uncomment to customize. Hash comments are ignored.
-activity: golf  # required: golf | gym | <exercise id>
-# year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+# Uncomment a line to use it. Lines that start with # are ignored.
+activity: golf  # required: golf, gym, or another exercise id
+# year: 2026  # calendar year. Omit to use the note year property, or this year
 ```
 ````
 
@@ -352,7 +352,7 @@ Reading item notes include:
 
 ````markdown
 ```atomic-timer
-# No options. Start / Stop / Resume / Discard for this item note.
+# No options. Start, Stop, Resume, or Discard the timer on this note.
 ```
 ````
 
@@ -372,10 +372,10 @@ Run **Atomic Tracker: Open book shelf**. Atomic Tracker creates `atomics/hobbies
 
 ````markdown
 ```atomic-bookshelf
-# Uncomment to customize. Hash comments are ignored.
-activity: reading  # hobby id (enabled, item + timer); default reading
-# status: all  # all | to-read | reading | to-read-again | finished; default all
-# scale: 1  # size multiplier 0.25–4; default 1; alias: ratio
+# Uncomment a line to use it. Lines that start with # are ignored.
+activity: reading  # habit id (enabled item habit with a timer). Default: reading
+# status: all  # all, or to-read, reading, to-read-again, finished. Default: all
+# scale: 1  # book size vs default, 0.25–4. Default: 1. Alias: ratio
 ```
 ````
 

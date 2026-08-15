@@ -36,13 +36,13 @@ test("every registered UI codeblock has a default body with option comments", ()
 
 test("default heatmap body documents every layout option as comments", () => {
   const body = defaultAtomicBlockBody("atomic-heatmap", "en");
-  assert.match(body, /# Uncomment to customize/);
+  assert.match(body, /# Uncomment a line to use it/);
   assert.match(body, /# year: 2026  # calendar year/);
-  assert.match(body, /# activity: all  # all \| id \| id1, id2/);
-  assert.match(body, /# rows: 1  # preferred row count/);
-  assert.match(body, /# columns: 1  # max columns/);
-  assert.match(body, /# min-column-width: 300  # min px/);
-  assert.match(body, /# default-span: 1.2  # CSS fr/);
+  assert.match(body, /# activity: all  # all, one id, or comma list/);
+  assert.match(body, /# rows: 1  # preferred rows for several heatmaps/);
+  assert.match(body, /# columns: 1  # max columns; 1 stacks vertically/);
+  assert.match(body, /# min-column-width: 300  # wrap below this column width/);
+  assert.match(body, /# default-span: 1.2  # relative width of each heatmap column/);
   assert.deepEqual(parseBlockOptions(body), {});
 });
 
@@ -66,8 +66,8 @@ test("default block values become active lines and stay parseable", () => {
 test("default bookshelf keeps activity active and documents status and scale", () => {
   const body = defaultAtomicBlockBody("atomic-bookshelf", "en");
   assert.match(body, /^activity: reading  # /m);
-  assert.match(body, /# status: all  # all \| to-read \| reading \| to-read-again \| finished/);
-  assert.match(body, /# scale: 1  # size multiplier 0\.25–4/);
+  assert.match(body, /# status: all  # all, or to-read, reading, to-read-again, finished/);
+  assert.match(body, /# scale: 1  # book size vs default, 0\.25–4/);
   assert.deepEqual(parseBlockOptions(body), { activity: "reading" });
 });
 
@@ -81,17 +81,17 @@ test("default cues require activity and document year", () => {
 test("optionless blocks only document that they have no options", () => {
   const actions = defaultAtomicBlockBody("atomic-actions", "en");
   const timer = defaultAtomicBlockBody("atomic-timer", "en");
-  assert.match(actions, /# No options\. One button per enabled habit\./);
-  assert.match(timer, /# No options\. Start \/ Stop \/ Resume \/ Discard/);
+  assert.match(actions, /# No options\. One button for each enabled habit\./);
+  assert.match(timer, /# No options\. Start, Stop, Resume, or Discard/);
   assert.deepEqual(parseBlockOptions(actions), {});
   assert.deepEqual(parseBlockOptions(timer), {});
 });
 
 test("zh-Hant-en comments keep the Chinese half", () => {
   const body = defaultAtomicBlockBody("atomic-bookshelf", "zh-Hant-en");
-  assert.match(body, /取消註解即可自訂/);
-  assert.match(body, /預設 reading/);
-  assert.match(body, /別名 ratio/);
+  assert.match(body, /取消註解即可使用/);
+  assert.match(body, /預設：reading/);
+  assert.match(body, /別名：ratio/);
 });
 
 test("newly created book shelf and reading item notes use the default fences", () => {

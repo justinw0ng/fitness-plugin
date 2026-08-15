@@ -5,6 +5,6 @@ year: 2026
 # Atomic Dashboard
 
 ```atomic-dashboard
-# Uncomment to customize. Hash comments are ignored.
-year: 2026  # calendar year; omit → note frontmatter year, else timezone now
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use the note year property, or this year
 ```

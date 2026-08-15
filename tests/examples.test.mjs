@@ -13,8 +13,14 @@ function readExample(rel) {
 
 test("daily note example includes bookshelf, actions, 2x2 heatmap, and today", () => {
   const md = readExample("daily-notes/2026-08-11.md");
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-bookshelf", "en")));
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-actions", "en")));
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-bookshelf", "en")),
+    "daily note example is missing the default atomic-bookshelf fence",
+  );
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-actions", "en")),
+    "daily note example is missing the default atomic-actions fence",
+  );
   assert.ok(
     md.includes(
       defaultAtomicBlockFence("atomic-heatmap", "en", {
@@ -24,15 +30,25 @@ test("daily note example includes bookshelf, actions, 2x2 heatmap, and today", (
         columns: "2",
       }),
     ),
+    "daily note example is missing the 2x2 atomic-heatmap fence",
   );
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-today", "en")));
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-today", "en")),
+    "daily note example is missing the default atomic-today fence",
+  );
 });
 
 test("daily note template uses Obsidian date tokens and omits a hardcoded year", () => {
   const md = readExample("templates/Atomic daily note.md");
   assert.match(md, /# \{\{date:dddd, MMMM D, YYYY\}\}/);
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-bookshelf", "en")));
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-actions", "en")));
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-bookshelf", "en")),
+    "daily note template is missing the default atomic-bookshelf fence",
+  );
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-actions", "en")),
+    "daily note template is missing the default atomic-actions fence",
+  );
   assert.ok(
     md.includes(
       defaultAtomicBlockFence("atomic-heatmap", "en", {
@@ -41,8 +57,12 @@ test("daily note template uses Obsidian date tokens and omits a hardcoded year",
         columns: "2",
       }),
     ),
+    "daily note template is missing the 2x2 atomic-heatmap fence",
   );
-  assert.ok(md.includes(defaultAtomicBlockFence("atomic-today", "en")));
+  assert.ok(
+    md.includes(defaultAtomicBlockFence("atomic-today", "en")),
+    "daily note template is missing the default atomic-today fence",
+  );
   assert.doesNotMatch(md, /^year:\s*\d{4}/m);
 });
 
@@ -52,5 +72,6 @@ test("dashboard example is the yearly atomic-dashboard note", () => {
   assert.match(md, /# Atomic Dashboard/);
   assert.ok(
     md.includes(defaultAtomicBlockFence("atomic-dashboard", "en", { year: "2026" })),
+    "dashboard example is missing the default atomic-dashboard fence",
   );
 });

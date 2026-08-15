@@ -72,7 +72,7 @@ cover: ""
     );
     assert.equal(shelf, BOOK_SHELF_NOTE);
     assert.equal(shelf, bookShelfHostMarkdown("en"));
-    assert.match(shelf, /```atomic-bookshelf\n# Uncomment to customize/);
+    assert.match(shelf, /```atomic-bookshelf\n# Uncomment a line to use it/);
     assert.match(shelf, /^activity: reading  # /m);
     assert.match(shelf, /# status: all  # /);
     assert.match(shelf, /# scale: 1  # /);

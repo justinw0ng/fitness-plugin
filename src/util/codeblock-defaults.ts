@@ -159,7 +159,7 @@ export function isAtomicBlockKind(kind: string): kind is AtomicBlockKind {
   return (ATOMIC_CODEBLOCK_LANGUAGES as readonly string[]).includes(kind);
 }
 
-/** Default codeblock body with every option documented as a hash comment. */
+/** Default codeblock body with every option documented as a `#` comment. */
 export function defaultAtomicBlockBody(
   kind: AtomicBlockKind,
   language: Language = "en",
