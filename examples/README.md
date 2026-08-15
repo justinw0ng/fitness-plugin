@@ -8,6 +8,8 @@ Copy these into a vault with Atomic enabled.
 
 **Dashboard.** `dashboard/Dashboard.md` belongs at `atomics/Dashboard.md` (the default **Open dashboard** path).
 
+Each UI block lists every option as a comment. Uncomment a line to use it; lines that start with `#` are ignored at render time.
+
 The blocks read session and hobby notes already in the vault. Empty heatmaps and today lists mean those notes are missing, not that the fences are wrong.
 
 ## Use the daily note template
