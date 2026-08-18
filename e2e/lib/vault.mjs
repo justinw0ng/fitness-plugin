@@ -21,7 +21,7 @@ export const DEFAULT_E2E_VAULT = "/tmp/atomic-tracker-e2e-vault";
 export const E2E_TIMEZONE = "UTC";
 
 export const E2E_GYM_LOG_FENCE = `\`\`\`atomic-gym-log
-# No options. Pick an exercise, enter weight and reps, then add a set to this note's table.
+# No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself.
 \`\`\``;
 
 export const E2E_FILES = {

@@ -13,7 +13,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 ## What it does
 
 - Exercise sessions and custom habits: enable/disable, one color picker → four heatmap shades
-- Gym set logger (`atomic-gym-log`): pick a saved exercise + muscle pair, enter weight/reps, write the markdown table
+- Gym set log (`atomic-gym-log`): pick an exercise, enter weight and reps, click Add set. You don't type the table row yourself
 - Reading items with timers, book shelf, and Bases bookshelf
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)

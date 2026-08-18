@@ -5,7 +5,7 @@ Status: implemented
 
 ## Goal
 
-Keep gym sets as a markdown table, but stop requiring users to type rows by hand. Persist an exercise+muscle catalog, log sets from an in-note form, and offer a one-time upgrade setup that seeds the catalog from existing notes and inserts the new logger block.
+Keep gym sets as a markdown table, but stop requiring users to type rows by hand. Persist an exercise+muscle catalog, log sets from an in-note form, and offer a one-time upgrade setup that seeds the catalog from existing notes and inserts the new set log block.
 
 ## Decisions (locked)
 

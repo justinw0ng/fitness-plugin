@@ -160,7 +160,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
   });
 
   it("logs a gym set from the in-note dropdown and adds a new exercise", async () => {
-    await check(driver, "gym-logger", async () => {
+    await check(driver, "gym-set-log", async () => {
       await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
 
