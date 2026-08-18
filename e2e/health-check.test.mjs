@@ -93,6 +93,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-timer"]');
       await waitCss(driver, '[data-testid="atomic-timer-start"]');
 
+      await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+      await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
+
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
       const books = await driver.findElements(By.css('[data-testid="atomic-book"]'));
@@ -152,6 +156,106 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         driver,
         'select[data-testid="atomic-property-select"][data-property="weight_unit"]',
       );
+    });
+  });
+
+  it("logs a gym set from the in-note dropdown and adds a new exercise", async () => {
+    await check(driver, "gym-logger", async () => {
+      await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+
+      const weight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
+      await weight.clear();
+      await weight.sendKeys("100");
+      const reps = await waitCss(driver, '[data-testid="atomic-gym-log-reps"]');
+      await reps.clear();
+      await reps.sendKeys("3");
+      const notes = await waitCss(driver, '[data-testid="atomic-gym-log-notes"]');
+      await notes.clear();
+      await notes.sendKeys("e2e squat");
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-gym-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Logged");
+
+      const afterSquat = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.gymSession(today.slice(0, 4), today))});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(afterSquat), /\| Squat \| Quads \| 100 \| 3 \| e2e squat \|/);
+
+      await driver.executeScript(`
+        const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+        select.value = "__atomic_new_exercise__";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      `);
+      const name = await waitCss(driver, '[data-testid="atomic-gym-new-exercise-name"]');
+      await name.click();
+      await name.clear();
+      await name.sendKeys("Deadlift");
+      await driver.executeScript(`
+        const muscle = document.querySelector('[data-testid="atomic-gym-new-exercise-muscle"]');
+        muscle.value = "Hamstrings";
+        muscle.dispatchEvent(new Event("change", { bubbles: true }));
+      `);
+      await driver.executeScript(`
+        const modal = document.querySelector('[data-testid="atomic-gym-new-exercise-modal"]');
+        const ok = modal && modal.querySelector("button.mod-cta");
+        if (ok) ok.click();
+      `);
+      await waitForNotice(driver, "Saved Deadlift");
+      await driver.wait(async () => {
+        return driver.executeScript(`
+          const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+          return !!(select && Array.from(select.options).some((option) =>
+            (option.textContent || "").includes("Deadlift")
+          ));
+        `);
+      }, 8000);
+
+      const nextWeight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
+      await nextWeight.clear();
+      await nextWeight.sendKeys("140");
+      const nextReps = await waitCss(driver, '[data-testid="atomic-gym-log-reps"]');
+      await nextReps.clear();
+      await nextReps.sendKeys("5");
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-gym-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Logged");
+
+      const afterDeadlift = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.gymSession(today.slice(0, 4), today))});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(afterDeadlift), /\| Deadlift \| Hamstrings \| 140 \| 5 \|/);
+    });
+  });
+
+  it("prompts gym log setup when pending and dismisses it with Later", async () => {
+    await check(driver, "gym-log-setup", async () => {
+      await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        plugin.settings.gymLogSetup = "pending";
+        plugin.promptGymLogSetupIfPending();
+      `);
+      await waitCss(driver, '[data-testid="atomic-gym-log-setup-modal"]');
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-gym-log-setup-later"]').click();
+      `);
+      await waitForNotice(driver, "You can import gym exercises later");
+      await driver.wait(async () => {
+        const leftover = await driver.findElements(
+          By.css('[data-testid="atomic-gym-log-setup-modal"]'),
+        );
+        return leftover.length === 0;
+      }, 8000);
+      const status = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").settings.gymLogSetup`,
+      );
+      assert.equal(status, "skipped");
     });
   });
 
@@ -246,6 +350,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         );
         assert.equal(swatches.length, 4);
       }
+
+      await waitCss(driver, '[data-testid="atomic-setting-gym-exercises"]');
+      await waitCss(driver, '[data-testid="atomic-setting-gym-import"]');
 
       const add = await waitCss(driver, '[data-testid="atomic-setting-add-hobby"]');
       const nameInput = await add.findElement(By.css("input"));

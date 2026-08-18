@@ -202,6 +202,20 @@ export class VaultDataSource {
     return this.createNote(norm, content);
   }
 
+  /**
+   * Apply an updater to the current file bytes. Returns null when the path
+   * is missing. Unchanged content is returned as-is so callers can skip a rewrite.
+   */
+  async processNote(
+    path: string,
+    updater: (current: string) => string,
+  ): Promise<TFile | null> {
+    const existing = this.app.vault.getAbstractFileByPath(normalizePath(path));
+    if (!(existing instanceof TFile)) return null;
+    await this.app.vault.process(existing, updater);
+    return existing;
+  }
+
   async openPath(path: string): Promise<void> {
     const norm = normalizePath(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
@@ -230,6 +244,11 @@ export class VaultDataSource {
   getFolder(path: string): TFolder | null {
     const af = this.app.vault.getAbstractFileByPath(normalizePath(path));
     return af instanceof TFolder ? af : null;
+  }
+
+  listMarkdownInFolder(folder: string): TFile[] {
+    if (!isSafeVaultFolder(folder)) return [];
+    return this.markdownNotesInFolder(folder);
   }
 
   /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */

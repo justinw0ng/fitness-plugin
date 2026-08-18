@@ -20,6 +20,10 @@ export const E2E_VAULT_ID = "atomicE2e000001";
 export const DEFAULT_E2E_VAULT = "/tmp/atomic-tracker-e2e-vault";
 export const E2E_TIMEZONE = "UTC";
 
+export const E2E_GYM_LOG_FENCE = `\`\`\`atomic-gym-log
+# No options. Pick an exercise, enter weight and reps, then add a set to this note's table.
+\`\`\``;
+
 export const E2E_FILES = {
   golfCues: "E2E/Golf cues.md",
   gymCues: "E2E/Gym cues.md",
@@ -133,6 +137,8 @@ weight_unit: kg
 
 # Gym — ${date}
 
+${E2E_GYM_LOG_FENCE}
+
 | Exercise | Muscle | Weight | Reps | Notes |
 | --- | --- | --- | --- | --- |
 | Squat | Quads | 80 | 5 | |
@@ -170,6 +176,8 @@ export function pluginSettings() {
     dashboardPath: "atomics/Dashboard.md",
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
+    gymLogSetup: "complete",
+    gymExercises: [{ exercise: "Squat", muscle: "Quads" }],
     activityTypes: [
       {
         id: "gym",

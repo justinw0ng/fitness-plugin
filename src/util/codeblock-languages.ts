@@ -7,6 +7,7 @@ export const ATOMIC_CODEBLOCK_LANGUAGES: readonly string[] = [
   "atomic-gym-cues",
   "atomic-cues",
   "atomic-timer",
+  "atomic-gym-log",
   "atomic-bookshelf",
 ];
 

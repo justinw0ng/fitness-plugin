@@ -16,6 +16,7 @@ import {
 } from "./views/dashboard";
 import { renderBookShelf } from "./views/book-shelf";
 import { renderHeatmaps, resolveHeatmapYear } from "./views/heatmap";
+import { renderAtomicGymLog } from "./views/gym-log";
 import { renderAtomicTimer } from "./views/timer";
 import { renderTodaySessions, resolveTodayDate } from "./views/today";
 import {
@@ -161,6 +162,10 @@ export async function renderBlock(
       }
       case "atomic-timer": {
         await renderAtomicTimer(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-gym-log": {
+        await renderAtomicGymLog(plugin, el, sourcePath);
         break;
       }
       case "atomic-bookshelf": {

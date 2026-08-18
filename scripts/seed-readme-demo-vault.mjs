@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync, copyFileSyn
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseHeroBookLimit, parseSeedVault } from "./hero-capture-options.mjs";
+import { E2E_GYM_LOG_FENCE } from "../e2e/lib/vault.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -127,6 +128,8 @@ weight_unit: kg
 ---
 
 # Gym — ${date}
+
+${E2E_GYM_LOG_FENCE}
 
 | Exercise | Muscle | Weight | Reps | Notes |
 | --- | --- | --- | --- | --- |
@@ -358,6 +361,11 @@ function seedObsidianConfig() {
     dashboardPath: "atomics/Dashboard.md",
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
+    gymLogSetup: "complete",
+    gymExercises: [
+      { exercise: "Bench", muscle: "Chest" },
+      { exercise: "Squat", muscle: "Quads" },
+    ],
     activityTypes: [
       {
         id: "gym",

@@ -70,10 +70,16 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     assert.equal(core.bases, true);
     assert.equal(core["command-palette"], true);
 
+    const gym = readFileSync(join(vault, E2E_FILES.gymSession(year, today)), "utf8");
+    assert.match(gym, /```atomic-gym-log/);
+    assert.match(gym, /\| Squat \| Quads \| 80 \| 5 \|/);
+
     const settings = JSON.parse(
       readFileSync(join(vault, ".obsidian/plugins/atomic-tracker/data.json"), "utf8"),
     );
     assert.equal(settings.language, "en");
+    assert.equal(settings.gymLogSetup, "complete");
+    assert.deepEqual(settings.gymExercises, [{ exercise: "Squat", muscle: "Quads" }]);
     assert.deepEqual(
       settings.activityTypes.map((activity) => activity.id),
       pluginSettings().activityTypes.map((activity) => activity.id),

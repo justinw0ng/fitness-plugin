@@ -18,6 +18,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Generic cue rollup | `atomic-cues` with `activity: golf` or `activity: gym` |
 | Quick actions | `atomic-actions`, or the command palette |
 | New gym / golf notes | **Atomic Tracker: New gym session** / **New golf session** |
+| Gym set logger | `atomic-gym-log` in a gym session note (dropdown + weight/reps → markdown table) |
 | Reading items | **Atomic Tracker: New reading item** |
 | Reading timer | `atomic-timer` in a Reading item note |
 | Reading notes in Bases | **Atomic Tracker: Open reading Bases** |
@@ -26,7 +27,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 
 Session data is plain markdown in your vault. Nothing is sent over the network.
 
-Rendered views (heatmap, dashboard, book shelf, timer, cues) do not show an “Atomic Tracker …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
+Rendered views (heatmap, dashboard, book shelf, timer, gym logger, cues) do not show an “Atomic Tracker …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
 
 ---
 
@@ -112,6 +113,7 @@ The screenshot may show a demo path under `/tmp/...`. On your machine use `<your
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
 | Exercise types | Gym, Golf | Enable/disable, label, folder, cues, **one color**, delete; add custom exercises |
+| Gym exercises | empty until you log or import | Catalog of exercise + muscle pairs; **Import from gym notes** seeds it and inserts `atomic-gym-log` |
 | General habits | Reading | Enable/disable, label, folder, **one color**, delete; add custom item+timer habits |
 
 ![Atomic settings — exercise + general habits](./images/07-settings-atomic.png)
@@ -278,7 +280,29 @@ Put `atomic-actions` on a note and use the buttons. Every **enabled** habit appe
 
 ![Quick actions, heatmap, and today](./images/atomic-actions.png)
 
-Gym notes store sets in a markdown table and reminders under a **Reminders** heading. Golf notes store reminders under **Reminders**. Those feed the cue rollups.
+Gym notes keep sets in a markdown table and reminders under a **Reminders** heading. Golf notes store reminders under **Reminders**. Those feed the cue rollups.
+
+### Log gym sets without editing the table
+
+New gym notes include:
+
+````markdown
+```atomic-gym-log
+# No options. Pick an exercise, enter weight and reps, then add a set to this note's table.
+```
+````
+
+![Gym set logger](./images/atomic-gym-log.png)
+
+1. Choose an **exercise + muscle** pair from the dropdown (pairs you have logged before).
+2. Enter **Weight**, **Reps**, and an optional **Notes** value.
+3. Click **Add set**. Atomic appends a row to the markdown table (or fills the first empty template row).
+
+**New exercise…** at the bottom of the dropdown saves a new pair to the plugin catalog, then you fill weight/reps as usual. The catalog lives in plugin settings (`data.json`), not in a vault note.
+
+After you update from an older Atomic version, a **Gym logging update** modal offers a one-time setup: import unique exercise + muscle pairs from existing gym tables and insert `atomic-gym-log` into those session notes. Choose **Later** to skip; **Settings → Atomic Tracker → Import from gym notes** runs the same import.
+
+The markdown table remains the source of truth. You can still edit rows by hand.
 
 ### Session frontmatter and property dropdowns
 
@@ -496,6 +520,10 @@ scale: 1              # default: 1; alias: ratio
 
 Books are sorted by status (reading first), then title. Click a book to open its item note.
 
+### `atomic-gym-log`
+
+Renders the gym set form on a gym session note. No options. **Add set** writes a row into the markdown table on the same note.
+
 For today blocks:
 
 ```text
@@ -533,6 +561,7 @@ date: 2026-08-08
 | Wrong “today” | Set **Timezone** in Atomic Tracker settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
 | Property dropdown missing | Reload the Atomic Tracker plugin; confirm the note type matches (Reading item vs golf/gym session) |
+| Gym logger missing on old notes | Run **Import from gym notes** in Settings, or paste an `atomic-gym-log` fence above the set table |
 | Book shelf empty after `status:` filter | Check item frontmatter `status` values; use `status: all` to show every book |
 | Book shelf empty on phone / iOS | Wait for vault metadata to finish indexing, or reopen the note; covers stay flat on touch (open-on-hover is desktop) |
 | Heatmap cells clipped on a narrow pane | Scroll the grid horizontally; day labels stay pinned |

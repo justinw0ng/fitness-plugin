@@ -21,6 +21,7 @@ import {
 } from "./util/activity-types";
 import { shadesFromBaseColor } from "./util/colors";
 import { isSafeVaultFolder } from "./util/vault-path";
+import { runGymLogSetup } from "./commands/gym-log-setup";
 
 export { mergeSettings } from "./util/merge-settings";
 
@@ -177,6 +178,21 @@ export class FitnessSettingTab extends PluginSettingTab {
       },
     });
 
+    items.push({
+      name: t("settings.gymExercises", language),
+      desc: t("settings.gymExercisesDesc", language),
+      render: (setting) => {
+        setting.setHeading();
+      },
+    });
+    items.push({
+      name: t("settings.gymImport", language),
+      desc: t("settings.gymImportDesc", language),
+      render: (setting) => {
+        this.paintGymImport(setting);
+      },
+    });
+
     return items;
   }
 
@@ -255,6 +271,16 @@ export class FitnessSettingTab extends PluginSettingTab {
         .setName(t("settings.addHobbyType", language))
         .setDesc(t("settings.addHobbyTypeDesc", language)),
       "hobby",
+    );
+
+    new Setting(containerEl)
+      .setName(t("settings.gymExercises", language))
+      .setDesc(t("settings.gymExercisesDesc", language))
+      .setHeading();
+    this.paintGymImport(
+      new Setting(containerEl)
+        .setName(t("settings.gymImport", language))
+        .setDesc(t("settings.gymImportDesc", language)),
     );
   }
 
@@ -508,6 +534,22 @@ export class FitnessSettingTab extends PluginSettingTab {
     if (isHobby) {
       setting.settingEl.setAttr("data-testid", "atomic-setting-add-hobby");
     }
+  }
+
+  private paintGymImport(setting: Setting): void {
+    const language = this.plugin.settings.language;
+    const count = this.plugin.settings.gymExercises.length;
+    setting.setDesc(
+      `${t("settings.gymImportDesc", language)} ${t("settings.gymExercisesCount", language, { count })}`,
+    );
+    setting.addButton((button) => {
+      button.setButtonText(t("settings.gymImport", language));
+      button.buttonEl.setAttr("data-testid", "atomic-setting-gym-import");
+      button.onClick(() => {
+        void runGymLogSetup(this.plugin).then(() => this.redrawSettings());
+      });
+    });
+    setting.settingEl.setAttr("data-testid", "atomic-setting-gym-exercises");
   }
 
   private renderColorSwatches(controlEl: HTMLElement, activity: ActivityType): void {

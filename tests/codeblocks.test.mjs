@@ -15,6 +15,7 @@ test("codeblockLanguages registers atomic languages only", () => {
     "atomic-gym-cues",
     "atomic-cues",
     "atomic-timer",
+    "atomic-gym-log",
     "atomic-bookshelf",
   ]);
 });

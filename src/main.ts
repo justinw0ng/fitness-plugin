@@ -17,6 +17,7 @@ import {
 } from "./hobbies/reading-bookshelf";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { registerPropertySelects } from "./properties/property-select.ts";
+import { promptGymLogSetup } from "./commands/gym-log-setup";
 import { FitnessSettingTab, mergeSettings } from "./settings";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "./i18n/index.ts";
@@ -45,6 +46,9 @@ export default class FitnessPlugin extends Plugin {
       getLanguage: () => this.settings.language,
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
+    this.app.workspace.onLayoutReady(() => {
+      this.promptGymLogSetupIfPending();
+    });
 
     this.addCommand({
       id: "new-gym-session",
@@ -178,6 +182,10 @@ export default class FitnessPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  promptGymLogSetupIfPending(): void {
+    promptGymLogSetup(this);
   }
 
   trackLiveBlock(block: LiveBlock) {

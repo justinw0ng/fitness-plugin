@@ -1,5 +1,7 @@
 import type { ActivityType, FitnessSettings } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isGymLogSetup, normalizeGymExercises } from "../core/gym-log.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { DEFAULT_LANGUAGE, isLanguage } from "../i18n/index.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { DEFAULT_SETTINGS } from "../types.ts";
@@ -74,6 +76,7 @@ export function mergeSettings(raw: unknown): FitnessSettings {
   const base = {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
+    gymExercises: [...DEFAULT_SETTINGS.gymExercises],
   };
   if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(
@@ -109,5 +112,7 @@ export function mergeSettings(raw: unknown): FitnessSettings {
     golfCuesPath,
     gymCuesPath: safeVaultPath(raw.gymCuesPath, base.gymCuesPath),
     activityTypes,
+    gymExercises: normalizeGymExercises(raw.gymExercises),
+    gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
   };
 }

@@ -281,6 +281,49 @@
   margin: 8px 0;
 }
 
+.fitness-plugin.atomic-gym-log {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.fitness-plugin .atomic-gym-log-empty {
+  margin: 0 0 8px;
+}
+
+.fitness-plugin .atomic-gym-log-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+}
+
+.fitness-plugin .atomic-gym-log-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 72px;
+}
+
+.fitness-plugin .atomic-gym-log-field label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.fitness-plugin .atomic-gym-log-field input,
+.fitness-plugin .atomic-gym-log-field select {
+  min-width: 88px;
+}
+
+.fitness-plugin .atomic-gym-log-field select[data-testid="atomic-gym-log-exercise"] {
+  min-width: 180px;
+}
+
+.atomic-gym-custom-muscle-hidden {
+  display: none;
+}
+
 .fitness-plugin .atomic-timer-total,
 .fitness-plugin .atomic-timer-running {
   margin: 0 0 8px;
