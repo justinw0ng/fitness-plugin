@@ -232,6 +232,11 @@ export class VaultDataSource {
     return af instanceof TFolder ? af : null;
   }
 
+  listMarkdownInFolder(folder: string): TFile[] {
+    if (!isSafeVaultFolder(folder)) return [];
+    return this.markdownNotesInFolder(folder);
+  }
+
   /** Resolve a vault path/wikilink target (or absolute URL) into an img src. */
   resolveResourcePath(linkOrPath: string, sourcePath = ""): string | null {
     const trimmed = linkOrPath.trim();

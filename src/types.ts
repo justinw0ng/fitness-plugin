@@ -1,3 +1,4 @@
+import type { GymExercisePair, GymLogSetup } from "./core/gym-log";
 import type { Language } from "./i18n/types";
 
 export type SeriesKind = "gym" | "golf" | "generic";
@@ -56,6 +57,8 @@ export interface FitnessSettings {
   dashboardPath: string;
   golfCuesPath: string;
   gymCuesPath: string;
+  gymExercises: GymExercisePair[];
+  gymLogSetup: GymLogSetup;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -130,4 +133,6 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   golfCuesPath: "atomics/exercise/Golf/Cues.md",
   gymCuesPath: "atomics/exercise/Gym/Cues.md",
   activityTypes: DEFAULT_ACTIVITY_TYPES,
+  gymExercises: [],
+  gymLogSetup: "complete",
 };

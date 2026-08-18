@@ -119,6 +119,10 @@ const BLOCK_SPECS: Record<AtomicBlockKind, BlockSpec> = {
     emptyKey: "block.opt.noneTimer",
     options: [],
   },
+  "atomic-gym-log": {
+    emptyKey: "block.opt.noneGymLog",
+    options: [],
+  },
   "atomic-bookshelf": {
     headerKey: "block.opt.header",
     options: [

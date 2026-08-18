@@ -1,8 +1,5 @@
 import { App, FuzzySuggestModal, Notice } from "obsidian";
-import {
-  GYM_LOCATIONS,
-  MUSCLES,
-} from "../core";
+import { GYM_LOCATIONS } from "../core";
 import {
   CUSTOM_LOCATION_SENTINEL,
   gymCreateLocationNeedsDetail,
@@ -15,6 +12,8 @@ import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
 import { yamlScalar } from "../util/yaml";
 
 function suggestOne(
@@ -86,11 +85,9 @@ weight_unit: ${weightUnit}
 
 <!-- 💪 ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
+${defaultAtomicBlockFence("atomic-gym-log", language)}
 | ${t("template.gymTable.exercise", language)} | ${t("template.gymTable.muscle", language)} | ${t("template.gymTable.weight", language)} | ${t("template.gymTable.reps", language)} | ${t("template.gymTable.notes", language)} |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
 ${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
@@ -221,9 +218,6 @@ async function gymSessionBody(
       "lb",
     ])) || "kg";
   if (weightUnit !== "lb") weightUnit = "kg";
-
-  // silence unused MUSCLES (kept for future editor UX / parity with templates)
-  void MUSCLES;
 
   return gymBody(activity, date, location, locationDetail, weightUnit, language);
 }

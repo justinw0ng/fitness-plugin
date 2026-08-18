@@ -40,12 +40,14 @@ const IMAGES = join(ROOT, "docs/images");
 const FILES = {
   bookShelf: "atomics/hobbies/Reading/Book Shelf.md",
   timerItem: `atomics/hobbies/Reading/Items/${TIMER_ITEM_TITLE}.md`,
+  gymSession: "atomics/exercise/Gym/2026/2026-08-11.md",
 };
 
 const OUTPUTS = {
   bookShelf: "atomic-book-shelf.png",
   bookShelfOpen: "atomic-book-shelf-open.png",
   timer: "atomic-reading-timer.png",
+  gymLog: "atomic-gym-log.png",
   settings: "07-settings-atomic.png",
   enable: "06-enable-atomic-plugin.png",
 };
@@ -299,6 +301,13 @@ async function main() {
     await parkMouse(driver);
     await sleep(500);
     await captureTo(driver, "user-guide-reading-timer", OUTPUTS.timer);
+
+    await openNote(driver, FILES.gymSession);
+    await waitCss(driver, '[data-testid="atomic-gym-log"]');
+    await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
+    await parkMouse(driver);
+    await sleep(500);
+    await captureTo(driver, "user-guide-gym-log", OUTPUTS.gymLog);
 
     await openNote(driver, FILES.bookShelf);
     await waitCss(driver, '[data-testid="atomic-bookshelf"]');

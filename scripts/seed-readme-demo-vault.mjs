@@ -128,6 +128,10 @@ weight_unit: kg
 
 # Gym — ${date}
 
+\`\`\`atomic-gym-log
+# No options. Pick an exercise, enter weight and reps, then add a set to this note's table.
+\`\`\`
+
 | Exercise | Muscle | Weight | Reps | Notes |
 | --- | --- | --- | --- | --- |
 | Squat | Quads | 80 | 5 | |
@@ -358,6 +362,11 @@ function seedObsidianConfig() {
     dashboardPath: "atomics/Dashboard.md",
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
+    gymLogSetup: "complete",
+    gymExercises: [
+      { exercise: "Bench", muscle: "Chest" },
+      { exercise: "Squat", muscle: "Quads" },
+    ],
     activityTypes: [
       {
         id: "gym",

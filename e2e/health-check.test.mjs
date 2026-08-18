@@ -93,6 +93,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-timer"]');
       await waitCss(driver, '[data-testid="atomic-timer-start"]');
 
+      await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+      await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
+
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
       const books = await driver.findElements(By.css('[data-testid="atomic-book"]'));
@@ -152,6 +156,73 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         driver,
         'select[data-testid="atomic-property-select"][data-property="weight_unit"]',
       );
+    });
+  });
+
+  it("logs a gym set from the in-note dropdown and adds a new exercise", async () => {
+    await check(driver, "gym-logger", async () => {
+      await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+
+      const weight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
+      await weight.clear();
+      await weight.sendKeys("100");
+      const reps = await waitCss(driver, '[data-testid="atomic-gym-log-reps"]');
+      await reps.clear();
+      await reps.sendKeys("3");
+      const notes = await waitCss(driver, '[data-testid="atomic-gym-log-notes"]');
+      await notes.clear();
+      await notes.sendKeys("e2e squat");
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-gym-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Logged");
+
+      const afterSquat = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.gymSession(today.slice(0, 4), today))});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(afterSquat), /\| Squat \| Quads \| 100 \| 3 \| e2e squat \|/);
+
+      await driver.executeScript(`
+        const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+        select.value = "__atomic_new_exercise__";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      `);
+      const name = await waitCss(driver, '[data-testid="atomic-gym-new-exercise-name"]');
+      await name.click();
+      await name.clear();
+      await name.sendKeys("Deadlift");
+      await driver.executeScript(`
+        const muscle = document.querySelector('[data-testid="atomic-gym-new-exercise-muscle"]');
+        muscle.value = "Hamstrings";
+        muscle.dispatchEvent(new Event("change", { bubbles: true }));
+      `);
+      await driver.executeScript(`
+        const modal = document.querySelector('[data-testid="atomic-gym-new-exercise-modal"]');
+        const ok = modal && modal.querySelector("button.mod-cta");
+        if (ok) ok.click();
+      `);
+      await waitForNotice(driver, "Saved Deadlift");
+
+      const nextWeight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
+      await nextWeight.clear();
+      await nextWeight.sendKeys("140");
+      const nextReps = await waitCss(driver, '[data-testid="atomic-gym-log-reps"]');
+      await nextReps.clear();
+      await nextReps.sendKeys("5");
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-gym-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Logged");
+
+      const afterDeadlift = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.gymSession(today.slice(0, 4), today))});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(afterDeadlift), /\| Deadlift \| Hamstrings \| 140 \| 5 \|/);
     });
   });
 

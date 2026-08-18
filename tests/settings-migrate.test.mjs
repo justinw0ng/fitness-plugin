@@ -57,6 +57,25 @@ test("mergeSettings defaults include golf/gym paths and Reading", () => {
   );
   assert.equal("cuesPath" in s, false);
   assert.equal("series" in s, false);
+  assert.deepEqual(s.gymExercises, []);
+  assert.equal(s.gymLogSetup, "complete");
+});
+
+test("mergeSettings treats stored settings without gymLogSetup as an upgrade", () => {
+  const upgraded = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymExercises: [{ exercise: "Squat", muscle: "Quads" }, { exercise: "", muscle: "Back" }],
+  });
+  assert.equal(upgraded.gymLogSetup, "pending");
+  assert.deepEqual(upgraded.gymExercises, [{ exercise: "Squat", muscle: "Quads" }]);
+
+  const completed = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "skipped",
+    gymExercises: [{ exercise: "Bench", muscle: "Chest" }],
+  });
+  assert.equal(completed.gymLogSetup, "skipped");
+  assert.deepEqual(completed.gymExercises, [{ exercise: "Bench", muscle: "Chest" }]);
 });
 
 test("mergeSettings does not resurrect Reading deleted from modern activityTypes", () => {

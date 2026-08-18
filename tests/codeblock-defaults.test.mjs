@@ -19,6 +19,7 @@ const ALL_KINDS = [
   "atomic-gym-cues",
   "atomic-cues",
   "atomic-timer",
+  "atomic-gym-log",
   "atomic-bookshelf",
 ];
 
@@ -81,10 +82,13 @@ test("default cues require activity and document year", () => {
 test("optionless blocks only document that they have no options", () => {
   const actions = defaultAtomicBlockBody("atomic-actions", "en");
   const timer = defaultAtomicBlockBody("atomic-timer", "en");
+  const gymLog = defaultAtomicBlockBody("atomic-gym-log", "en");
   assert.match(actions, /# No options\. One button for each enabled habit\./);
   assert.match(timer, /# No options\. Start, Stop, Resume, or Discard/);
+  assert.match(gymLog, /# No options\. Pick an exercise, enter weight and reps/);
   assert.deepEqual(parseBlockOptions(actions), {});
   assert.deepEqual(parseBlockOptions(timer), {});
+  assert.deepEqual(parseBlockOptions(gymLog), {});
 });
 
 test("zh-Hant-en comments keep the Chinese half", () => {
