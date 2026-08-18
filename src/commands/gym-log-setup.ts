@@ -86,7 +86,7 @@ export async function runGymLogSetup(
     );
     return true;
   } catch (error) {
-    console.error("Gym logger setup failed", error);
+    console.error("Gym set log setup failed", error);
     new Notice(
       t("notice.gymLogSetupFailed", language, {
         message: error instanceof Error ? error.message : String(error),
