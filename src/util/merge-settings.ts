@@ -76,6 +76,7 @@ export function mergeSettings(raw: unknown): FitnessSettings {
   const base = {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
+    gymExercises: [...DEFAULT_SETTINGS.gymExercises],
   };
   if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(

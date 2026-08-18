@@ -47,7 +47,7 @@ export default class FitnessPlugin extends Plugin {
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(() => {
-      promptGymLogSetup(this);
+      this.promptGymLogSetupIfPending();
     });
 
     this.addCommand({
@@ -182,6 +182,10 @@ export default class FitnessPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  promptGymLogSetupIfPending(): void {
+    promptGymLogSetup(this);
   }
 
   trackLiveBlock(block: LiveBlock) {

@@ -15,6 +15,8 @@ import {
   promptNewGymExercise,
 } from "../commands/gym-log-setup";
 
+const pendingGymLogSelection = new Map<string, string>();
+
 export async function renderAtomicGymLog(
   plugin: FitnessPlugin,
   el: HTMLElement,
@@ -65,6 +67,11 @@ export async function renderAtomicGymLog(
     value: NEW_EXERCISE_SENTINEL,
   });
   if (catalog[0]) select.value = gymExercisePairValue(catalog[0]);
+  const pending = pendingGymLogSelection.get(sourcePath);
+  if (pending && Array.from(select.options).some((option) => option.value === pending)) {
+    select.value = pending;
+    pendingGymLogSelection.delete(sourcePath);
+  }
 
   const weightInput = addTextField(
     form,
@@ -109,19 +116,18 @@ export async function renderAtomicGymLog(
           muscle: created.muscle,
         }),
       );
-      await renderAtomicGymLog(plugin, el, sourcePath);
-      const next = el.querySelector('[data-testid="atomic-gym-log-exercise"]');
-      if (next instanceof HTMLSelectElement) {
-        next.value = gymExercisePairValue(created);
-      }
+      pendingGymLogSelection.set(sourcePath, gymExercisePairValue(created));
+      plugin.scheduleRefresh();
     })();
   });
 
   addButton.addEventListener("click", () => {
     void (async () => {
+      if (addButton.disabled) return;
       const pair = parseGymExercisePairValue(select.value);
       const weight = weightInput.value.trim();
       const reps = repsInput.value.trim();
+      const notes = notesInput.value.trim();
       if (!pair || !weight || !reps) {
         new Notice(t("notice.gymLogMissingFields", language));
         return;
@@ -132,30 +138,35 @@ export async function renderAtomicGymLog(
         return;
       }
       const headers = gymSetTableHeaders(language);
-      await plugin.app.vault.process(file, (latest) => {
-        return appendSetRow(
-          latest,
-          {
-            exercise: pair.exercise,
-            muscle: pair.muscle,
-            weight,
-            reps,
-            notes: notesInput.value.trim(),
-          },
-          headers,
-        ).markdown;
-      });
-      plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
-        pair,
-      ]);
-      await plugin.saveSettings();
-      plugin.scheduleRefresh();
-      weightInput.value = "";
-      repsInput.value = "";
-      notesInput.value = "";
-      new Notice(
-        t("notice.gymLogAdded", language, { exercise: pair.exercise }),
-      );
+      addButton.disabled = true;
+      try {
+        await plugin.app.vault.process(file, (latest) => {
+          return appendSetRow(
+            latest,
+            {
+              exercise: pair.exercise,
+              muscle: pair.muscle,
+              weight,
+              reps,
+              notes,
+            },
+            headers,
+          ).markdown;
+        });
+        plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
+          pair,
+        ]);
+        await plugin.saveSettings();
+        plugin.scheduleRefresh();
+        weightInput.value = "";
+        repsInput.value = "";
+        notesInput.value = "";
+        new Notice(
+          t("notice.gymLogAdded", language, { exercise: pair.exercise }),
+        );
+      } finally {
+        addButton.disabled = false;
+      }
     })();
   });
 }

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mergeSettings } from "../src/util/merge-settings.ts";
+import { DEFAULT_SETTINGS } from "../src/types.ts";
 
 test("mergeSettings defaults include golf/gym paths and Reading", () => {
   const s = mergeSettings(null);
@@ -59,6 +60,9 @@ test("mergeSettings defaults include golf/gym paths and Reading", () => {
   assert.equal("series" in s, false);
   assert.deepEqual(s.gymExercises, []);
   assert.equal(s.gymLogSetup, "complete");
+  s.gymExercises.push({ exercise: "Squat", muscle: "Quads" });
+  assert.deepEqual(mergeSettings(null).gymExercises, []);
+  assert.deepEqual(DEFAULT_SETTINGS.gymExercises, []);
 });
 
 test("mergeSettings treats stored settings without gymLogSetup as an upgrade", () => {

@@ -205,6 +205,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         if (ok) ok.click();
       `);
       await waitForNotice(driver, "Saved Deadlift");
+      await driver.wait(async () => {
+        return driver.executeScript(`
+          const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+          return !!(select && Array.from(select.options).some((option) =>
+            (option.textContent || "").includes("Deadlift")
+          ));
+        `);
+      }, 8000);
 
       const nextWeight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
       await nextWeight.clear();
@@ -223,6 +231,31 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
       `);
       assert.match(String(afterDeadlift), /\| Deadlift \| Hamstrings \| 140 \| 5 \|/);
+    });
+  });
+
+  it("prompts gym log setup when pending and dismisses it with Later", async () => {
+    await check(driver, "gym-log-setup", async () => {
+      await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        plugin.settings.gymLogSetup = "pending";
+        plugin.promptGymLogSetupIfPending();
+      `);
+      await waitCss(driver, '[data-testid="atomic-gym-log-setup-modal"]');
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-gym-log-setup-later"]').click();
+      `);
+      await waitForNotice(driver, "You can import gym exercises later");
+      await driver.wait(async () => {
+        const leftover = await driver.findElements(
+          By.css('[data-testid="atomic-gym-log-setup-modal"]'),
+        );
+        return leftover.length === 0;
+      }, 8000);
+      const status = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").settings.gymLogSetup`,
+      );
+      assert.equal(status, "skipped");
     });
   });
 
@@ -317,6 +350,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         );
         assert.equal(swatches.length, 4);
       }
+
+      await waitCss(driver, '[data-testid="atomic-setting-gym-exercises"]');
+      await waitCss(driver, '[data-testid="atomic-setting-gym-import"]');
 
       const add = await waitCss(driver, '[data-testid="atomic-setting-add-hobby"]');
       const nameInput = await add.findElement(By.css("input"));

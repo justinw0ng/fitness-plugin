@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync, copyFileSyn
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseHeroBookLimit, parseSeedVault } from "./hero-capture-options.mjs";
+import { E2E_GYM_LOG_FENCE } from "../e2e/lib/vault.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -128,9 +129,7 @@ weight_unit: kg
 
 # Gym — ${date}
 
-\`\`\`atomic-gym-log
-# No options. Pick an exercise, enter weight and reps, then add a set to this note's table.
-\`\`\`
+${E2E_GYM_LOG_FENCE}
 
 | Exercise | Muscle | Weight | Reps | Notes |
 | --- | --- | --- | --- | --- |

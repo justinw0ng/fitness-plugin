@@ -41,6 +41,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const createSession = src("src/commands/create-session.ts");
   assert.match(createSession, /atomic-gym-log/);
 
+  const gymSetup = src("src/commands/gym-log-setup.ts");
+  assert.match(gymSetup, /atomic-gym-log-setup-modal/);
+  assert.match(gymSetup, /atomic-gym-log-setup-later/);
+  assert.match(gymSetup, /atomic-gym-log-setup-confirm/);
+
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
 
@@ -54,6 +59,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-setting-activity/);
   assert.match(settings, /atomic-setting-add-hobby/);
   assert.match(settings, /atomic-setting-gym-import/);
+  assert.match(settings, /atomic-setting-gym-exercises/);
   assert.match(settings, /atomic-color-swatch/);
   assert.match(settings, /getSettingDefinitions\(/);
   assert.doesNotMatch(settings, /setWarning\(/);
@@ -64,6 +70,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const properties = src("src/properties/property-select.ts");
   assert.match(properties, /"data-testid": "atomic-property-select"/);
+
+  const health = src("e2e/health-check.test.mjs");
+  assert.match(health, /atomic-setting-gym-import/);
+  assert.match(health, /atomic-setting-gym-exercises/);
+  assert.match(health, /atomic-gym-log-setup-modal/);
+  assert.match(health, /atomic-gym-log-setup-later/);
+  assert.match(health, /promptGymLogSetupIfPending/);
 
   const styles = src("styles.css");
   assert.doesNotMatch(styles, /:has\(/);

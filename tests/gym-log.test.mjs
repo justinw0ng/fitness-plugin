@@ -131,6 +131,22 @@ test("appendSetRow appends after filled rows and creates a table when missing", 
   assert.match(created.markdown, /\| Squat \| Quads \| 80 \| 5 \|  \|/);
 });
 
+test("appendSetRow keeps a narrow table's column count", () => {
+  const markdown = `| Exercise | Muscle | Notes |
+| --- | --- | --- |
+| Squat | Quads | deep |
+`;
+  const result = appendSetRow(markdown, {
+    exercise: "Bench",
+    muscle: "Chest",
+    weight: 60,
+    reps: 8,
+    notes: "pause",
+  });
+  assert.match(result.markdown, /\| Bench \| Chest \| 60 \|/);
+  assert.doesNotMatch(result.markdown, /\| Bench \| Chest \| 60 \| 8 \|/);
+});
+
 test("insertGymLogFence is idempotent and sits above the table", () => {
   const first = insertGymLogFence(`# Gym\n\n${TABLE}\n`, FENCE);
   assert.equal(first.changed, true);
@@ -140,6 +156,26 @@ test("insertGymLogFence is idempotent and sits above the table", () => {
   const second = insertGymLogFence(first.markdown, FENCE);
   assert.equal(second.changed, false);
   assert.equal(second.markdown, first.markdown);
+});
+
+test("insertGymLogFence does not collapse extra blank lines elsewhere", () => {
+  const markdown = `# Gym
+
+
+\`\`\`text
+keep
+
+
+
+this
+\`\`\`
+
+${TABLE}
+`;
+  const result = insertGymLogFence(markdown, FENCE);
+  assert.equal(result.changed, true);
+  assert.match(result.markdown, /```text\nkeep\n\n\n\nthis\n```/);
+  assert.match(result.markdown, /```atomic-gym-log[\s\S]*\| Exercise \| Muscle \|/);
 });
 
 test("insertGymLogFence adds a table when a dated session has none", () => {

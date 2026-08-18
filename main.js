@@ -3818,16 +3818,21 @@ function insertGymLogFence(markdown, fence, headers = DEFAULT_SET_TABLE_HEADERS)
   const block = String(fence || "").trim();
   if (!block) return { markdown: source, changed: false };
   if (table) {
-    const prefix = lines.slice(0, table.header).join("\n").replace(/\s+$/, "");
+    const prefix2 = lines.slice(0, table.header).join("\n").replace(/\s+$/, "");
     const rest = lines.slice(table.header).join("\n");
-    const joined = [prefix, block, rest].filter((part) => part.length > 0).join("\n\n");
-    return { markdown: `${joined.replace(/\n{3,}/g, "\n\n")}
-`.replace(/\n+$/, "\n"), changed: true };
+    return {
+      markdown: withSingleTrailingNewline(joinMarkdownSeams([prefix2, block, rest])),
+      changed: true
+    };
   }
-  const withTable = `${ensureTrailingNewline2(source).replace(/\n+$/, "\n\n")}${block}
-
-${emptySetTable(headers)}`;
-  return { markdown: withTable.replace(/\n{3,}/g, "\n\n"), changed: true };
+  const prefix = source.replace(/\n+$/, "");
+  const tableMarkdown = emptySetTable(headers).replace(/\n+$/, "");
+  return {
+    markdown: withSingleTrailingNewline(
+      joinMarkdownSeams([prefix, block, tableMarkdown])
+    ),
+    changed: true
+  };
 }
 function planGymLogSetup(files, fence, headers = DEFAULT_SET_TABLE_HEADERS) {
   const notes = [];
@@ -3853,6 +3858,13 @@ function ensureTrailingNewline2(markdown) {
   return source.endsWith("\n") ? source : `${source}
 `;
 }
+function withSingleTrailingNewline(markdown) {
+  return `${String(markdown || "").replace(/\n+$/, "")}
+`;
+}
+function joinMarkdownSeams(parts) {
+  return parts.filter((part) => part.length > 0).join("\n\n");
+}
 function parsePipeCells(line) {
   if (!line.trim().startsWith("|")) return [];
   return line.split("|").slice(1, -1).map((cell) => cell.trim());
@@ -3875,18 +3887,10 @@ function findSetTableRange(lines) {
   let columnCount = 5;
   for (let i = 0; i < lines.length; i += 1) {
     const cells = parsePipeCells(lines[i] ?? "");
-    if (!cells.length) {
-      if (header >= 0) break;
-      continue;
-    }
-    if (header < 0) {
-      if (isSetTableHeader(cells)) {
-        header = i;
-        columnCount = Math.max(cells.length, 5);
-      }
-      continue;
-    }
-    if (isAlignmentRow(cells)) continue;
+    if (!isSetTableHeader(cells)) continue;
+    header = i;
+    columnCount = cells.length;
+    break;
   }
   if (header < 0) return null;
   let firstData = header + 1;
@@ -3936,23 +3940,29 @@ async function applyGymLogSetup(plugin) {
   const language = plugin.settings.language;
   const fence = defaultAtomicBlockFence("atomic-gym-log", language);
   const headers = gymSetTableHeaders(language);
-  const files = [];
+  const paths = [];
   for (const activity of plugin.settings.activityTypes) {
     if (!activity.supportsSetTable) continue;
     for (const file of plugin.data.listMarkdownInFolder(activity.folder)) {
       if (!isGymLogMigrationTarget(file.path)) continue;
-      files.push({
-        path: file.path,
-        markdown: await plugin.data.readBody(file.path)
-      });
+      paths.push(file.path);
     }
   }
+  const files = await Promise.all(
+    paths.map(async (path) => ({
+      path,
+      markdown: await plugin.data.readBody(path)
+    }))
+  );
   const plan = planGymLogSetup(files, fence, headers);
-  for (const note of plan.notes) {
-    const current = await plugin.data.readBody(note.path);
-    const latest = insertGymLogFence(current, fence, headers);
-    if (latest.changed) await plugin.data.writeNote(note.path, latest.markdown);
-  }
+  await Promise.all(
+    plan.notes.map(
+      (note) => plugin.data.processNote(note.path, (current) => {
+        const latest = insertGymLogFence(current, fence, headers);
+        return latest.changed ? latest.markdown : current;
+      })
+    )
+  );
   plugin.settings.gymExercises = mergeGymExercises(
     plugin.settings.gymExercises,
     plan.pairs
@@ -4128,6 +4138,7 @@ var NewGymExerciseModal = class extends import_obsidian3.Modal {
 };
 
 // src/views/gym-log.ts
+var pendingGymLogSelection = /* @__PURE__ */ new Map();
 async function renderAtomicGymLog(plugin, el, sourcePath) {
   el.empty();
   const language = plugin.settings.language;
@@ -4172,6 +4183,11 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
     value: NEW_EXERCISE_SENTINEL
   });
   if (catalog[0]) select.value = gymExercisePairValue(catalog[0]);
+  const pending = pendingGymLogSelection.get(sourcePath);
+  if (pending && Array.from(select.options).some((option) => option.value === pending)) {
+    select.value = pending;
+    pendingGymLogSelection.delete(sourcePath);
+  }
   const weightInput = addTextField(
     form,
     t("view.gymLog.weight", language),
@@ -4213,18 +4229,17 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
           muscle: created.muscle
         })
       );
-      await renderAtomicGymLog(plugin, el, sourcePath);
-      const next = el.querySelector('[data-testid="atomic-gym-log-exercise"]');
-      if (next instanceof HTMLSelectElement) {
-        next.value = gymExercisePairValue(created);
-      }
+      pendingGymLogSelection.set(sourcePath, gymExercisePairValue(created));
+      plugin.scheduleRefresh();
     })();
   });
   addButton.addEventListener("click", () => {
     void (async () => {
+      if (addButton.disabled) return;
       const pair = parseGymExercisePairValue(select.value);
       const weight = weightInput.value.trim();
       const reps = repsInput.value.trim();
+      const notes = notesInput.value.trim();
       if (!pair || !weight || !reps) {
         new import_obsidian4.Notice(t("notice.gymLogMissingFields", language));
         return;
@@ -4235,30 +4250,35 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
         return;
       }
       const headers = gymSetTableHeaders(language);
-      await plugin.app.vault.process(file, (latest) => {
-        return appendSetRow(
-          latest,
-          {
-            exercise: pair.exercise,
-            muscle: pair.muscle,
-            weight,
-            reps,
-            notes: notesInput.value.trim()
-          },
-          headers
-        ).markdown;
-      });
-      plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
-        pair
-      ]);
-      await plugin.saveSettings();
-      plugin.scheduleRefresh();
-      weightInput.value = "";
-      repsInput.value = "";
-      notesInput.value = "";
-      new import_obsidian4.Notice(
-        t("notice.gymLogAdded", language, { exercise: pair.exercise })
-      );
+      addButton.disabled = true;
+      try {
+        await plugin.app.vault.process(file, (latest) => {
+          return appendSetRow(
+            latest,
+            {
+              exercise: pair.exercise,
+              muscle: pair.muscle,
+              weight,
+              reps,
+              notes
+            },
+            headers
+          ).markdown;
+        });
+        plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
+          pair
+        ]);
+        await plugin.saveSettings();
+        plugin.scheduleRefresh();
+        weightInput.value = "";
+        repsInput.value = "";
+        notesInput.value = "";
+        new import_obsidian4.Notice(
+          t("notice.gymLogAdded", language, { exercise: pair.exercise })
+        );
+      } finally {
+        addButton.disabled = false;
+      }
     })();
   });
 }
@@ -4913,6 +4933,16 @@ var VaultDataSource = class {
     }
     return this.createNote(norm, content);
   }
+  /**
+   * Apply an updater to the current file bytes. Returns null when the path
+   * is missing. Unchanged content is returned as-is so callers can skip a rewrite.
+   */
+  async processNote(path, updater) {
+    const existing = this.app.vault.getAbstractFileByPath((0, import_obsidian7.normalizePath)(path));
+    if (!(existing instanceof import_obsidian7.TFile)) return null;
+    await this.app.vault.process(existing, updater);
+    return existing;
+  }
   async openPath(path) {
     const norm = (0, import_obsidian7.normalizePath)(path);
     const file = this.app.vault.getAbstractFileByPath(norm);
@@ -5316,7 +5346,8 @@ function legacySeriesActivities(values, fallback) {
 function mergeSettings(raw) {
   const base = {
     ...DEFAULT_SETTINGS,
-    activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes)
+    activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
+    gymExercises: [...DEFAULT_SETTINGS.gymExercises]
   };
   if (!isRecord3(raw)) return base;
   const golfCuesPath = safeVaultPath(
@@ -5860,7 +5891,7 @@ var FitnessPlugin = class extends import_obsidian10.Plugin {
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(() => {
-      promptGymLogSetup(this);
+      this.promptGymLogSetupIfPending();
     });
     this.addCommand({
       id: "new-gym-session",
@@ -5981,6 +6012,9 @@ var FitnessPlugin = class extends import_obsidian10.Plugin {
   }
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+  promptGymLogSetupIfPending() {
+    promptGymLogSetup(this);
   }
   trackLiveBlock(block) {
     this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);

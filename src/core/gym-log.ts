@@ -195,12 +195,20 @@ export function insertGymLogFence(
   if (table) {
     const prefix = lines.slice(0, table.header).join("\n").replace(/\s+$/, "");
     const rest = lines.slice(table.header).join("\n");
-    const joined = [prefix, block, rest].filter((part) => part.length > 0).join("\n\n");
-    return { markdown: `${joined.replace(/\n{3,}/g, "\n\n")}\n`.replace(/\n+$/, "\n"), changed: true };
+    return {
+      markdown: withSingleTrailingNewline(joinMarkdownSeams([prefix, block, rest])),
+      changed: true,
+    };
   }
 
-  const withTable = `${ensureTrailingNewline(source).replace(/\n+$/, "\n\n")}${block}\n\n${emptySetTable(headers)}`;
-  return { markdown: withTable.replace(/\n{3,}/g, "\n\n"), changed: true };
+  const prefix = source.replace(/\n+$/, "");
+  const tableMarkdown = emptySetTable(headers).replace(/\n+$/, "");
+  return {
+    markdown: withSingleTrailingNewline(
+      joinMarkdownSeams([prefix, block, tableMarkdown]),
+    ),
+    changed: true,
+  };
 }
 
 export type GymLogNotePlan = {
@@ -249,6 +257,15 @@ function ensureTrailingNewline(markdown: string): string {
   return source.endsWith("\n") ? source : `${source}\n`;
 }
 
+function withSingleTrailingNewline(markdown: string): string {
+  return `${String(markdown || "").replace(/\n+$/, "")}\n`;
+}
+
+/** Join inserted pieces with one blank line at each seam, leaving other gaps intact. */
+function joinMarkdownSeams(parts: string[]): string {
+  return parts.filter((part) => part.length > 0).join("\n\n");
+}
+
 function parsePipeCells(line: string): string[] {
   if (!line.trim().startsWith("|")) return [];
   return line
@@ -281,19 +298,10 @@ function findSetTableRange(
   let columnCount = 5;
   for (let i = 0; i < lines.length; i += 1) {
     const cells = parsePipeCells(lines[i] ?? "");
-    if (!cells.length) {
-      if (header >= 0) break;
-      continue;
-    }
-    if (header < 0) {
-      if (isSetTableHeader(cells)) {
-        header = i;
-        columnCount = Math.max(cells.length, 5);
-      }
-      continue;
-    }
-    if (isAlignmentRow(cells)) continue;
-    // data row or later
+    if (!isSetTableHeader(cells)) continue;
+    header = i;
+    columnCount = cells.length;
+    break;
   }
   if (header < 0) return null;
 

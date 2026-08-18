@@ -36,23 +36,29 @@ export async function applyGymLogSetup(
   const language = plugin.settings.language;
   const fence = defaultAtomicBlockFence("atomic-gym-log", language);
   const headers = gymSetTableHeaders(language);
-  const files: Array<{ path: string; markdown: string }> = [];
+  const paths: string[] = [];
   for (const activity of plugin.settings.activityTypes) {
     if (!activity.supportsSetTable) continue;
     for (const file of plugin.data.listMarkdownInFolder(activity.folder)) {
       if (!isGymLogMigrationTarget(file.path)) continue;
-      files.push({
-        path: file.path,
-        markdown: await plugin.data.readBody(file.path),
-      });
+      paths.push(file.path);
     }
   }
+  const files = await Promise.all(
+    paths.map(async (path) => ({
+      path,
+      markdown: await plugin.data.readBody(path),
+    })),
+  );
   const plan = planGymLogSetup(files, fence, headers);
-  for (const note of plan.notes) {
-    const current = await plugin.data.readBody(note.path);
-    const latest = insertGymLogFence(current, fence, headers);
-    if (latest.changed) await plugin.data.writeNote(note.path, latest.markdown);
-  }
+  await Promise.all(
+    plan.notes.map((note) =>
+      plugin.data.processNote(note.path, (current) => {
+        const latest = insertGymLogFence(current, fence, headers);
+        return latest.changed ? latest.markdown : current;
+      }),
+    ),
+  );
   plugin.settings.gymExercises = mergeGymExercises(
     plugin.settings.gymExercises,
     plan.pairs,
