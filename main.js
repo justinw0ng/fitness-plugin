@@ -3761,6 +3761,29 @@ function mergeGymExercises(existing, incoming) {
 function extractExercisePairs(markdown) {
   return mergeGymExercises([], pairsFromSetTable(markdown));
 }
+function lastExercisePairFromSetTable(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const table = findSetTableRange(lines);
+  if (!table) return null;
+  for (let i = table.end; i >= table.firstData; i -= 1) {
+    const cells = parsePipeCells(lines[i] ?? "");
+    if (isAlignmentRow(cells) || isEmptySetTableRow(cells)) continue;
+    const exercise = cells[0] || "";
+    const muscle = cells[1] || "";
+    if (!exercise || !muscle) continue;
+    return { exercise, muscle };
+  }
+  return null;
+}
+function resolveGymLogDropdownValue(remembered, lastLogged, catalogFirst, optionValues) {
+  const allowed = new Set(
+    optionValues.filter((value) => value && value !== NEW_EXERCISE_SENTINEL)
+  );
+  if (remembered && allowed.has(remembered)) return remembered;
+  if (lastLogged && allowed.has(lastLogged)) return lastLogged;
+  if (catalogFirst && allowed.has(catalogFirst)) return catalogFirst;
+  return "";
+}
 function hasGymLogBlock(markdown) {
   return GYM_LOG_FENCE_RE.test(String(markdown || ""));
 }
@@ -4141,7 +4164,14 @@ var NewGymExerciseModal = class extends import_obsidian3.Modal {
 };
 
 // src/views/gym-log.ts
-var pendingGymLogSelection = /* @__PURE__ */ new Map();
+var lastGymLogSelection = /* @__PURE__ */ new Map();
+function rememberGymLogSelection(sourcePath, value) {
+  if (!sourcePath || !parseGymExercisePairValue(value)) return;
+  lastGymLogSelection.set(sourcePath, value);
+}
+function gymLogOptionValues(select) {
+  return Array.from(select.options, (option) => option.value);
+}
 async function renderAtomicGymLog(plugin, el, sourcePath) {
   el.empty();
   const language = plugin.settings.language;
@@ -4185,12 +4215,21 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
     text: t("view.gymLog.newExercise", language),
     value: NEW_EXERCISE_SENTINEL
   });
-  if (catalog[0]) select.value = gymExercisePairValue(catalog[0]);
-  const pending = pendingGymLogSelection.get(sourcePath);
-  if (pending && Array.from(select.options).some((option) => option.value === pending)) {
-    select.value = pending;
-    pendingGymLogSelection.delete(sourcePath);
+  let lastLoggedValue = null;
+  const fileForLast = plugin.data.getFileByPath(sourcePath);
+  if (fileForLast) {
+    const lastPair = lastExercisePairFromSetTable(
+      await plugin.app.vault.cachedRead(fileForLast)
+    );
+    if (lastPair) lastLoggedValue = gymExercisePairValue(lastPair);
   }
+  const catalogFirst = catalog[0] ? gymExercisePairValue(catalog[0]) : "";
+  select.value = resolveGymLogDropdownValue(
+    lastGymLogSelection.get(sourcePath),
+    lastLoggedValue,
+    catalogFirst,
+    gymLogOptionValues(select)
+  );
   const weightInput = addTextField(
     form,
     t("view.gymLog.weight", language),
@@ -4215,11 +4254,19 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
     attr: { "data-testid": "atomic-gym-log-add" }
   });
   select.addEventListener("change", () => {
-    if (select.value !== NEW_EXERCISE_SENTINEL) return;
+    if (select.value !== NEW_EXERCISE_SENTINEL) {
+      rememberGymLogSelection(sourcePath, select.value);
+      return;
+    }
     void (async () => {
       const created = await promptNewGymExercise(plugin);
       if (!created) {
-        select.value = catalog[0] ? gymExercisePairValue(catalog[0]) : "";
+        select.value = resolveGymLogDropdownValue(
+          lastGymLogSelection.get(sourcePath),
+          lastLoggedValue,
+          catalogFirst,
+          gymLogOptionValues(select)
+        );
         return;
       }
       plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
@@ -4232,7 +4279,7 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
           muscle: created.muscle
         })
       );
-      pendingGymLogSelection.set(sourcePath, gymExercisePairValue(created));
+      rememberGymLogSelection(sourcePath, gymExercisePairValue(created));
       plugin.scheduleRefresh();
     })();
   });
@@ -4247,6 +4294,7 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
         new import_obsidian4.Notice(t("notice.gymLogMissingFields", language));
         return;
       }
+      rememberGymLogSelection(sourcePath, select.value);
       const file = plugin.data.getFileByPath(sourcePath);
       if (!file) {
         new import_obsidian4.Notice(t("notice.gymLogNeedsSavedNote", language));
