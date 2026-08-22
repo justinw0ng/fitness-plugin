@@ -109,6 +109,43 @@ export function extractExercisePairs(markdown: string): GymExercisePair[] {
   return mergeGymExercises([], pairsFromSetTable(markdown));
 }
 
+/** Last filled exercise+muscle in the note's set table, or null if none. */
+export function lastExercisePairFromSetTable(
+  markdown: string,
+): GymExercisePair | null {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const table = findSetTableRange(lines);
+  if (!table) return null;
+  for (let i = table.end; i >= table.firstData; i -= 1) {
+    const cells = parsePipeCells(lines[i] ?? "");
+    if (isAlignmentRow(cells) || isEmptySetTableRow(cells)) continue;
+    const exercise = cells[0] || "";
+    const muscle = cells[1] || "";
+    if (!exercise || !muscle) continue;
+    return { exercise, muscle };
+  }
+  return null;
+}
+
+/**
+ * Keep the last exercise on this note: remembered pick, else last logged row,
+ * else the first catalog option.
+ */
+export function resolveGymLogDropdownValue(
+  remembered: string | undefined,
+  lastLogged: string | null | undefined,
+  catalogFirst: string | null | undefined,
+  optionValues: readonly string[],
+): string {
+  const allowed = new Set(
+    optionValues.filter((value) => value && value !== NEW_EXERCISE_SENTINEL),
+  );
+  if (remembered && allowed.has(remembered)) return remembered;
+  if (lastLogged && allowed.has(lastLogged)) return lastLogged;
+  if (catalogFirst && allowed.has(catalogFirst)) return catalogFirst;
+  return "";
+}
+
 export function hasGymLogBlock(markdown: string): boolean {
   return GYM_LOG_FENCE_RE.test(String(markdown || ""));
 }

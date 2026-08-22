@@ -12,11 +12,13 @@ import {
   isDailySessionPath,
   isGymLogMigrationTarget,
   isGymLogSetup,
+  lastExercisePairFromSetTable,
   mergeGymExercises,
   normalizeGymExercisePair,
   normalizeGymExercises,
   parseGymExercisePairValue,
   planGymLogSetup,
+  resolveGymLogDropdownValue,
   sanitizeSetTableCell,
 } from "../src/core/gym-log.ts";
 
@@ -55,6 +57,36 @@ test("normalizeGymExercises drops incomplete pairs and de-duplicates", () => {
   assert.equal(normalizeGymExercisePair("Squat"), null);
   assert.equal(isGymLogSetup("pending"), true);
   assert.equal(isGymLogSetup("done"), false);
+});
+
+test("lastExercisePairFromSetTable returns the last filled row", () => {
+  assert.deepEqual(lastExercisePairFromSetTable(TABLE), {
+    exercise: "Bench",
+    muscle: "Chest",
+  });
+  assert.deepEqual(
+    lastExercisePairFromSetTable(`${TABLE}\n|  |  |  |  |  |\n`),
+    { exercise: "Bench", muscle: "Chest" },
+  );
+  assert.equal(lastExercisePairFromSetTable("# Gym\n"), null);
+  assert.deepEqual(
+    lastExercisePairFromSetTable(`${TABLE}\n| Pull-up |  | BW | 6 | |\n`),
+    { exercise: "Bench", muscle: "Chest" },
+  );
+});
+
+test("resolveGymLogDropdownValue prefers remembered, then last logged", () => {
+  const squat = JSON.stringify(["Squat", "Quads"]);
+  const bench = JSON.stringify(["Bench", "Chest"]);
+  const options = ["", squat, bench, "__atomic_new_exercise__"];
+  assert.equal(resolveGymLogDropdownValue(squat, bench, bench, options), squat);
+  assert.equal(resolveGymLogDropdownValue(undefined, squat, bench, options), squat);
+  assert.equal(resolveGymLogDropdownValue(undefined, null, bench, options), bench);
+  assert.equal(resolveGymLogDropdownValue("gone", null, null, options), "");
+  assert.equal(
+    resolveGymLogDropdownValue("__atomic_new_exercise__", squat, bench, options),
+    squat,
+  );
 });
 
 test("extractExercisePairs reads unique filled table rows", () => {
