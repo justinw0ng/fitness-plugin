@@ -164,6 +164,16 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
 
+      const squatValue = JSON.stringify(["Squat", "Quads"]);
+      const deadliftValue = JSON.stringify(["Deadlift", "Hamstrings"]);
+      await driver.wait(async () => {
+        const value = await driver.executeScript(`
+          const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+          return select ? select.value : "";
+        `);
+        return value === squatValue;
+      }, 8000);
+
       const weight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
       await weight.clear();
       await weight.sendKeys("100");
@@ -184,6 +194,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
       `);
       assert.match(String(afterSquat), /\| Squat \| Quads \| 100 \| 3 \| e2e squat \|/);
+      await driver.wait(async () => {
+        const value = await driver.executeScript(`
+          const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+          return select ? select.value : "";
+        `);
+        return value === squatValue;
+      }, 8000);
 
       await driver.executeScript(`
         const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
@@ -208,9 +225,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.wait(async () => {
         return driver.executeScript(`
           const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
-          return !!(select && Array.from(select.options).some((option) =>
-            (option.textContent || "").includes("Deadlift")
-          ));
+          return !!(select && select.value === ${JSON.stringify(deadliftValue)});
         `);
       }, 8000);
 
@@ -231,6 +246,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
       `);
       assert.match(String(afterDeadlift), /\| Deadlift \| Hamstrings \| 140 \| 5 \|/);
+      await driver.wait(async () => {
+        const value = await driver.executeScript(`
+          const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+          return select ? select.value : "";
+        `);
+        return value === deadliftValue;
+      }, 8000);
     });
   });
 

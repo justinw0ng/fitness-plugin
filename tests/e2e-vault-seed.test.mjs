@@ -79,7 +79,10 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     );
     assert.equal(settings.language, "en");
     assert.equal(settings.gymLogSetup, "complete");
-    assert.deepEqual(settings.gymExercises, [{ exercise: "Squat", muscle: "Quads" }]);
+    assert.deepEqual(settings.gymExercises, [
+      { exercise: "Bench", muscle: "Chest" },
+      { exercise: "Squat", muscle: "Quads" },
+    ]);
     assert.deepEqual(
       settings.activityTypes.map((activity) => activity.id),
       pluginSettings().activityTypes.map((activity) => activity.id),

@@ -298,7 +298,7 @@ New gym notes include:
 
 1. Pick an **exercise** from the dropdown (ones you have logged before).
 2. Enter **Weight**, **Reps**, and an optional **Notes** value.
-3. Click **Add set**. A row appears in the table on the same note.
+3. Click **Add set**. A row appears in the table on the same note. The dropdown stays on that exercise so the next set is one tap away.
 
 **New exercise…** at the bottom of the dropdown saves a new exercise so you can pick it next time. Saved exercises live in plugin settings, not in a vault note.
 

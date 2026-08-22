@@ -4,9 +4,11 @@ import {
   appendSetRow,
   gymExercisePairLabel,
   gymExercisePairValue,
+  lastExercisePairFromSetTable,
   mergeGymExercises,
   NEW_EXERCISE_SENTINEL,
   parseGymExercisePairValue,
+  resolveGymLogDropdownValue,
 } from "../core/gym-log";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
@@ -15,7 +17,16 @@ import {
   promptNewGymExercise,
 } from "../commands/gym-log-setup";
 
-const pendingGymLogSelection = new Map<string, string>();
+const lastGymLogSelection = new Map<string, string>();
+
+function rememberGymLogSelection(sourcePath: string, value: string): void {
+  if (!sourcePath || !parseGymExercisePairValue(value)) return;
+  lastGymLogSelection.set(sourcePath, value);
+}
+
+function gymLogOptionValues(select: HTMLSelectElement): string[] {
+  return Array.from(select.options, (option) => option.value);
+}
 
 export async function renderAtomicGymLog(
   plugin: FitnessPlugin,
@@ -66,12 +77,21 @@ export async function renderAtomicGymLog(
     text: t("view.gymLog.newExercise", language),
     value: NEW_EXERCISE_SENTINEL,
   });
-  if (catalog[0]) select.value = gymExercisePairValue(catalog[0]);
-  const pending = pendingGymLogSelection.get(sourcePath);
-  if (pending && Array.from(select.options).some((option) => option.value === pending)) {
-    select.value = pending;
-    pendingGymLogSelection.delete(sourcePath);
+  let lastLoggedValue: string | null = null;
+  const fileForLast = plugin.data.getFileByPath(sourcePath);
+  if (fileForLast) {
+    const lastPair = lastExercisePairFromSetTable(
+      await plugin.app.vault.cachedRead(fileForLast),
+    );
+    if (lastPair) lastLoggedValue = gymExercisePairValue(lastPair);
   }
+  const catalogFirst = catalog[0] ? gymExercisePairValue(catalog[0]) : "";
+  select.value = resolveGymLogDropdownValue(
+    lastGymLogSelection.get(sourcePath),
+    lastLoggedValue,
+    catalogFirst,
+    gymLogOptionValues(select),
+  );
 
   const weightInput = addTextField(
     form,
@@ -99,11 +119,19 @@ export async function renderAtomicGymLog(
   });
 
   select.addEventListener("change", () => {
-    if (select.value !== NEW_EXERCISE_SENTINEL) return;
+    if (select.value !== NEW_EXERCISE_SENTINEL) {
+      rememberGymLogSelection(sourcePath, select.value);
+      return;
+    }
     void (async () => {
       const created = await promptNewGymExercise(plugin);
       if (!created) {
-        select.value = catalog[0] ? gymExercisePairValue(catalog[0]) : "";
+        select.value = resolveGymLogDropdownValue(
+          lastGymLogSelection.get(sourcePath),
+          lastLoggedValue,
+          catalogFirst,
+          gymLogOptionValues(select),
+        );
         return;
       }
       plugin.settings.gymExercises = mergeGymExercises(plugin.settings.gymExercises, [
@@ -116,7 +144,7 @@ export async function renderAtomicGymLog(
           muscle: created.muscle,
         }),
       );
-      pendingGymLogSelection.set(sourcePath, gymExercisePairValue(created));
+      rememberGymLogSelection(sourcePath, gymExercisePairValue(created));
       plugin.scheduleRefresh();
     })();
   });
@@ -132,6 +160,7 @@ export async function renderAtomicGymLog(
         new Notice(t("notice.gymLogMissingFields", language));
         return;
       }
+      rememberGymLogSelection(sourcePath, select.value);
       const file = plugin.data.getFileByPath(sourcePath);
       if (!file) {
         new Notice(t("notice.gymLogNeedsSavedNote", language));

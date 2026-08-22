@@ -177,7 +177,10 @@ export function pluginSettings() {
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
     gymLogSetup: "complete",
-    gymExercises: [{ exercise: "Squat", muscle: "Quads" }],
+    gymExercises: [
+      { exercise: "Bench", muscle: "Chest" },
+      { exercise: "Squat", muscle: "Quads" },
+    ],
     activityTypes: [
       {
         id: "gym",
